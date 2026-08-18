@@ -1,0 +1,30 @@
+version: "3.0"
+services:
+  antora:
+    image: quay.io/rhpds/antora:v1.3.0
+    user: "0:0"
+    environment:
+      - WAIT_FOR_GIT_CLONER=false
+      - ANTORA_ENABLE_DEV_MODE=true
+      - ANTORA_WATCH=true
+    volumes:
+      - ./:/files:z
+      - www:/output:z
+
+  httpd:
+    image: registry.access.redhat.com/ubi10/httpd-24:10.1
+    init: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - www:/var/www/html:z
+    depends_on:
+      - antora
+    # Apache httpd uses SIGWINCH for graceful shutdown. When running
+    # attached (podman compose up), terminal resizes forward SIGWINCH into
+    # the container and kill httpd. This wrapper absorbs SIGWINCH while
+    # still forwarding SIGTERM so `podman compose down` works normally.
+    command: ["/bin/bash", "-c", "trap '' WINCH; trap 'kill -TERM $PID' TERM; run-httpd & PID=$!; wait $PID"]
+
+volumes:
+  www:

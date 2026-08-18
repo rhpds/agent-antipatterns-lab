@@ -1,0 +1,14 @@
+---
+# SOLVE — Module 1
+# Standalone playbook mode (no main.yml required).
+# Runs when the learner clicks the "Solve" button.
+# Should perform all steps the learner would do manually.
+
+- name: "Module 1 Solve"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement solve logic"
+      ansible.builtin.debug:
+        msg: "Replace this task with your solve implementation"

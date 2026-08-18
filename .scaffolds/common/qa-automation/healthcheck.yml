@@ -1,0 +1,15 @@
+---
+# HEALTHCHECK — Quick environment readiness check
+# Runs post-provisioning to verify the lab environment is functional.
+# Should complete in under 60 seconds.
+#
+# Exit 0 = healthy, non-zero = unhealthy.
+
+- name: "Environment Health Check"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement health checks"
+      ansible.builtin.debug:
+        msg: "Replace this task with checks that verify the environment is ready"

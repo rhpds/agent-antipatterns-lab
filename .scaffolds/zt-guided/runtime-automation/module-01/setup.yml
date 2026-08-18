@@ -1,0 +1,13 @@
+---
+# SETUP — Module 1
+# Standalone playbook mode (no main.yml required).
+# Runs before the module starts to prepare the environment.
+
+- name: "Module 1 Setup"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement setup logic"
+      ansible.builtin.debug:
+        msg: "Replace this task with your setup implementation"

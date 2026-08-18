@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: "<Your Name>"
+  description: >-
+    Placeholder role — replace with real automation, or delete this role
+    entirely and add your own under roles/.
+  license: "license (GPL-2.0-or-later, MIT, etc.)"
+  min_ansible_version: "2.14"
+dependencies: []

@@ -1,0 +1,115 @@
+---
+# Reusable task list: copy a runtime-automation script to the remote host,
+# execute it with the fail_validation helper sourced, and capture output.
+#
+# Expected vars (set by the caller's loop):
+#   module_name  – e.g. "module-01"
+#   stage_name   – "solve" or "validation"
+#   runtime_path – path to runtime-automation directory (set in play vars)
+
+- name: "{{ module_name }}/{{ stage_name }} – check script exists"
+  ansible.builtin.stat:
+    path: "{{ runtime_path }}/{{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.sh"
+  delegate_to: localhost
+  become: false
+  register: r_script_stat
+
+- name: "{{ module_name }}/{{ stage_name }} – skip (no script found)"
+  ansible.builtin.debug:
+    msg: >-
+      No script at {{ runtime_path }}/{{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.sh – skipping.
+  when: not r_script_stat.stat.exists
+
+- name: "{{ module_name }}/{{ stage_name }} – create temp directory"
+  ansible.builtin.file:
+    path: "/tmp/qa-scripts/{{ module_name }}"
+    state: directory
+    mode: "0755"
+  when: r_script_stat.stat.exists
+
+- name: "{{ module_name }}/{{ stage_name }} – install fail_validation helper"
+  ansible.builtin.copy:
+    dest: "/tmp/qa-scripts/{{ module_name }}/env.validation.sh"
+    mode: "0644"
+    content: |
+      fail_validation() {
+        echo "= FAIL VALIDATION BEGIN"
+        if [ "$1" = "-" ] || { [ -z "$*" ] && [ ! -t 0 ]; }; then
+          while IFS= read -r LINE; do
+            echo "$LINE"
+          done
+        elif [ -n "$*" ]; then
+          printf '%s\n' "$@"
+        fi
+        echo "= FAIL VALIDATION END"
+        return 1
+      }
+  when: r_script_stat.stat.exists
+
+- name: "{{ module_name }}/{{ stage_name }} – copy script"
+  ansible.builtin.copy:
+    src: "{{ runtime_path }}/{{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.sh"
+    dest: "/tmp/qa-scripts/{{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.sh"
+    mode: "0755"
+  when: r_script_stat.stat.exists
+
+- name: "{{ module_name }}/{{ stage_name }} – execute"
+  ansible.builtin.shell: |
+    set -e
+    [ -f /tmp/qa-scripts/{{ module_name }}/env.validation.sh ] && . /tmp/qa-scripts/{{ module_name }}/env.validation.sh
+    set -x
+    . /tmp/qa-scripts/{{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.sh
+  register: r_script_result
+  failed_when: false
+  when: r_script_stat.stat.exists
+
+- name: "{{ module_name }}/{{ stage_name }} – write log"
+  ansible.builtin.copy:
+    dest: "/tmp/qa-scripts/{{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.log"
+    content: >-
+      {{ r_script_result.stdout | default('') }}{% if (r_script_result.stdout | default('')) and (r_script_result.stderr | default('')) %}{{ '\n' }}{% endif %}{{ r_script_result.stderr | default('') }}
+    mode: "0644"
+  when: r_script_stat.stat.exists
+
+- name: "{{ module_name }}/{{ stage_name }} – capture validation failure"
+  ansible.builtin.set_fact:
+    _validation_failure: >-
+      {{ (r_script_result.stdout | default(''))
+        | regex_replace('(?ms).*^= FAIL VALIDATION BEGIN\n', '')
+        | regex_replace('(?ms)\n?= FAIL VALIDATION END.*', '')
+      }}
+  when:
+    - r_script_stat.stat.exists
+    - r_script_result.stdout is defined
+    - '"= FAIL VALIDATION BEGIN" in r_script_result.stdout'
+
+- name: "{{ module_name }}/{{ stage_name }} – write validation failure to job_info_dir"
+  ansible.builtin.copy:
+    content: "{{ _validation_failure }}"
+    dest: "{{ job_info_dir }}/validation_failure.out"
+  delegate_to: localhost
+  become: false
+  when:
+    - _validation_failure is defined
+    - job_info_dir is defined
+
+- name: "{{ module_name }}/{{ stage_name }} – show output"
+  ansible.builtin.debug:
+    msg: "{{ r_script_result.stdout | default('') }}"
+  when:
+    - r_script_stat.stat.exists
+    - r_script_result.stdout | default('') | length > 0
+
+- name: "{{ module_name }}/{{ stage_name }} – fail on validation error"
+  ansible.builtin.fail:
+    msg: "Validation failed for {{ module_name }}/{{ stage_name }}: {{ _validation_failure | default('') }}"
+  when:
+    - _validation_failure is defined
+
+- name: "{{ module_name }}/{{ stage_name }} – fail on non-zero exit"
+  ansible.builtin.fail:
+    msg: "Script {{ module_name }}/{{ stage_name }}-{{ inventory_hostname }}.sh exited with rc={{ r_script_result.rc }}"
+  when:
+    - r_script_stat.stat.exists
+    - r_script_result.rc != 0
+    - _validation_failure is not defined

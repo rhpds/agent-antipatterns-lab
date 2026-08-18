@@ -1,0 +1,41 @@
+{
+  "description": "Copy this to .claude/settings.json and customize for your project",
+  "notes": "This file cannot be committed due to Claude Code security restrictions on .claude/",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/pre-tool-use.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; if [[ -z \"$f\" ]]; then exit 0; fi; if [[ \"$f\" =~ \\.(yaml|yml)$ ]]; then yamllint --config-data '{rules: {line-length: {max: 120}, indentation: {spaces: 2}}}' \"$f\" 2>/dev/null || true; fi; } 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Linting YAML..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; if [[ -z \"$f\" ]]; then exit 0; fi; if [[ \"$f\" =~ \\.(json)$ ]]; then jq empty \"$f\" 2>/dev/null && echo \"[Hook] JSON valid\" || echo \"[Hook] JSON syntax error (review required)\"; fi; } 2>/dev/null || true",
+            "timeout": 5,
+            "statusMessage": "Validating JSON..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+---
+antora:
+  name: modules
+  dir: www
+  modules:
+    - name: index
+      label: "Introduction"
+    - name: module-01
+      label: "Module 1: Your First Lab Page"
+    - name: module-02
+      label: "Module 2: Another Module"
+
+tabs:
+  - name: ">_ terminal"
+    url: /wetty
+  - name: Placeholder
+    url: /placeholder

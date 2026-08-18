@@ -1,0 +1,40 @@
+---
+# E2E — End-to-end test (migrated ZT Guided content)
+# Solves and validates every module in ui-config.yml order, reusing the
+# legacy runtime-automation shell scripts (solve-<host>.sh / validation-<host>.sh)
+# that a migrated repo already ships. Fails on the first broken module.
+
+- name: Build inventory
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add bastion host
+      ansible.builtin.add_host:
+        name: "{{ lookup('ansible.builtin.env', 'BASTION_HOST') }}"
+        ansible_ssh_host: "{{ lookup('ansible.builtin.env', 'BASTION_HOST') }}"
+        ansible_ssh_port: "{{ lookup('ansible.builtin.env', 'BASTION_PORT') }}"
+        ansible_ssh_user: "{{ lookup('ansible.builtin.env', 'BASTION_USER') }}"
+        ansible_ssh_pass: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
+
+- name: E2E - solve and validate all modules
+  hosts: all:!localhost
+  gather_facts: false
+  become: true
+  vars:
+    runtime_path: "{{ playbook_dir }}/../runtime-automation"
+    _ui_config: "{{ lookup('file', playbook_dir ~ '/../ui-config.yml') | from_yaml }}"
+    modules_in_order: "{{ _ui_config.antora.modules | map(attribute='name') | list }}"
+  tasks:
+    - name: "Run solve then validation for each module"
+      ansible.builtin.include_tasks: tasks/run_script.yml
+      loop: >-
+        {{
+          modules_in_order
+          | product(['solve', 'validation'])
+          | list
+        }}
+      loop_control:
+        loop_var: _module_stage
+      vars:
+        module_name: "{{ _module_stage[0] }}"
+        stage_name: "{{ _module_stage[1] }}"

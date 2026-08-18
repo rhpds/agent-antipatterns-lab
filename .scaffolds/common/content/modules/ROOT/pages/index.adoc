@@ -1,0 +1,5 @@
+= My Lab Title
+
+This project was created with the RHDP Publishing House template.
+
+Run `/rhdp-publishing-house` in Claude Code to begin.

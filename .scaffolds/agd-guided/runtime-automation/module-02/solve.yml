@@ -1,0 +1,18 @@
+---
+# SOLVE — Module 2
+# Standalone playbook mode (no main.yml required).
+# Runs when the learner clicks the "Solve" button.
+# Should perform all steps the learner would do manually.
+#
+# Available extravars vary by infrastructure type.
+# AgD v2 OCP: k8s_kubeconfig, student_ns, bastion_host, bastion_port,
+#             bastion_user, bastion_password
+
+- name: "Module 2 Solve"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement solve logic"
+      ansible.builtin.debug:
+        msg: "Replace this task with your solve implementation"

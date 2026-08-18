@@ -1,0 +1,13 @@
+---
+# E2E — End-to-end test
+# Runs all module solve + validate sequences to verify the full lab
+# works from start to finish without manual intervention.
+
+- name: "End-to-End Test"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement end-to-end test sequence"
+      ansible.builtin.debug:
+        msg: "Replace this task with your e2e test implementation"

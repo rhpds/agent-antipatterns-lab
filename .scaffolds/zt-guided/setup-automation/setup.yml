@@ -1,0 +1,17 @@
+---
+# SETUP — Environment Setup
+# Standalone playbook mode (no main.yml required).
+# Runs once on pod creation to prepare the lab environment.
+#
+# This playbook handles initial provisioning: installing packages,
+# cloning repos, seeding data, or configuring services that learners
+# will interact with during the lab.
+
+- name: "Environment Setup"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement environment setup"
+      ansible.builtin.debug:
+        msg: "Replace this task with your setup implementation"

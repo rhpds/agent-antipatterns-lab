@@ -1,0 +1,4 @@
+---
+- name: Example task — replace with your own automation
+  ansible.builtin.debug:
+    msg: "{{ example_message }}"

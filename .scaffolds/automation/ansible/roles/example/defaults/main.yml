@@ -1,0 +1,6 @@
+---
+# Variables for the example role.
+#
+# Prefix new variables with the role name (example_<variable>) to avoid
+# collisions with variables from other roles in the collection.
+example_message: "Hello from the example role — replace this task with your own automation."

@@ -1,0 +1,10 @@
+---
+namespace: "<your_namespace>"
+name: "<your_collection_name>"
+version: "1.0.0"
+readme: README.md
+authors:
+  - "<Your Name> <you@example.com>"
+description: "Starter collection for this project's custom Ansible automation."
+license: []
+repository: "<https://github.com/rhpds/your-project-repo>"

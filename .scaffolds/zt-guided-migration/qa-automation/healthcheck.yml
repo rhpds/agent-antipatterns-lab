@@ -1,0 +1,26 @@
+---
+# HEALTHCHECK — Quick environment readiness check (migrated ZT Guided content)
+# Verifies the bastion host is reachable via SSH. Non-destructive: does not
+# modify any lab state. Should complete in under 60 seconds.
+#
+# Exit 0 = healthy, non-zero = unhealthy.
+
+- name: Build inventory
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add bastion host
+      ansible.builtin.add_host:
+        name: "{{ lookup('ansible.builtin.env', 'BASTION_HOST') }}"
+        ansible_ssh_host: "{{ lookup('ansible.builtin.env', 'BASTION_HOST') }}"
+        ansible_ssh_port: "{{ lookup('ansible.builtin.env', 'BASTION_PORT') }}"
+        ansible_ssh_user: "{{ lookup('ansible.builtin.env', 'BASTION_USER') }}"
+        ansible_ssh_pass: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
+
+- name: Healthcheck
+  hosts: all:!localhost
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Verify SSH connectivity
+      ansible.builtin.ping:

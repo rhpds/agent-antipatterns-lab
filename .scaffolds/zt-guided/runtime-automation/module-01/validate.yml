@@ -1,0 +1,20 @@
+---
+# VALIDATE — Module 1
+# Standalone playbook mode (no main.yml required).
+# Runs when the learner clicks the "Validate" button.
+# Should check that all module tasks were completed correctly.
+#
+# Use the validation_check module to report pass/fail with messages:
+#   validation_check:
+#     check: "{{ condition }}"
+#     pass_msg: "Task completed successfully"
+#     error_msg: "Task not completed — see instructions above"
+
+- name: "Module 1 Validation"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "TODO: Implement validation checks"
+      ansible.builtin.debug:
+        msg: "Replace this task with your validation implementation"
