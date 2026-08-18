@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python*)",
+      "Bash(python3*)",
+      "Bash(pip*)",
+      "Bash(git *)",
+      "Bash(command -v *)",
+      "Bash(curl *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cd *)",
+      "Read(*)",
+      "Edit(publishing-house/*)",
+      "Write(publishing-house/*)",
+      "Edit(catalog-info.yaml)"
+    ]
+  }
+}

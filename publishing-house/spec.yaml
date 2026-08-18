@@ -1,0 +1,97 @@
+# Publishing House — Project Spec
+# Lifecycle: intake → content_review → infra_review → jira_sync → development → ready → published
+# No secrets in this file. Tokens live in ~/.config/publishing-house/auth.json
+# Stage is managed by SonataFlow and cached in .ph-state — do not edit stage.current manually.
+# NOTE: This file is also in the template repo. The Scaffolder overlays project.* values.
+# TODO: Eliminate this copy — Scaffolder should pull from template repo directly.
+
+project:
+  slug: "agent-antipatterns-lab"
+  owner_email: "davidwil@redhat.com"
+  content_type: "lab"
+  deployment_mode: "rhdp_published"
+  initiative_key: "rh1_2027"
+  showroom_type: "classic"
+  intake_type: "new"
+  automation_type: "gitops"
+  description: "Participants inherit a working agent prototype that fails in production. Across four rounds they diagnose a planted anti-pattern — loop discipline, tool governance, observability, and enforcement — from execution traces, then fix it by applying a named Red Hat AI platform component: vLLM tool-calling recipes, MCP Gateway, MLflow Tracing, and TrustyAI Guardrails Orchestrator."
+  # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
+  jira_ticket: ""
+  workflow_id: ""
+
+spec:
+  title: ""
+  learning_objectives: []
+  modules: []              # [{id, title, duration_min}] — written by intake Phase 4; id is stable (e.g. module-01)
+  environment:
+    platform: ""               # ocp | rhel-vms — determines which sizing fields apply
+    topology: ""               # shared-cluster | per-student | cnv-pool
+    cloud_provider: cnv        # cnv | aws | troshka — cnv is default
+    max_concurrent_users: null # required if topology = shared-cluster
+
+    # --- OCP-specific fields (only when platform = ocp) ---
+    ocp_version: ""                    # e.g. 4.20 — minimum 4.20; leave empty for rhel-vms
+    cluster_type: ""                   # sno | multinode — only for platform = ocp
+    control_plane_instance_count: null # 1 if sno, 3 if multinode
+    control_plane_cpu: null            # 32 if sno, 16 if multinode
+    control_plane_ram_gb: null         # 128 if sno, 64 if multinode
+    worker_count: null                 # number of OCP worker nodes
+    worker_cpu: null                   # vCPU per worker
+    worker_ram_gb: null                # RAM per worker in GB
+    worker_disk_gb: null               # disk per worker in GB
+
+    # --- VM-specific fields (only when platform = rhel-vms) ---
+    # Each entry: {role, count, cpu, ram_gb, disk_gb, os}
+    vms_per_student: []
+
+    # --- Common fields (both platforms) ---
+    aap_version: ""                    # required if AAP in products
+    ai_requirement: ""                 # maas | gpu | none
+    ai_model_tier: ""                  # open-source | frontier (if ai_requirement = maas or gpu)
+    ai_model_name: ""                  # specific model e.g. granite-3.1-8b
+    ai_justification: ""               # required if ai_model_tier = frontier or ai_requirement = gpu
+    non_ga_products: []                # list of non-GA products/versions
+    non_ga_access_plan: ""             # how access is provided for non-GA products
+    external_services: []              # named external service dependencies e.g. [github.com]
+    gpu_nodes: 0                       # number of GPU nodes (0 = none)
+    gpu_type: ""                       # e.g. NVIDIA A100 40GB (required if gpu_nodes > 0)
+  duration_hours: null
+  audience: ""               # beginner | intermediate | advanced
+
+development:
+  automation:
+    gitops:
+      status: not_started
+  e2e:
+    status: not_started
+  healthCheck:
+    status: not_started
+
+compliance:
+  last_hard_check: null
+  hard_result: null
+
+tracking:
+  paused: false
+  pause_reason: null
+
+# Approval checklist — filled collaboratively by author + skill + system + reviewers
+approval_checklist:
+
+  content:
+    prerequisites_verifiable: null
+    assessment_strategy: ""
+    catalog_gap: ""
+    design_overview: ""
+    module_summaries: []
+    rcars_overlap_pct: null
+    rcars_top_matches: []
+    rejections: []
+
+  infra:
+    peak_environments: null
+    cost_per_run_est: ""
+    provisioning_time_est: ""
+    agnosticv_base_ci: ""
+    approved_by: ""
+    rejections: []

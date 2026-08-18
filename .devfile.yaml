@@ -1,0 +1,248 @@
+schemaVersion: 2.2.0
+metadata:
+  name: agent-antipatterns-lab
+  displayName: agent-antipatterns-lab - Publishing House Workspace
+  description: Workspace for creating RHDP lab/demo content with Claude AI assistance
+attributes:
+  che-code.eclipse.org/vscode-preferences:
+    security.workspace.trust.enabled: false
+
+components:
+  - name: dev-tools
+    container:
+      image: quay.io/devfile/universal-developer-image:latest
+      memoryLimit: 4Gi
+      memoryRequest: 2Gi
+      cpuLimit: 2000m
+      cpuRequest: 1000m
+      mountSources: true
+      sourceMapping: /projects
+      env:
+        - name: DEFAULT_EXTENSIONS
+          value: '/tmp/claude-code.vsix'
+        - name: CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS
+          value: '1'
+
+commands:
+  - id: setup-workspace
+    exec:
+      component: dev-tools
+      commandLine: |
+        SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+
+        AUTH_FILE=/home/user/.config/publishing-house/auth.json
+        if [ -f "$AUTH_FILE" ] && grep -q "litellm_key" "$AUTH_FILE" 2>/dev/null; then
+          echo "auth.json already configured, skipping"
+        else
+          CENTRAL_URL="https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com"
+
+          SETUP_RESP=$(curl -sk -X POST "${CENTRAL_URL}/api/v1/auth/keys/anonymous" \
+            -H "Authorization: Bearer ${SA_TOKEN}")
+
+          API_KEY=$(echo "$SETUP_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['api_key'])" 2>/dev/null)
+          USER_EMAIL=$(echo "$SETUP_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['user_email'])" 2>/dev/null)
+
+          if [ -z "$(git config --global user.email)" ] && [ -n "$USER_EMAIL" ]; then
+            git config --global user.email "$USER_EMAIL"
+          fi
+
+          if [ -z "$(git config --global user.name)" ]; then
+            GITHUB_USER=$(echo "url=https://github.com" | git credential fill | awk -F= '/password/ {print $2}' | xargs -I {} curl -s -H "Authorization: token {}" https://api.github.com/user | awk -F'"' '/"login":/ {print $4}')
+            if [ -n "$GITHUB_USER" ]; then
+              git config --global user.name "$GITHUB_USER"
+            fi
+          fi
+
+          if [ -n "$API_KEY" ]; then
+            LITELLM_RESP=$(curl -sk -X POST "${CENTRAL_URL}/api/v1/litellm/keys/generate" \
+              -H "Authorization: Bearer ${API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d "{\"project_id\": \"agent-antipatterns-lab\"}")
+
+            LITELLM_KEY=$(echo "$LITELLM_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['litellm_key'])" 2>/dev/null)
+            LITELLM_ENDPOINT=$(echo "$LITELLM_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['litellm_endpoint'])" 2>/dev/null)
+            LITELLM_MODEL=$(echo "$LITELLM_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['litellm_model'])" 2>/dev/null)
+
+            if [ -n "$LITELLM_KEY" ]; then
+              mkdir -p /home/user/.config/publishing-house
+              cat > "$AUTH_FILE" << AUTHEOF
+        {
+          "credential": "${API_KEY}",
+          "central": "${CENTRAL_URL}",
+          "litellm_key": "${LITELLM_KEY}",
+          "litellm_endpoint": "${LITELLM_ENDPOINT}",
+          "litellm_model": "${LITELLM_MODEL}"
+        }
+        AUTHEOF
+              echo "Workspace configured: key=${LITELLM_KEY:0:8}... email=${USER_EMAIL}"
+            else
+              echo "WARNING: LiteLLM key generation failed, Claude AI will need manual API key"
+            fi
+          else
+            echo "WARNING: workspace setup failed, Claude AI will need manual API key"
+          fi
+        fi
+      workingDir: /projects
+      label: "Setup Workspace Auth"
+      group:
+        kind: build
+        isDefault: false
+
+  - id: install-deps
+    exec:
+      component: dev-tools
+      commandLine: |
+        command -v python3 >/dev/null 2>&1 || sudo dnf install -y python3 2>/dev/null
+        command -v pip3 >/dev/null 2>&1 || python3 -m ensurepip --user 2>/dev/null || sudo dnf install -y python3-pip 2>/dev/null
+        PROJECT_DIR=$(ls -d /projects/*/ 2>/dev/null | head -1)
+        if [ -f "${PROJECT_DIR}publishing-house/tools/requirements.txt" ]; then
+          pip3 install --user -r "${PROJECT_DIR}publishing-house/tools/requirements.txt" 2>/dev/null || echo "WARNING: could not install Python dependencies"
+        fi
+      workingDir: /projects
+      label: "Install Python dependencies"
+      group:
+        kind: build
+        isDefault: false
+
+  - id: install-claude
+    exec:
+      component: dev-tools
+      commandLine: |
+        if [ ! -f /home/user/.local/bin/claude ]; then
+          mkdir -p /home/user/.local/bin
+          curl -fsSL https://github.com/anthropics/claude-code/releases/download/v2.1.207/claude-linux-x64.tar.gz -o /tmp/claude.tar.gz
+          tar -xzf /tmp/claude.tar.gz -C /home/user/.local/bin claude
+          chmod +x /home/user/.local/bin/claude
+          rm /tmp/claude.tar.gz
+        fi
+      workingDir: /projects
+      label: "Install Claude CLI"
+      group:
+        kind: build
+        isDefault: false
+
+  - id: setup-env-script
+    exec:
+      component: dev-tools
+      commandLine: |
+        AUTH_FILE=/home/user/.config/publishing-house/auth.json
+        mkdir -p /home/user/.local/bin /home/user/.claude
+
+        # apiKeyHelper script (reads API key from auth.json)
+        cat > /home/user/.local/bin/claude-api-key-helper.sh << 'HELPEREOF'
+        #!/bin/bash
+        AUTH_FILE=/home/user/.config/publishing-house/auth.json
+        if [ -f "$AUTH_FILE" ]; then
+          python3 -c "import json; print(json.load(open('$AUTH_FILE')).get('litellm_key',''))" 2>/dev/null
+        fi
+        HELPEREOF
+        chmod +x /home/user/.local/bin/claude-api-key-helper.sh
+
+        # Configure Claude Code (CLI + extension) via settings.json
+        if [ -f "$AUTH_FILE" ]; then
+          LITELLM_URL=$(python3 -c "import json; print(json.load(open('$AUTH_FILE')).get('litellm_endpoint',''))" 2>/dev/null)
+          LITELLM_MODEL=$(python3 -c "import json; print(json.load(open('$AUTH_FILE')).get('litellm_model',''))" 2>/dev/null)
+          cat > /home/user/.claude/settings.json << SETTINGSEOF
+        {
+          "apiKeyHelper": "/home/user/.local/bin/claude-api-key-helper.sh",
+          "env": {
+            "ANTHROPIC_BASE_URL": "${LITELLM_URL}",
+            "ANTHROPIC_MODEL": "${LITELLM_MODEL}"
+          },
+          "permissions": {
+            "allow": [
+              "Bash(python*)",
+              "Bash(python3*)",
+              "Bash(pip*)",
+              "Bash(git *)",
+              "Bash(command -v *)",
+              "Bash(curl *)",
+              "Bash(cat *)",
+              "Bash(ls *)",
+              "Bash(mkdir *)",
+              "Bash(cd *)",
+              "Bash(grep *)",
+              "Bash(find *)",
+              "Bash(head *)",
+              "Bash(tail *)",
+              "Bash(wc *)",
+              "Read(*)",
+              "Edit(publishing-house/*)",
+              "Write(publishing-house/*)",
+              "Edit(catalog-info.yaml)"
+            ]
+          }
+        }
+        SETTINGSEOF
+        else
+          cat > /home/user/.claude/settings.json << 'SETTINGSEOF'
+        {
+          "apiKeyHelper": "/home/user/.local/bin/claude-api-key-helper.sh",
+          "permissions": {
+            "allow": [
+              "Bash(python*)",
+              "Bash(python3*)",
+              "Bash(pip*)",
+              "Bash(git *)",
+              "Bash(command -v *)",
+              "Bash(curl *)",
+              "Bash(cat *)",
+              "Bash(ls *)",
+              "Bash(mkdir *)",
+              "Bash(cd *)",
+              "Bash(grep *)",
+              "Bash(find *)",
+              "Bash(head *)",
+              "Bash(tail *)",
+              "Bash(wc *)",
+              "Read(*)",
+              "Edit(publishing-house/*)",
+              "Write(publishing-house/*)",
+              "Edit(catalog-info.yaml)"
+            ]
+          }
+        }
+        SETTINGSEOF
+        fi
+      workingDir: /projects
+      label: "Setup environment script"
+      group:
+        kind: build
+        isDefault: false
+
+  - id: install-skills
+    exec:
+      component: dev-tools
+      commandLine: |
+        SKILL_DIR=/home/user/.claude/skills/publishing-house
+        mkdir -p /home/user/.claude/skills
+        if [ ! -d "$SKILL_DIR" ]; then
+          git clone -b prod https://github.com/rhpds/rhdp-publishing-house-skills.git "$SKILL_DIR" >/dev/null 2>&1 \
+            || echo "WARNING: could not install skills"
+        fi
+      workingDir: /home/user
+      label: "Install Publishing House Skills"
+      group:
+        kind: build
+        isDefault: false
+
+
+  - id: download-claude-extension
+    exec:
+      component: dev-tools
+      commandLine: |
+        curl -sL -o /tmp/claude-code.vsix "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.220/file/Anthropic.claude-code-2.1.220@linux-x64.vsix"
+      workingDir: /projects
+      label: "Download Claude Code Extension"
+      group:
+        kind: build
+        isDefault: false
+
+events:
+  postStart:
+    - download-claude-extension
+    - install-deps
+    - install-claude
+    - setup-workspace
+    - setup-env-script
+    - install-skills
