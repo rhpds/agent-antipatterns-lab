@@ -111,16 +111,30 @@ Automation must provision: the OpenShift AI workbench per participant with the p
 
 ## Infrastructure Requirements
 
-- **Cloud provider:** TBD — confirmed in infrastructure phase
-- **Cluster type:** TBD — confirmed in infrastructure phase
-- **OCP version:** TBD — confirmed in infrastructure phase
-- **Topology:** TBD — confirmed in infrastructure phase
-- **Sizing:** TBD — confirmed in infrastructure phase
-- **Automation approach:** TBD — confirmed in infrastructure phase
-- **AI/MaaS:** TBD — confirmed in infrastructure phase. Open question carried from proposal review: Round 1's mechanic requires two serving configurations of the same model, which rules out a closed hosted chat API for that round. Proposed approach is two shared class endpoints on a single GPU. Note that the "~9GB each at FP8" figure counts model weights only — it excludes KV cache, and vLLM reserves `gpu_memory_utilization` (0.9 by default) of the device per instance, so co-scheduling two instances needs explicit per-instance memory fractions. The sizing question is also throughput, not just memory: after Round 1 the whole room repoints to the validated endpoint, so peak concurrent generation lands on a single instance. Requires an RHDP answer on GPU availability, framed as a throughput question rather than a memory one. Planning cap is **30 concurrent participants**. Provisioning should also stand up a **third replica of the validated endpoint**: the broken endpoint is dead weight from Round 1 onward, so that capacity is better spent serving the configuration the whole room converges on.
-- **External services:** TBD — confirmed in infrastructure phase
+- **Platform:** OpenShift (OCP) — Red Hat OpenShift AI is the base for all four rounds
+- **Cloud provider:** AWS — chosen over the CNV default because the lab requires a GPU with native FP8 compute, which is an instance-type question AWS answers directly
+- **Cluster type:** Multinode
+- **OCP version:** 4.20 minimum. Dev-cluster validation ran on 4.21.21 with RHOAI 3.4.x
+- **Topology:** **Shared-cluster.** This is forced rather than preferred. MLflow is a cluster-wide singleton — the CR must be named `mlflow` and always lands in `redhat-ods-applications` regardless of where it is created — so a per-participant tracking server is not possible, and Round 3 depends on one. The two shared class-wide model endpoints point the same way.
+- **Sizing:**
+  - Control plane: 3 × 16 vCPU / 64 GB RAM
+  - Workers: 6 × 16 vCPU / 64 GB RAM / 200 GB disk — carrying 30 participant workbenches plus MCP Gateway and its Redis session store, the MLflow tracking server, the Guardrails Orchestrator, EvalHub, and the 18-tool MCP server catalog. Sized with roughly 35% headroom on purpose: dev-cluster experience showed pods failing to schedule on a node that was mostly idle, because requests were over-reserved relative to actual use.
+  - Planning cap: **30 concurrent participants**
+- **Automation approach:** GitOps (Helm + ArgoCD), with `bootstrap-tenant` included for per-user namespace and RBAC under the shared-cluster topology
+- **AI/MaaS:** **GPU, not MaaS** — 1 GPU node, 4 × NVIDIA L40S 48 GB (AWS g6e.12xlarge: 4 GPUs, 48 vCPU, 384 GB RAM). Model `RedHatAI/Qwen3-8B-FP8-dynamic`, open-source tier.
+
+  MaaS cannot satisfy this lab. Round 1's mechanic is switching the agent between two serving configurations of the same model, and a hosted chat API exposes no serving configuration — the round would have no failure to diagnose.
+
+  L40S rather than A100 is a hard requirement, not a preference. The model is an FP8 checkpoint, and native FP8 compute (W8A8) requires compute capability 8.9 or later — Ada Lovelace or Hopper. On Ampere, vLLM does not fail; it silently falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before the tensor cores. That delivers the memory saving and none of the FP8 throughput, which would be an indefensible trace in a lab whose subject is serving configuration.
+
+  Four GPUs resolve the co-scheduling problem the proposal review raised. Rather than fitting multiple instances onto one device with explicit `gpu_memory_utilization` fractions, each vLLM instance gets its own GPU: the broken endpoint on GPU 0, three replicas of the validated endpoint on GPUs 1–3. This delivers the design's "third replica of the validated endpoint" intent — the broken endpoint is dead weight from Round 1 onward, and GPU 0 is repurposable once the room has converged — while keeping the failure domain per-endpoint.
+
+  On throughput, which is the real question rather than memory: published benchmarks show Qwen3-8B sustaining a concurrency sweep to 256 simultaneous requests on a single A10G with zero dropped requests and median TTFT around 524 ms. L40S is materially faster and adds native FP8, so 30 concurrent participants spread across three validated replicas carries substantial headroom. One constraint carries into the build — keep `--max-model-len` bounded rather than maximal, since single-GPU concurrency degradation under long context lengths is a reported vLLM behaviour.
+- **External services:** `registry.redhat.io` (RHOAI and operator images), `quay.io` (workbench and MCP server images), `huggingface.co` (Qwen3-8B-FP8-dynamic weights, unless pre-staged into cluster storage during provisioning), `github.com` (the inherited agent prototype repo, cloned into each workbench), `pypi.org` (Python dependencies for the agent, MCP servers and MLflow client). The environment is not air-gapped.
 - **AAP version:** Not applicable — Ansible Automation Platform is not in the product list for this lab
-- **Non-GA products:** TBD — confirmed in infrastructure phase. The pre-GA dependencies as of validation are the vLLM tool-calling configuration (Developer Preview, and itself unconfirmed — see the maturity table), MCP Gateway (Tech Preview), and EvalHub with the Garak provider (Tech Preview as of 3.4). MLflow, NeMo Guardrails and the TrustyAI Guardrails Orchestrator are all GA and are not pre-GA dependencies.
+- **Non-GA products:** Three pre-GA dependencies as of validation — the vLLM tool-calling configuration (Developer Preview, and itself unconfirmed; see the maturity table), MCP Gateway (Tech Preview), and EvalHub with the Garak provider (Tech Preview as of 3.4). MLflow, NeMo Guardrails and the TrustyAI Guardrails Orchestrator are all GA and are not pre-GA dependencies.
+
+  **Access plan:** all three ship inside RHOAI 3.4+ and the TrustyAI operator, so provisioning installs them through the normal operator catalog — no separate entitlement, early-access programme or non-standard registry. Two carry documented fallbacks if maturity regresses before the event: tool scoping at the MCP server/registry level plus RBAC in place of MCP Gateway, and any OpenTelemetry-compatible sink in place of MLflow. Garak via EvalHub is load-bearing for Round 4 verification and has no equivalent fallback, so its GA timing must be settled against the RHOAI release notes before submission.
 
 ## Assessment Strategy (Optional)
 
