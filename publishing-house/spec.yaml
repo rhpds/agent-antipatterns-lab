@@ -99,17 +99,34 @@ spec:
       A10G with no dropped requests; L40S is materially faster with native FP8, so 30 concurrent
       participants across three replicas carries substantial headroom.
     non_ga_products:                   # list of non-GA products/versions
-      - "vLLM tool-calling configuration (RHAIIS) — Developer Preview, status contested and unconfirmed"
-      - "MCP Gateway — Tech Preview (operator v0.7.1, Red Hat provided)"
-      - "EvalHub with Garak adversarial-scanning provider — Tech Preview as of RHOAI 3.4"
+      # Maturity questions resolved against primary Red Hat documentation 2026-08-19.
+      - "MCP Gateway — Tech Preview via Red Hat Connectivity Link (operator v0.7.1, Red Hat provided)"
+      - "EvalHub with Garak adversarial-scanning provider — Tech Preview in RHOAI 3.4 and 3.5, no announced GA"
+      # NOT non-GA on this lab's delivery path: vLLM tool-calling configuration. The Developer
+      # Preview notice attaches to standalone RHAIIS, not to RHOAI/KServe, where the flags are
+      # documented serving-runtime arguments in GA procedures. See the design doc maturity table.
     non_ga_access_plan: >-
-      All three ship inside Red Hat OpenShift AI 3.4+ and the TrustyAI operator, so no separate
+      Both ship inside Red Hat OpenShift AI 3.4+ and the TrustyAI operator, so no separate
       entitlement, early-access programme or non-standard registry is required — provisioning
-      installs them through the normal operator catalog. Each carries a documented fallback if
-      its maturity regresses before the event: tool scoping at the MCP server/registry level plus
-      RBAC in place of MCP Gateway, and any OpenTelemetry-compatible sink in place of MLflow.
-      Garak via EvalHub is load-bearing for Round 4 verification and has no equivalent fallback,
-      so its GA timing must be settled against RHOAI release notes before submission.
+      installs them through the normal operator catalog.
+
+      MCP Gateway carries a documented fallback if its maturity regresses before the event: tool
+      scoping at the MCP server/registry level plus RBAC, same principle without the gateway
+      dependency. Round 2's identity-based tool filtering is a capability of this Tech Preview
+      gateway rather than of the Developer Preview MCP catalog or lifecycle operator, neither of
+      which this lab uses.
+
+      EvalHub with Garak is Round 4's verification instrument and has no equivalent fallback.
+      Its status was investigated rather than assumed: it is Tech Preview in both 3.4 and 3.5
+      with no GA date announced, and the Garak provider is being moved from the Llama Stack
+      distribution to the OGX distribution between those releases. This lab reaches it through
+      the TrustyAI EvalHub CR rather than that distribution, so the rename is not expected to
+      break it, but it requires re-verification against the RHOAI version shipping at the event.
+      Author decision 2026-08-19: retain Garak on Round 4's critical path and disclose Tech
+      Preview status to participants rather than mitigate it. Round 4's assessed outcome — the
+      Guardrails Orchestrator returning a blocked verdict — rests on a component that has been
+      GA since RHOAI 2.19, so a Garak regression would cost the quantified Attack Success Rate
+      but would not invalidate the round's learning objective.
     external_services:                 # named external service dependencies e.g. [github.com]
       - "registry.redhat.io"           # RHOAI and operator component images
       - "quay.io"                      # workbench and MCP server images
