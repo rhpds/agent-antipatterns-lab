@@ -1,0 +1,17 @@
+# spec.autoConfig.inferenceServiceToGuardrail is mandatory and MUST name a real
+# KServe InferenceService/ServingRuntime already running in this namespace, or
+# the operator fails cleanly with "no ServingRuntimes found in namespace" and
+# the CR sits in phase Error. This is the same GPU/vLLM dependency Round 1
+# needs — GuardrailsOrchestrator cannot be functionally verified without a
+# real serving instance. Replace rh1-placeholder-llm below once one exists.
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: GuardrailsOrchestrator
+metadata:
+  name: rh1-guardrails
+  namespace: rh1-lab-eval
+spec:
+  replicas: 1
+  enableBuiltInDetectors: true
+  enableGuardrailsGateway: false
+  autoConfig:
+    inferenceServiceToGuardrail: rh1-placeholder-llm

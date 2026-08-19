@@ -1,0 +1,15 @@
+# NOTE: the ConfigMap this CR references is NOT applied by `oc apply -f`, because
+# it must be built from two literal files (config.yaml must be named exactly that,
+# and rails.co is required even with no custom Colang logic — see deploy.sh).
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: NemoGuardrails
+metadata:
+  name: rh1-nemoguardrails
+  namespace: rh1-lab-eval
+spec:
+  nemoConfigs:
+    - name: rh1-lab
+      default: true
+      configMaps:
+        - rh1-nemo-config
+  replicas: 1

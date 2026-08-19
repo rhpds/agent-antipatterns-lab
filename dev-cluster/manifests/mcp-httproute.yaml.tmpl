@@ -1,0 +1,29 @@
+# Template — deploy.sh substitutes __GATEWAY_HOST__ with the live Gateway's
+# actual hostname (discovered from an existing HTTPRoute, e.g. the mlflow one).
+# sectionName must match the MCPGatewayExtension's targetRef.sectionName
+# exactly, or MCPServerRegistration fails validation against "valid
+# mcpgatewayextensions" with no further detail.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: rh1-mcp-server
+  namespace: redhat-ods-applications
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: data-science-gateway
+      namespace: openshift-ingress
+      sectionName: https
+  hostnames:
+    - "__GATEWAY_HOST__"
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: rh1-mcp-server
+          port: 8080
+      matches:
+        - path:
+            type: PathPrefix
+            value: /rh1-mcp-backend

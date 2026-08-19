@@ -1,0 +1,7 @@
+# Installing the MCP Gateway operator does NOT bootstrap Authorino/Limitador —
+# it just installs their operators. Nothing runs until this CR exists.
+apiVersion: kuadrant.io/v1beta1
+kind: Kuadrant
+metadata:
+  name: kuadrant
+  namespace: mcp-system
