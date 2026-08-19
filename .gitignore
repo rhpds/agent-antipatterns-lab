@@ -1,3 +1,6 @@
 # Antora build output
 www/
 .cache/
+
+# Session worklog is maintained outside this repo (vault project folder)
+publishing-house/worklog.yaml
