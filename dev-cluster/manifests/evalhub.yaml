@@ -1,0 +1,50 @@
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: EvalHub
+metadata:
+  name: rh1-evalhub
+  namespace: rh1-lab-eval
+spec:
+  database:
+    type: sqlite
+  providers:
+    - garak
+  collections: []
+  replicas: 1
+---
+# Calling the EvalHub REST API needs k8s RBAC on the trustyai.opendatahub.io
+# "virtual" resources it authorizes against (providers/collections/jobs/
+# evaluations), plus mlflow.kubeflow.org experiments/runs/artifacts if MLflow
+# tracking is wired in. Bind this to whatever ServiceAccount you call the API
+# with.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: evalhub-user
+  namespace: rh1-lab-eval
+rules:
+  - apiGroups: ["trustyai.opendatahub.io"]
+    resources: ["providers", "collections", "jobs", "evaluations"]
+    verbs: ["get", "list", "create", "watch"]
+  - apiGroups: ["mlflow.kubeflow.org"]
+    resources: ["experiments", "runs", "artifacts"]
+    verbs: ["get", "list", "create", "update"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: evalhub-tester
+  namespace: rh1-lab-eval
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evalhub-user-binding
+  namespace: rh1-lab-eval
+subjects:
+  - kind: ServiceAccount
+    name: evalhub-tester
+    namespace: rh1-lab-eval
+roleRef:
+  kind: Role
+  name: evalhub-user
+  apiGroup: rbac.authorization.k8s.io

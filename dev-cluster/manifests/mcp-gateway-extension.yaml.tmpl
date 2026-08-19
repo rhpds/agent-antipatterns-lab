@@ -1,0 +1,22 @@
+# Template — deploy.sh substitutes __GATEWAY_HOST__.
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPGatewayExtension
+metadata:
+  name: rh1-mcp-gateway
+  namespace: redhat-ods-applications
+spec:
+  # Required because this Gateway's listener carries no hostname of its own —
+  # without it, the extension reports "listener has no hostname and
+  # spec.publicHost is not set" and never goes Ready.
+  publicHost: "__GATEWAY_HOST__"
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: data-science-gateway
+    namespace: openshift-ingress
+    sectionName: https
+  sessionStore:
+    secretName: rh1-mcp-session-store
+  trustedHeadersKey:
+    secretName: rh1-mcp-trusted-headers
+    generate: Enabled

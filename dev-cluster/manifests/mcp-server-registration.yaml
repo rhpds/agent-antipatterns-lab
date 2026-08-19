@@ -1,0 +1,25 @@
+# prefix is required whenever userSpecificList is Enabled, or the CR is
+# rejected outright by CRD validation ("prefix is required when
+# userSpecificList is Enabled") — set it from the start rather than hitting
+# that after the fact. userSpecificList=Enabled is what makes the broker
+# forward per-caller identity headers (X-Auth-Request-User) to the upstream
+# server on every tools/list call, which is the actual mechanism behind
+# identity-based tool filtering — see mock-mcp-server.py.
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: rh1-mcp-server
+  namespace: redhat-ods-applications
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: rh1-mcp-server
+  path: /rh1-mcp-backend
+  hint: "RH1 lab demo server with a public echo tool and an admin-only reset tool."
+  category:
+    - demo
+  tags:
+    - rh1-lab
+  userSpecificList: Enabled
+  prefix: "rh1_"

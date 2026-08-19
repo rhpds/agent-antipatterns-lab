@@ -1,0 +1,13 @@
+# Tool names here are the UNPREFIXED names from the upstream server — the
+# rh1_ prefix set in mcp-server-registration.yaml is applied by the broker on
+# the client-facing side, not in this spec.
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPVirtualServer
+metadata:
+  name: rh1-catalog
+  namespace: redhat-ods-applications
+spec:
+  description: "RH1 lab minimal aggregated tool catalog"
+  tools:
+    - public_echo
+    - admin_reset

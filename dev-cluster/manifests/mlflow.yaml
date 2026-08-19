@@ -1,0 +1,46 @@
+# The MLflow CR is a cluster-wide singleton: the name MUST be literally "mlflow",
+# and it always lands in redhat-ods-applications regardless of the CR's own namespace.
+apiVersion: mlflow.opendatahub.io/v1
+kind: MLflow
+metadata:
+  name: mlflow
+  namespace: redhat-ods-applications
+spec:
+  backendStoreUri: "sqlite:////mlflow/data/mlflow.db"
+  serveArtifacts: true
+  artifactsDestination: "file:///mlflow/data/artifacts"
+  storage:
+    accessModes: ["ReadWriteOnce"]
+    resources:
+      requests:
+        storage: 5Gi
+  replicas: 1
+  # Default request (1 CPU) doesn't fit a resource-constrained single-node dev
+  # cluster. Tune down here instead of patching after the fact.
+  resources:
+    requests:
+      cpu: 150m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+---
+# RHOAIENG-44516 workaround: create a Route direct to the mlflow Service and use
+# its URL as MLFLOW_TRACKING_URI. Auth: SA bearer token + a required
+# "X-MLflow-Workspace: <namespace>" header (undocumented in the CRD, found by
+# probing the API — the workspace value is whatever namespace context you're
+# logging runs under, e.g. the lab namespace).
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mlflow
+  namespace: redhat-ods-applications
+spec:
+  to:
+    kind: Service
+    name: mlflow
+  port:
+    targetPort: 8443
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-target
+  namespace: rh1-lab-eval
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-target
+  template:
+    metadata:
+      labels:
+        app: mock-target
+    spec:
+      containers:
+        - name: mock-target
+          image: registry.access.redhat.com/ubi9/python-311:latest
+          command: ["python3", "/app/mock-target.py"]
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: script
+              mountPath: /app
+      volumes:
+        - name: script
+          configMap:
+            name: mock-target-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-target
+  namespace: rh1-lab-eval
+spec:
+  selector:
+    app: mock-target
+  ports:
+    - port: 8000
+      targetPort: 8000

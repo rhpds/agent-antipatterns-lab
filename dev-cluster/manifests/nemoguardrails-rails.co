@@ -1,0 +1,6 @@
+define user ask something
+  "hello"
+
+define flow
+  user ask something
+  bot respond

@@ -1,0 +1,29 @@
+# The mcp-gateway broker's gRPC "MCP Router" (port 50051) is the ext_proc
+# target Envoy calls into for session/identity handling on every request
+# through the Gateway. It is blocked by the same namespace-wide default
+# NetworkPolicy that blocks Redis's default port (see mcp-redis.yaml) — but
+# unlike the Redis case, there's no alternate-port workaround here, since
+# 50051 isn't configurable. This is an ADDITIVE policy, not a modification of
+# the operator-managed one.
+#
+# Symptom without this: every CR (MCPGatewayExtension, MCPServerRegistration)
+# reports Ready/healthy, but client requests to the aggregated MCP_URL hang
+# and 504 with reason "ext_proc_error_per-message_timeout_exceeded" — check
+# the Gateway's own Envoy access log (openshift-ingress), not the broker pod's
+# log, to see this; the broker pod logs nothing because the request never
+# reaches it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-gateway-extproc
+  namespace: redhat-ods-applications
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 50051
+          protocol: TCP

@@ -3,12 +3,11 @@ kind: Component
 metadata:
   name: agent-antipatterns-lab
   title: agent-antipatterns-lab
-  description: "Participants inherit a working agent prototype that fails in
-    production. Across four rounds they diagnose a planted anti-pattern — loop
-    discipline, tool governance, observability, and enforcement — from execution
-    traces, then fix it by applying a named Red Hat AI platform component: vLLM
-    tool-calling recipes, MCP Gateway, MLflow Tracing, and TrustyAI Guardrails
-    Orchestrator."
+  description: "Participants inherit a working agent prototype that fails in production.\
+    \ Across four rounds they diagnose a planted anti-pattern \u2014 loop discipline,\
+    \ tool governance, observability, and enforcement \u2014 from execution traces,\
+    \ then fix it by applying a named Red Hat AI platform component: vLLM tool-calling\
+    \ recipes, MCP Gateway, MLflow Tracing, and TrustyAI Guardrails Orchestrator."
   annotations:
     ph.rhdp.io/content-type: lab
     ph.rhdp.io/deployment-mode: rhdp_published
@@ -16,21 +15,24 @@ metadata:
     ph.rhdp.io/owner: davidwil@redhat.com
     backstage.io/techdocs-ref: dir:.
     github.com/project-slug: rhpds/agent-antipatterns-lab
-    ph.rhdp.io/created-at: 2026-08-18T19:06:41.937Z
+    ph.rhdp.io/created-at: 2026-08-18 19:06:41.937000+00:00
   tags:
-    - publishing-house
-    - lab
-    - rhdp-published
+  - publishing-house
+  - lab
+  - rhdp-published
   links:
-    - url: https://github.com/rhpds/agent-antipatterns-lab
-      title: Repository
-      icon: github
-    - url: https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/agent-antipatterns-lab
-      title: Open in DevSpaces
-      icon: catalog
-    - url: https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com
-      title: Central
-      icon: dashboard
+  - url: https://github.com/rhpds/agent-antipatterns-lab
+    title: Repository
+    icon: github
+  - url: https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/agent-antipatterns-lab
+    title: Open in DevSpaces
+    icon: catalog
+  - url: https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com
+    title: Central
+    icon: dashboard
+  - url: https://redhat.atlassian.net/browse/RHDPCD-1073
+    title: Jira Epic
+    icon: dashboard
 spec:
   type: content
   lifecycle: experimental

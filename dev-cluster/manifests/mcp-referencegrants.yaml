@@ -1,0 +1,25 @@
+# Cross-namespace Gateway API references need their own ReferenceGrant in the
+# TARGET's namespace. This one covers MCPGatewayExtension (in
+# redhat-ods-applications) referencing the shared Gateway (in
+# openshift-ingress) — required, or the extension reports
+# "ReferenceGrantRequired" and never goes Ready.
+#
+# Keep MCPServerRegistration in the SAME namespace as the HTTPRoute it targets
+# (redhat-ods-applications) to avoid needing a second grant for that
+# reference — cross-namespace MCPServerRegistration -> HTTPRoute fails with a
+# bare "HTTPRoute ... not found" that doesn't mention ReferenceGrant at all,
+# which is a much harder failure to diagnose.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-rh1-mcp-gateway-ext
+  namespace: openshift-ingress
+spec:
+  from:
+    - group: mcp.kuadrant.io
+      kind: MCPGatewayExtension
+      namespace: redhat-ods-applications
+  to:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: data-science-gateway

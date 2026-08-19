@@ -1,0 +1,47 @@
+# redhat-ods-applications carries a namespace-wide default NetworkPolicy
+# (operator-managed) that only opens ingress on a fixed port list: 8443, 8080,
+# 8081, 5432, 8082, 8099, 8181, 9443. Redis's default 6379 is NOT on that list
+# and connections silently time out — run it on 8081 instead of adding a
+# broader policy exception. Also needs --protected-mode no: Redis refuses any
+# non-loopback connection by default, which reads as a network failure
+# ("write: broken pipe") from the client, not an auth error.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rh1-mcp-redis
+  namespace: redhat-ods-applications
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rh1-mcp-redis
+  template:
+    metadata:
+      labels:
+        app: rh1-mcp-redis
+    spec:
+      containers:
+        - name: redis
+          image: registry.redhat.io/rhel9/redis-7:latest
+          command: ["redis-server", "--port", "8081", "--protected-mode", "no"]
+          ports:
+            - containerPort: 8081
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rh1-mcp-redis
+  namespace: redhat-ods-applications
+spec:
+  selector:
+    app: rh1-mcp-redis
+  ports:
+    - port: 8081
+      targetPort: 8081
