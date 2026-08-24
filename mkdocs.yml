@@ -1,0 +1,15 @@
+site_name: "Four Ways Your Agent Fails in Production \u2014 and the Red Hat AI Feature\
+  \ That Fixes Each"
+docs_dir: publishing-house/spec
+nav:
+- Home: index.md
+- Design Spec: design.md
+- Modules:
+  - Module 1 - Meet The Prototype: modules/module-01-meet-the-prototype.md
+  - Module 2 - Loop Discipline: modules/module-02-loop-discipline.md
+  - Module 3 - Tool Governance: modules/module-03-tool-governance.md
+  - Module 4 - Observability: modules/module-04-observability.md
+  - Module 5 - Enforcement: modules/module-05-enforcement.md
+  - Module 6 - Field Wrap: modules/module-06-field-wrap.md
+plugins:
+- techdocs-core
