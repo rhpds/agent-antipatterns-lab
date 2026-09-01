@@ -82,7 +82,7 @@ Lab (hands-on), delivered self-paced.
 | 4 | Round 3 — Observability with MLflow Tracing | 18 min |
 | 5 | Round 4 — Enforcement with Guardrails Orchestrator | 15 min |
 | — | **Total hands-on** | **90 min** |
-| — | Field wrap and positioning (module 6, discussion) | 15 min |
+| 6 | Field wrap and positioning | 15 min |
 | — | **Total content** | **105 min** |
 | — | Reserve for room settle, mass login, transitions and overrun | 15 min |
 | — | **Total slot** | **2 hours** |
