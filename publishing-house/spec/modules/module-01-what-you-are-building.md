@@ -21,14 +21,14 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 
 | Section | Title | Duration |
 |---------|-------|----------|
-| 1 | Log in and find the pieces | 4 min |
-| 2 | Run the agent once | 3 min |
-| 3 | Read the wire | 4 min |
+| 1 | Find the pieces | 2 min |
+| 2 | Run the agent once | 4 min |
+| 3 | Read the payload | 5 min |
 | 4 | The rule for the rest of the lab | 1 min |
 
 ### Detailed Steps
 
-1. Log in to the OpenShift AI dashboard and open the pre-provisioned workbench.
+1. Open the workbench, which is already running from the pre-lab step.
 2. Open the agent project. Identify the three files that matter: the tool definitions, the loop, and the configuration that names the model endpoint.
 3. Note that the endpoint currently configured is the one the lab starts on. Do not change it yet.
 4. Open the supplied test question. It asks for something the model cannot know, in a domain one of the declared tools obviously owns.
@@ -53,5 +53,7 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 - **The test question must be unanswerable without a tool.** It has to require a fact the model cannot hold, in a domain a declared tool obviously covers, so the model attempts a tool call every time. If the model can plausibly answer from memory there is nothing in the payload to point at.
 - **MLflow authentication needs the documented workaround.** Known issue RHOAIENG-44516: Kubernetes tokens are not accepted through the OpenShift AI Gateway, so `MLFLOW_TRACKING_URI` must point at a direct Route. Known issue RHOAIENG-45969: artifact serving backed by S3 is not configured by the automatic workbench integration, so parameters, metrics and tags log correctly but `log_artifact()` needs manual setup. This module only needs the former.
 - **The payload view must be first-class, not an afterthought.** Participants need a reliable way to see the raw request and response, whether that is a logging wrapper in the supplied agent code or a saved file per run. The trace supplements it. Reading the wire is the lab's differentiator and it cannot depend on a participant knowing how to enable debug logging.
-- **This module must survive 30 simultaneous first runs.** It is the mass-login moment and every participant hits the shared endpoint within the same two minutes.
+- **Login and workbench startup are a pre-lab step, not part of this module's 12 minutes.** Budgeting four minutes for thirty conference logins plus thirty workbench pods pulling images and binding PVCs was not realistic; workbench spawn alone routinely takes several minutes at that concurrency. Participants must arrive with the console open and the workbench running. The lab guide's front matter carries the login instructions, and the room needs them done before the clock starts. If this is not enforced, module 1 consumes the entire 15-minute reserve and every later module runs at zero margin.
+- **This module must survive 30 simultaneous first runs.** Every participant hits the same broken endpoint within the same two minutes, and it is a single vLLM instance on GPU 0 rather than one of the three validated replicas. This is the lab's peak synchronized load and it lands on its least redundant component.
+- **Recovery line required in participant text.** With greedy decoding and a fixed seed the model's response to the module 1 input is the same for everyone, but the evidence still depends on the model attempting a tool call. The content must tell participants what to do if their response body holds a plain refusal instead of a stranded tool call: re-run once, and note that module 2's diagnosis is unchanged either way.
 - **Delivery model is self-paced.** Steps written above as spoken framing, such as stating the rule in section 4, need a participant-readable equivalent in the content. The facilitator guide carries the discussion version.

@@ -78,7 +78,8 @@ Lab (hands-on), delivered self-paced.
 
   ```
   --dtype=auto --max-model-len=32768 --enable-auto-tool-choice \
-  --tool-call-parser=hermes --reasoning-parser=qwen3 --gpu-memory-utilization=0.90
+  --tool-call-parser=hermes --reasoning-parser=qwen3 --gpu-memory-utilization=0.90 \
+  --seed=0
   ```
 
   **`--reasoning-parser=qwen3` is not optional and must be identical on both endpoints.** Red Hat documents a known issue where Qwen3 models emit raw tags when the correct reasoning parser is unavailable. That is a second silent tool-calling failure sitting next to the one module 2 plants, presenting a similar symptom from a different cause. If it differs between the two endpoints, a participant can diagnose the wrong fault and still appear to be right. The only permitted difference is the `--tool-call-parser` value.
@@ -99,7 +100,7 @@ Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the reje
 
 | Module | Title | Duration | Opens with | Closes with |
 |---|---|---|---|---|
-| 1 | What you are building, and how to see inside it | 12 min | A confident answer built from nothing | Reading the wire and the first trace |
+| 1 | What you are building, and how to see inside it | 12 min | A confident answer built from nothing | Reading the payload and the first trace |
 | 2 | The model interface: making tool calls fire at all | 22 min | Tools declared, none ever called, no error | A serving runtime whose parser matches the model |
 | 3 | The agent loop: stop conditions and turn control | 16 min | The same tool called until the iteration cap | Termination on the model's reported stop condition |
 | 4 | Tool returns that tell the truth | 14 min | A well-formed empty result read as success | A structured error contract |
@@ -154,6 +155,7 @@ Automation must provision the workbench per participant with the agent repo pre-
 - The agent must be **non-streaming**. Upstream vLLM issue #31871 reports the hermes tool-call parser returning raw text instead of parsed `tool_calls` in streaming mode, which is the exact symptom module 2 teaches, occurring as a live bug even when configuration is correct. A streaming agent would make the documented fix appear not to work.
 - Module 1 must document the MLflow authentication workaround. Known issue RHOAIENG-44516: Kubernetes tokens are not accepted through the OpenShift AI Gateway, so a direct Route is used as `MLFLOW_TRACKING_URI`. Known issue RHOAIENG-45969: artifact serving backed by S3 is not configured by the automatic workbench integration.
 - **Every planted failure must be structural**, a mismatched parser, a loop that discards its stop condition, an unstructured tool return, an empty retrieval result, and never dependent on the model choosing to misbehave. Stochastic failures will not reproduce identically across a room, and vLLM's continuous batching means numerics vary with whatever else is in the batch.
+- **One qualification on that rule, stated rather than hidden.** The *faults* are structural. In modules 1 and 2 the *evidence* is not fully so: the participant sees the tool call stranded in the response body only if the model attempts a call for that input. Whether it attempts one is a model decision. Three mitigations, all required. Serve both endpoints with greedy decoding and a fixed seed, so the same input produces the same output for every participant rather than sampling differently thirty times. Choose the module 1 question so a tool call is the only way to answer it, which is already an authoring constraint in that module. And give the participant an explicit recovery line: if the response body holds a plain refusal rather than a stranded tool call, re-run once, because the diagnosis in module 2 is unchanged either way. This must be confirmed by running the module 1 input repeatedly against the broken endpoint before authoring completes; that run has not yet happened.
 
 ## Infrastructure Requirements
 
