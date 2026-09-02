@@ -185,7 +185,18 @@ approval_checklist:
       an agent rather than as inference.
 
       rhpds/vllm-tool-calling is a deployment quickstart rather than a lab, providing per-model
-      kustomize manifests. It is a reusable provisioning asset, not competing content.'
+      kustomize manifests. It is a reusable provisioning asset, not competing content.
+
+      RCARS re-run 2026-09-02 against the reworked design returned 39 candidates. The top match
+      is 99 percent, the same headline figure the previous design carried, but against a different
+      asset and for a different reason. Previously it was an agent-operations lab whose entire
+      subject this design was duplicating. Now it is a 360-minute Llama Stack lab that shares
+      retrieval and MCP connection, both of which are bounded here to one short module each,
+      and that does not teach serving configuration at all. The score should be read alongside
+      that check: RCARS relevance is AI-generated, its summary for the top match asserts vLLM
+      tool-call configuration coverage, and the repository shows no such module. The second
+      match, VLLM Playground at 90, is the genuine overlap and is bounded explicitly in the
+      module 2 outline.'
     design_overview: 'Participants build a multi-step agent on OpenShift AI one layer at a time.
       Each layer opens with that layer failing in a way that raises no error, is diagnosed from
       the request and response payloads on the inference endpoint, and closes with the build
@@ -235,27 +246,44 @@ approval_checklist:
         naming the two failure modes covered by discussion rather than hands-on.
     rcars_overlap_pct: 99
     rcars_top_matches:
-    - title: AgentOps in Production — AI Observability on OpenShift
-      ci_name: published.agentops-ocp.prod
-      url: https://catalog.demo.redhat.com/catalog?item=published.agentops-ocp.prod
-      relevance_score: 99
-      why_it_fits: Directly covers MLflow Tracing and multi-agent observability on Red Hat OpenShift
-        AI, teaching participants to use distributed traces to diagnose agent failures and silent
-        failures. Also addresses MCP and LangGraph agent architectures.
-    - title: 'LB2144: AI AgentOps OpenShift (AWS)'
-      ci_name: summit-2026.lb2144-agentops-ocp-aws.prod
-      url: https://catalog.demo.redhat.com/catalog?item=summit-2026.lb2144-agentops-ocp-aws.prod
-      relevance_score: 93
-      why_it_fits: Covers MLflow Tracing, MCP and multi-agent observability on Red Hat OpenShift
-        AI, teaching diagnosis of agent failures from execution traces. The mortgage lending
-        scenario provides a regulated-industry context.
     - title: Agentic AI with Llama Stack and 3rd party Frameworks
       ci_name: published.agentic-ai-openshift.prod
       url: https://catalog.demo.redhat.com/catalog?item=published.agentic-ai-openshift.prod
-      relevance_score: 89
-      why_it_fits: Overlapping coverage of vLLM model serving, MCP integration, AI safety guardrails
-        and agentic tracing, but built on Llama Stack, LangGraph and Langfuse rather than the
-        MLflow Tracing and TrustyAI combination this design uses.
+      relevance_score: 99
+      why_it_fits: 'Re-run 2026-09-02 against the reworked design. RCARS scores it 99 and its
+        generated summary claims it covers vLLM model serving with tool-call configuration.
+        That claim was checked against the repository (showroom-agentic-ai-llamastack) rather
+        than accepted: its 14 modules are introduction, llamastack, exploring-llamastack, RAG,
+        evals, shields, web-search, backend-setup, mcp, agent-llamastack, agent-langgraph, langfuse,
+        langflow and workbench. There is no serving-configuration module, so it does not teach
+        why a mismatched tool-call parser strands a call in the response body, which is this
+        lab''s largest block. It is also 360 minutes against this lab''s 120, and is built on
+        Llama Stack, now renamed OGX and being de-emphasized. Genuine overlap is retrieval and
+        MCP connection, both deliberately bounded here to one short module each.'
+    - title: VLLM Playground
+      ci_name: agd-v2.vllm-playground-aws.prod
+      url: https://catalog.demo.redhat.com/catalog?item=agd-v2.vllm-playground-aws.prod
+      relevance_score: 90
+      why_it_fits: 'The closest real overlap, and it scored higher on re-run than the 74 recorded
+        against the previous design. Its module 3 teaches tool-call parser selection including
+        the Qwen-to-Hermes pairing this lab uses, and its module 4 covers MCP integration. Verified
+        from the repository: it teaches the choice on the happy path through a web UI checkbox
+        and a parser dropdown defaulting to Auto-detect, with a parser-by-model-family reference
+        table, all decided before anything runs. Module 2 here owns the inverse case, where
+        the choice is already wrong, nothing reports it, and the evidence exists only in the
+        request and response payloads. The parser reference table is deliberately not reproduced.
+        The two are complementary and the boundary is written into the module 2 outline as an
+        authoring constraint.'
+    - title: Taking MCP Servers to Production on OpenShift AI with the Red Hat MCP Registry
+      ci_name: published.openshift-mcp-lab.prod
+      url: https://catalog.demo.redhat.com/catalog?item=published.openshift-mcp-lab.prod
+      relevance_score: 84
+      why_it_fits: Covers MCP server operationalization and tool governance at the registry
+        level with least-privilege access control and RBAC. Module 6 here is 10 minutes, carries
+        one objective, and teaches only that routing tool access through the platform decouples
+        tool changes from agent releases. It deliberately teaches no identity, filtering or
+        authorization, which is this lab's boundary against both this asset and the neighbouring
+        Security/Governance lab.
     rejections:
     - id: 59e7f3be-4be9-4995-ad73-f3496017e65a
       text: This should not have been submitted yet. David Williams needs to update it to match

@@ -37,7 +37,7 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 7. Open the request payload that the agent sent. Confirm the tools were declared: the `tools` array is populated.
 8. Open the response payload. Observe that `tool_calls` is empty and `content` holds the entire answer.
 9. Open the MLflow trace for the run. Confirm what the payloads already showed: one model turn, zero tool invocations, and a stop reason that indicates the model simply finished talking.
-10. State the rule that the rest of the lab runs on: the answer is a claim, the wire is the evidence. Every module from here ends by checking the wire, not by reading the answer.
+10. State the rule that the rest of the lab runs on: the answer is a claim, and the evidence is somewhere else. Every module from here ends by checking evidence rather than by reading the answer. Say which evidence: payloads in this module and the next, because their failure is visible nowhere else, and the trace from module 3 onward, which is the better instrument once turn counts, tool sequences and error categories are what matter.
 11. Do not diagnose the cause yet. Module 2 opens on exactly this failure.
 
 ### Key Takeaways
