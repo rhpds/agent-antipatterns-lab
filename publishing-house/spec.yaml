@@ -153,22 +153,35 @@ approval_checklist:
       Module 1 establishes payload and trace access; module 7 re-runs every earlier failure
       case against the assembled agent and produces a takeaway artifact rather than a system
       state.'
-    catalog_gap: 'Rewritten 2026-09-02 after the topic-alignment rejection. The previous design
-      was assessed against the agent-operations catalog and scored 99 percent against AgentOps
-      in Production, which was the overlap the reviewer identified. This design occupies the
-      Agents build/deploy basics slot instead.
+    catalog_gap: 'Rewritten 2026-09-02 after the topic-alignment rejection, and verified against
+      the published repositories rather than catalog metadata alone.
 
-      Three candidate labs sit in that slot and all three consume a hosted or centrally served
-      model. LB1782 states that participants consume a centrally-hosted, pre-deployed Granite
-      model via MaaS; LB2158 connects agents to a centralized Red Hat One MaaS endpoint; LB1472
-      uses hosted APIs on RHEL. None of them configures a serving runtime, so none teaches why
-      tool calls fail to parse, which is this design''s opening and largest module.
+      Slot candidates: LB1782, LB2158 and LB1472 all consume a hosted or centrally served model.
+      LB1782 states participants consume a centrally-hosted, pre-deployed Granite model via
+      MaaS. None configures a serving runtime, so none can teach why tool calls fail to parse,
+      which is this design''s largest module.
 
-      Overlap that does exist is deliberately bounded. Retrieval is one 14-minute module rather
-      than a pipeline, because LB1782 already builds a full RAG pipeline over enterprise documentation.
-      Tool connection through MCP Gateway is one 12-minute module with a single objective, because
-      the neighbouring Security/Governance lab owns identity-aware authorization in depth. Guardrails
-      and adversarial scanning are removed entirely.'
+      Existing catalog assets, checked directly. The closest is the published vLLM Playground
+      (showroom-vllm-playground), whose module 3 teaches parser selection including the Qwen-to-Hermes
+      pairing, and whose module 4 covers MCP integration. Playground teaches the choice on the
+      happy path through a UI checkbox and a parser dropdown defaulting to Auto-detect, decided
+      before anything runs. Module 2 here owns the inverse: the choice is already wrong, nothing
+      reported it, and the evidence exists only in the request and response payloads. The parser-by-model-family
+      reference table is deliberately not reproduced.
+
+      AgentOps in Production (agentops-in-prod-showroom, duplicated in rhai-features-workshop)
+      scored 99 percent against the rejected design with observability, metrics, tracing and
+      evaluation modules. All of that is removed; MLflow now appears only as the instrument
+      for reading a trace. AgentOps in Action (agentops-in-action-workshop) owns identity-aware
+      authorization and adversarial testing in the neighbouring slot; guardrails and adversarial
+      scanning are removed and module 6 carries no assessed outcome. Retrieval is bounded to
+      one module because LB1782, showroom-agentic-ai-llamastack and enterprise-rag-intel-continuum
+      each own it in depth. Red Hat AI Inference (redhat-ai-inference) owns serving lifecycle,
+      benchmarking and scale in the Inference slot, which is why this design is framed as building
+      an agent rather than as inference.
+
+      rhpds/vllm-tool-calling is a deployment quickstart rather than a lab, providing per-model
+      kustomize manifests. It is a reusable provisioning asset, not competing content.'
     design_overview: 'Participants build a multi-step agent on OpenShift AI one layer at a time.
       Each layer opens with that layer failing in a way that raises no error, is diagnosed from
       the request and response payloads on the inference endpoint, and closes with the build

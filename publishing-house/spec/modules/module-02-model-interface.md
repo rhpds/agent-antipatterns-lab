@@ -4,7 +4,9 @@
 
 The agent declared its tools and never called one. The instinct in the room will be to improve the prompt. The payloads show why that cannot work: the model did emit a tool call, correctly formatted for the model it is, and the parser configured on the endpoint did not match that format, so the call was left in the response body as text and nothing acted on it. No error was raised anywhere, because from vLLM's perspective nothing went wrong.
 
-Participants compare the two class endpoints, find the single differing serving argument, repoint the agent, and watch `tool_calls` populate. This is the layer no other candidate lab in this slot teaches, because all of them consume a hosted model whose serving configuration is not theirs to see.
+Participants compare the two class endpoints, find the single differing serving argument, repoint the agent, and watch `tool_calls` populate. None of the three candidate labs in this slot can teach this, because all of them consume a hosted or centrally served model whose serving configuration is not theirs to see.
+
+**Boundary against existing catalog content.** The published *vLLM Playground* lab teaches parser selection in its own module 3, including the Qwen-to-Hermes pairing this module uses. It does so on the happy path: a web UI checkbox, a parser dropdown with an Auto-detect default, and a reference table of parsers by model family, all chosen before anything runs. This module must not restate that. It owns the opposite case, where the choice was already made wrong, nothing reported it, and the only evidence is in the payload. **Do not include a parser-to-model-family reference table.** That is Playground's content and reproducing it converts a complementary module into a duplicate one.
 
 ### Audience and Time
 
@@ -46,7 +48,8 @@ Requires module 1, specifically the habit of reading the payload rather than the
 
 ### Key Takeaways
 
-- The parser is model-specific, and the correct pairing is not guessable from the model's name. `hermes` for a Qwen model is the example participants will remember.
+- The parser is model-specific, and the correct pairing is not guessable from the model's name.
+- Auto-detection exists and mostly works, which is exactly why the failure is rare enough to be unfamiliar and confusing when it happens. A room that has only ever used auto-detect has never seen this.
 - A mismatched parser fails silently. There is no error, no warning, and no degraded status anywhere in the platform.
 - Prompt engineering cannot repair a tool call that nothing parsed. The failure is below the prompt.
 - Whether an agent can use tools at all is a property of how the model is served, decided before any agent code runs.

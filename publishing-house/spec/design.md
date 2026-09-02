@@ -96,7 +96,22 @@ Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the reje
 
 The schedule budgets 105 minutes into a 120-minute slot deliberately. Every conference session loses time at the front to logistics, and this lab's single mass-login event sits in module 1.
 
-Module 2 carries the most time because it is the layer no other candidate in this slot teaches, and because its diagnosis is the hardest in the lab: the model emitted a correct tool call, the parser did not match it, and the call was left in the response body as text with nothing raising an error.
+Module 2 carries the most time because none of the three candidate labs in this slot can teach it, and because its diagnosis is the hardest in the lab: the model emitted a correct tool call, the parser did not match it, and the call was left in the response body as text with nothing raising an error.
+
+## Boundaries Against Existing Content
+
+Checked against the published repositories on 2026-09-02 rather than against catalog metadata alone.
+
+| Asset | Overlaps | How this design stays clear |
+|---|---|---|
+| **vLLM Playground** (`showroom-vllm-playground`) | Its module 3 teaches tool-call parser selection, including the Qwen-to-Hermes pairing. Its module 4 covers MCP integration. | Playground teaches the choice on the happy path: a UI checkbox, a parser dropdown defaulting to Auto-detect, and a reference table by model family, all decided before anything runs. Module 2 here owns the case where that choice is already wrong, nothing reported it, and the evidence is only in the payload. The parser reference table is deliberately not reproduced. |
+| **AgentOps in Production** (`agentops-in-prod-showroom`, duplicated in `rhai-features-workshop`) | Observability pillars, metrics, MLflow tracing, evaluations, dev-to-production. Scored 99 percent against the rejected design. | Every one of those modules is gone. MLflow appears here only as the instrument for reading a trace, with no observability objective. |
+| **AgentOps in Action** (`agentops-in-action-workshop`) | Identity-aware authorization, runtime isolation, adversarial testing, policy tuning. | The neighbouring slot. Guardrails, adversarial scanning and policy enforcement removed entirely. Module 6 stops at connecting tools through a governed endpoint and carries no assessed outcome. |
+| **Agentic AI with Llama Stack** (`showroom-agentic-ai-llamastack`) | RAG, MCP, evaluations, shields, agent frameworks across 14 modules. | Built on Llama Stack, which is being de-emphasized. Module 5 here adds retrieval as one build step and does not tune it. |
+| **Red Hat AI Inference** (`redhat-ai-inference`) | Model deployment, benchmarking, Model-as-a-Service, observability. Belongs to the Inference: serving through scale slot. | Confirms why this design is framed as building an agent rather than as an inference lab. That lab owns serving lifecycle, scale and cost. This one touches serving configuration only where it decides whether an agent can call a tool. |
+| **Enterprise RAG on Intel** (`enterprise-rag-intel-continuum`) | Full RAG pipeline. | Intel-hardware specific, and module 5 here is a single grounded-answer build step rather than a pipeline. |
+
+**Reusable asset, not a competitor.** `rhpds/vllm-tool-calling` is a deployment quickstart rather than a lab: kustomize manifests providing `servingruntime.yaml` and `chat-template-configmap.yaml` per model per accelerator, with no Showroom content or spec. It is a candidate starting point for provisioning this lab's two endpoints.
 
 **Known tension, flagged for content review.** Module 7 carries both end-to-end verification and the customer-conversation work in 13 minutes, and that is tight. In the earlier design the positioning segment was protected from compression because it is the artifact a Technical Seller takes back to a customer. If review agrees it is too thin, the cleanest correction is moving four minutes from module 2 rather than shortening the reserve.
 
