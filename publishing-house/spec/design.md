@@ -4,7 +4,7 @@
 
 This design replaces a version rejected at content review on 2026-09-01 for overlapping the Agents, Security/Governance slot. The rejection was correct: the previous four rounds covered tool governance, observability and policy enforcement, which is the neighbouring lab's subject, not this one's.
 
-This slot asks for "this is how you build an agent", the prerequisite before governance. So the lab now builds an agent rather than governing an inherited one. Governance appears once, in module 6, as the way tools get connected on the platform, and carries no learning objective of its own. Adversarial scanning and policy enforcement are gone.
+This slot asks for "this is how you build an agent", the prerequisite before governance. So the lab now builds an agent rather than governing an inherited one. Governance does not appear. Module 6 uses MCP Gateway purely as the way tools get connected, so tool changes stop being application releases, and it teaches no identity, filtering or authorization. Adversarial scanning and policy enforcement are gone.
 
 Three other candidate labs sit in this slot, and all three consume a hosted or centrally served model, LB1782 states outright that participants "consume a centrally-hosted, pre-deployed Granite model". None of them configures a serving runtime. That is the gap this design leads with, and it is the one part of the rejected version that carried no overlap with anything.
 
@@ -20,7 +20,7 @@ The same document states the stakes plainly: "If open-weight models on vLLM cann
 
 **Where agent identity sits, and why it is not here.** Agent identity is moving quickly: A2A Agent Cards, SPIFFE and SPIRE workload binding, and signed cards. That work now lands in **OpenShell**, which the strategy names as the unified agent security and lifecycle project, with an operator planned for RHOAI 3.6 handling identity injection. The neighbouring Agents Security/Governance lab is built on OpenShell and lists SPIFFE and SPIRE in its product set. Adopting agent cards here would rebuild the overlap that got the previous design rejected.
 
-The two are different axes and this design owns only the first. Module 6 is about **caller identity deciding which tools an agent may reach**. Agent identity is about **who the agent cryptographically is when another agent calls it**. Neither Kagenti, SPIRE nor any A2A component is present in the dev cluster's catalogs today.
+This design teaches neither axis. Module 6 stops at **how an agent reaches its tools**, so that adding a tool is a platform operation rather than an application release. Caller identity deciding which tools are visible, and agent identity establishing who the agent is to other agents, both belong to the neighbouring lab. Neither Kagenti, SPIRE nor any A2A component is present in the dev cluster's catalogs today.
 
 ## Overview
 
@@ -28,7 +28,7 @@ Most agent tutorials build something that works on the demo input and leave the 
 
 Participants build the agent themselves. In each module they add a capability, run it against a realistic input, watch it fail in a way that produces no error and no obvious symptom, find the cause in the request and response payloads on the inference endpoint, and then build the step that prevents it. The rule the lab runs on is established in module 1 and holds throughout: the agent's answer is a claim, the wire is the evidence.
 
-The order is forced by dependency rather than preference. A model that cannot emit a parseable tool call makes every later layer untestable. A loop that never terminates makes error handling unobservable. Error handling has to be honest before retrieval is worth adding, because otherwise a search that returns nothing reads as an answer. Governance only means something once the agent is genuinely reaching tools.
+The order is forced by dependency rather than preference. A model that cannot emit a parseable tool call makes every later layer untestable. A loop that never terminates makes error handling unobservable. Error handling has to be honest before retrieval is worth adding, because otherwise a search that returns nothing reads as an answer. Module 6 comes late because decoupling tool changes from agent releases only matters once there are several tools worth changing, and module 7 can only verify an agent that is fully assembled.
 
 ## Target Audience
 
@@ -53,7 +53,7 @@ The order is forced by dependency rather than preference. A model that cannot em
 4. Build an agent loop that terminates on the model's reported stop condition rather than on a text heuristic, a first response, or an iteration cap.
 5. Implement a structured tool-error contract of category, retryable flag and detail so that failed tool calls surface instead of becoming confident empty answers.
 6. Integrate a searchable knowledge source so the agent grounds its answers in retrieved content rather than in model memory.
-7. Configure tool access through MCP Gateway so the agent reaches its tools by a governed path rather than by direct connection.
+7. Configure an agent to reach its tools through MCP Gateway so that tools can be added or changed without modifying or redeploying the agent.
 8. Verify the assembled agent end to end against the failure cases from every earlier step before treating it as more than a prototype.
 
 ## Content Type
@@ -88,7 +88,7 @@ Lab (hands-on), delivered self-paced.
 | vLLM model serving | GA | GA | Core to Red Hat AI |
 | vLLM tool-calling configuration | Documented serving-runtime arguments, not preview on this path | Same | Resolved 2026-08-19. Standalone Red Hat AI Inference Server carries a Developer Preview notice on tool calling, and it scopes the whole feature rather than one parser — the same boilerplate appears in the Qwen 3 chapter and the gpt-oss chapter. That notice does not govern this lab. On RHOAI/KServe these are ordinary vLLM arguments passed via *Additional serving runtime arguments*, documented in GA deployment procedures with no preview caveat. Stated precisely, that is the absence of a preview label rather than an affirmative support statement. Recommend the infra reviewer confirm with the RHOAI product team. |
 | MLflow (incl. Tracing) | GA since OpenShift AI 3.4 | GA | Traces are OpenTelemetry-compatible, so any OTEL sink can back the lab |
-| MCP Gateway | Tech Preview via Red Hat Connectivity Link | Tech Preview, GA not announced | Operator v0.7.1, verified installed on the dev cluster 2026-08-18. Now supporting rather than load-bearing: module 6 carries no learning objective that fails without it. Documented fallback if it regresses, tool scoping at the MCP server or registry level plus RBAC. |
+| MCP Gateway | Tech Preview via Red Hat Connectivity Link | Tech Preview, GA not announced | Operator v0.7.1, verified installed on the dev cluster 2026-08-18. Now supporting rather than load-bearing: module 6 teaches runtime tool discovery, and the documented fallback demonstrates the same thing without the gateway. Documented fallback if it regresses, tool scoping at the MCP server or registry level plus RBAC. |
 | PostgreSQL with pgvector (module 5) | GA, deployed directly | GA | Settled 2026-09-02. Red Hat OpenShift AI is standardizing on pgvector as a remote vector store provider, so this is the platform's direction rather than an arbitrary pick. The RHOAI built-in pgvector provider integration is EA2 as of 3.5 and is deliberately not used: the retrieval tool queries Postgres directly, which needs nothing pre-GA and stays forward-compatible with that integration when it GAs. |
 
 Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the rejected version and are all removed. That takes both Tech Preview dependencies off the critical path.
@@ -102,7 +102,7 @@ Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the reje
 | 3 | The agent loop: stop conditions and turn control | 16 min | The same tool called until the iteration cap | Termination on the model's reported stop condition |
 | 4 | Tool returns that tell the truth | 14 min | A well-formed empty result read as success | A structured error contract |
 | 5 | Giving the agent knowledge it can search | 14 min | A plausible answer from model memory | Answers grounded in retrieved content |
-| 6 | Connecting tools through the platform | 10 min | Point-to-point wiring with nothing governing reach | Tool access through MCP Gateway |
+| 6 | Connecting tools through the platform | 10 min | Adding a tool means editing and redeploying the agent | A tool added at the gateway, picked up with no redeploy |
 | 7 | Running it for real: verification and field positioning | 17 min | Every layer passing alone, none checked together | Every earlier failure case re-run against the whole |
 | — | **Total content** | **105 min** | | |
 | — | Reserve for room settle, mass login, transitions and overrun | 15 min | | |
@@ -143,9 +143,9 @@ Automation must provision the workbench per participant with the agent repo pre-
 
 **Provisioning findings from dev-cluster verification (RHOAI 3.4.3):**
 
-- **MCP Gateway is the heaviest item by a wide margin.** Reaching a working identity-filtered catalog took nine non-obvious manual steps, none discoverable from CRD field documentation: gateway namespace admission rules, a hand-created Kuadrant CR, ReferenceGrants for cross-namespace references, an explicit `publicHost`, a real Redis session store on a NetworkPolicy-permitted port, an additive NetworkPolicy for the broker's gRPC ext_proc port, a `ping` method on upstream servers, an `id` field on tools, and a required `spec.prefix`. All of it must be pre-baked. This is a large part of why module 6 is now 12 minutes and supporting rather than a full round.
+- **MCP Gateway is the heaviest item by a wide margin.** Dev-cluster verification went as far as an identity-filtered catalog, which the lab no longer teaches; reaching a working gateway at all took nine non-obvious manual steps, none discoverable from CRD field documentation: gateway namespace admission rules, a hand-created Kuadrant CR, ReferenceGrants for cross-namespace references, an explicit `publicHost`, a real Redis session store on a NetworkPolicy-permitted port, an additive NetworkPolicy for the broker's gRPC ext_proc port, a `ping` method on upstream servers, an `id` field on tools, and a required `spec.prefix`. All of it must be pre-baked. This is a large part of why module 6 is short and supporting rather than a full round.
 - **MLflow is a cluster-wide singleton.** The CR must be named `mlflow` and always lands in `redhat-ods-applications` regardless of where it is created, so no per-participant tracking server is possible. This forces the shared-cluster topology.
-- **Identity filtering has two documented paths and the build must pick one.** Red Hat documents an OAuth2 flow where Authorino validates the token, mints a signed JWT and injects it as an `x-authorized-tools` header which the MCP Broker uses to filter `tools/list`. Dev-cluster verification used Kubernetes ServiceAccount identity forwarded as `X-Auth-Request-User` with `MCPServerRegistration.userSpecificList`. Both work and they differ in provisioning burden.
+- **The identity-filtering question is moot rather than deferred.** An earlier version of module 6 taught identity-filtered tool catalogs, which forced a choice between the documented OAuth2 and Authorino path and the ServiceAccount forwarding used in dev-cluster verification. Module 6 no longer teaches filtering, so neither path is built and the per-identity token claims and `userSpecificList` configuration drop out of provisioning.
 
 **Authoring constraints carried into the modules:**
 
@@ -192,5 +192,5 @@ Trust-based, stated explicitly. This is a classic Showroom lab with no solve/val
 | 3 | The run terminates on the model's stop condition rather than the iteration cap, verifiable by a turn count well below the cap. |
 | 4 | The swallowed failure re-runs as a structured, categorized error instead of a confident empty answer. |
 | 5 | The same question that previously produced a plausible invention now returns an answer traceable to a retrieved passage, and a question outside the corpus returns an explicit miss rather than an invention. |
-| 6 | The tool list the agent can reach is served through the gateway, and a tool outside its identity's authorization does not appear. |
+| 6 | A tool registered at the gateway is discovered and used by the agent with no code change, rebuild or restart. |
 | 7 | Every earlier failure case re-run against the assembled agent produces the corrected behaviour. No machine-verifiable signal for the positioning segment, which produces a takeaway artifact. |

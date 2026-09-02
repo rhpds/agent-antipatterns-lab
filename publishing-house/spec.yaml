@@ -30,8 +30,8 @@ spec:
     failed tool calls surface instead of becoming confident empty answers.
   - Integrate a searchable knowledge source so the agent grounds its answers in retrieved content
     rather than in model memory.
-  - Configure tool access through MCP Gateway so the agent reaches its tools by a governed path
-    rather than by direct connection.
+  - Configure an agent to reach its tools through MCP Gateway so that tools can be added or
+    changed without modifying or redeploying the agent.
   - Verify the assembled agent end to end against the failure cases from every earlier step
     before treating it as more than a prototype.
   modules:
@@ -223,11 +223,11 @@ approval_checklist:
         error contract already exists, a retrieval miss returns an explicit gap instead of an
         invention.
     - title: Connecting tools through the platform
-      overview: Tools are wired point to point, so the agent works and nobody can describe what
-        it can reach. Participants move tool access behind MCP Gateway, making the catalog a
-        property of the platform and the identity rather than of the agent's source. Deliberately
-        supporting rather than load-bearing, since the neighbouring lab owns authorization in
-        depth.
+      overview: 'Tools are hardcoded into the agent, so adding one means editing, rebuilding
+        and redeploying it in every environment. Participants point the agent at MCP Gateway
+        so it discovers tools at runtime, then register a new tool at the gateway and watch
+        the agent pick it up with no code change or restart. Teaches connection only: no identity,
+        filtering or authorization, which the neighbouring lab owns.'
     - title: 'Running it for real: verification and field positioning'
       overview: Every layer was verified alone and none against all the others. Participants
         re-run the full set of earlier failure cases against the assembled agent, record a baseline
