@@ -49,7 +49,7 @@ spec:
     status: not_started
   - id: module-04
     title: Tool returns that tell the truth
-    duration_min: 16
+    duration_min: 14
     status: not_started
   - id: module-05
     title: Giving the agent knowledge it can search
@@ -57,11 +57,11 @@ spec:
     status: not_started
   - id: module-06
     title: Connecting tools through the platform
-    duration_min: 12
+    duration_min: 10
     status: not_started
   - id: module-07
     title: 'Running it for real: verification and field positioning'
-    duration_min: 13
+    duration_min: 17
     status: not_started
   environment:
     platform: ocp
@@ -112,9 +112,13 @@ spec:
       if it regresses before the event is tool scoping at the MCP server or registry level plus
       RBAC, which demonstrates the same principle without the gateway dependency.
 
-      The vector store for module 5 is not yet selected and may add a dependency. The requirement
-      is modest and the selection should favour whatever RHOAI already ships or GitOps can stand
-      up without a new operator. Flagged for the infra reviewer.'
+      The vector store for module 5 is settled and adds no non-GA dependency: PostgreSQL with
+      the pgvector extension, deployed as a plain Deployment via GitOps and queried directly
+      by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector as a remote vector
+      store provider, so the lab shows a participant the direction the platform is going. The
+      RHOAI built-in pgvector provider integration is EA2 as of 3.5 and is deliberately not
+      used, because querying Postgres directly needs nothing pre-GA and remains forward-compatible
+      with that integration.'
     external_services:
     - registry.redhat.io
     - quay.io

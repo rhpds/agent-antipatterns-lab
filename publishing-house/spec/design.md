@@ -57,7 +57,7 @@ Lab (hands-on), delivered self-paced.
 - **Red Hat OpenShift Container Platform 4.20 or later**, underlying platform
 - **Red Hat Connectivity Link** (Kuadrant, Authorino), installed as a dependency of MCP Gateway
 - Upstream projects: vLLM, Model Context Protocol, MLflow, OpenTelemetry
-- Vector store for module 5, selection open, see Infrastructure Requirements
+- **PostgreSQL with the pgvector extension** for module 5, deployed as a plain Deployment via GitOps
 - Model: `RedHatAI/Qwen3-8B-FP8-dynamic`, Red Hat validated. The serving recipe follows Red Hat's documented Qwen reference configuration for the KServe vLLM runtime:
 
   ```
@@ -75,7 +75,7 @@ Lab (hands-on), delivered self-paced.
 | vLLM tool-calling configuration | Documented serving-runtime arguments, not preview on this path | Same | Resolved 2026-08-19. Standalone Red Hat AI Inference Server carries a Developer Preview notice on tool calling, and it scopes the whole feature rather than one parser — the same boilerplate appears in the Qwen 3 chapter and the gpt-oss chapter. That notice does not govern this lab. On RHOAI/KServe these are ordinary vLLM arguments passed via *Additional serving runtime arguments*, documented in GA deployment procedures with no preview caveat. Stated precisely, that is the absence of a preview label rather than an affirmative support statement. Recommend the infra reviewer confirm with the RHOAI product team. |
 | MLflow (incl. Tracing) | GA since OpenShift AI 3.4 | GA | Traces are OpenTelemetry-compatible, so any OTEL sink can back the lab |
 | MCP Gateway | Tech Preview via Red Hat Connectivity Link | Tech Preview, GA not announced | Operator v0.7.1, verified installed on the dev cluster 2026-08-18. Now supporting rather than load-bearing: module 6 carries no learning objective that fails without it. Documented fallback if it regresses, tool scoping at the MCP server or registry level plus RBAC. |
-| Vector store (module 5) | Not yet selected | To be confirmed | The one genuinely open item in this design. See Infrastructure Requirements. |
+| PostgreSQL with pgvector (module 5) | GA, deployed directly | GA | Settled 2026-09-02. Red Hat OpenShift AI is standardizing on pgvector as a remote vector store provider, so this is the platform's direction rather than an arbitrary pick. The RHOAI built-in pgvector provider integration is EA2 as of 3.5 and is deliberately not used: the retrieval tool queries Postgres directly, which needs nothing pre-GA and stays forward-compatible with that integration when it GAs. |
 
 Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the rejected version and are all removed. That takes both Tech Preview dependencies off the critical path.
 
@@ -86,10 +86,10 @@ Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the reje
 | 1 | What you are building, and how to see inside it | 12 min | A confident answer built from nothing | Reading the wire and the first trace |
 | 2 | The model interface: making tool calls fire at all | 22 min | Tools declared, none ever called, no error | A serving runtime whose parser matches the model |
 | 3 | The agent loop: stop conditions and turn control | 16 min | The same tool called until the iteration cap | Termination on the model's reported stop condition |
-| 4 | Tool returns that tell the truth | 16 min | A well-formed empty result read as success | A structured error contract |
+| 4 | Tool returns that tell the truth | 14 min | A well-formed empty result read as success | A structured error contract |
 | 5 | Giving the agent knowledge it can search | 14 min | A plausible answer from model memory | Answers grounded in retrieved content |
-| 6 | Connecting tools through the platform | 12 min | Point-to-point wiring with nothing governing reach | Tool access through MCP Gateway |
-| 7 | Running it for real: verification and field positioning | 13 min | Every layer passing alone, none checked together | Every earlier failure case re-run against the whole |
+| 6 | Connecting tools through the platform | 10 min | Point-to-point wiring with nothing governing reach | Tool access through MCP Gateway |
+| 7 | Running it for real: verification and field positioning | 17 min | Every layer passing alone, none checked together | Every earlier failure case re-run against the whole |
 | — | **Total content** | **105 min** | | |
 | — | Reserve for room settle, mass login, transitions and overrun | 15 min | | |
 | — | **Total slot** | **2 hours** | | |
@@ -113,7 +113,7 @@ Checked against the published repositories on 2026-09-02 rather than against cat
 
 **Reusable asset, not a competitor.** `rhpds/vllm-tool-calling` is a deployment quickstart rather than a lab: kustomize manifests providing `servingruntime.yaml` and `chat-template-configmap.yaml` per model per accelerator, with no Showroom content or spec. It is a candidate starting point for provisioning this lab's two endpoints.
 
-**Known tension, flagged for content review.** Module 7 carries both end-to-end verification and the customer-conversation work in 13 minutes, and that is tight. In the earlier design the positioning segment was protected from compression because it is the artifact a Technical Seller takes back to a customer. If review agrees it is too thin, the cleanest correction is moving four minutes from module 2 rather than shortening the reserve.
+**Resolved 2026-09-02.** Module 7 originally carried both end-to-end verification and the customer-conversation work in 13 minutes, which was too tight for a segment whose output is the artifact a Technical Seller takes back to a customer. Two minutes came from module 4 and two from module 6, taking module 7 to 17. Module 2 was deliberately left at 22: it is both the differentiator against every other lab in this slot and the hardest diagnosis in the lab. Module 6 absorbed a cut because it is the narrowest module, carrying one objective and no assessed outcome. Total content is unchanged at 105 minutes and the 15-minute reserve is untouched.
 
 ## Difficulty Level
 
@@ -158,7 +158,11 @@ Automation must provision the workbench per participant with the agent repo pre-
   L40S rather than A100 is a hard requirement. The model is an FP8 checkpoint, and native FP8 compute requires compute capability 8.9 or later, meaning Ada Lovelace or Hopper. On Ampere vLLM does not fail; it silently falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before the tensor cores. That gives the memory saving and none of the FP8 throughput, which would be an indefensible trace in a lab whose subject is serving configuration.
 
   Four GPUs map one vLLM instance per GPU: the broken endpoint on GPU 0, three replicas of the validated endpoint on GPUs 1 to 3. This avoids per-instance `gpu_memory_utilization` fractions entirely and keeps the failure domain per endpoint. After module 2 the whole room repoints to the validated endpoint, so peak concurrent generation lands there. Published benchmarks show Qwen3-8B sustaining a sweep to 256 concurrent requests on a single A10G with no dropped requests; L40S is materially faster with native FP8, so 30 participants across three replicas carries substantial headroom. Keep `--max-model-len` at the documented 32768 rather than maximal, since single-GPU throughput degrades under concurrency at very long context lengths.
-- **Vector store:** open. Module 5 needs a searchable corpus and nothing more exotic. The selection should favour whatever RHOAI already ships or GitOps can stand up without a new operator dependency, and it should be sized for a read-only corpus ingested at provisioning time rather than written during the lab. Flagged for the infra reviewer.
+- **Vector store:** PostgreSQL with the pgvector extension, deployed as a plain Deployment via GitOps, holding a read-only corpus ingested at provisioning time. Settled 2026-09-02.
+
+  Chosen because Red Hat OpenShift AI is standardizing on pgvector as a remote vector store provider, so a participant meets the direction the platform is going rather than an arbitrary pick. No operator is required. There is no Milvus, Qdrant, Weaviate or Chroma operator in any catalog on the dev cluster, and the Milvus path runs through OGX, the renamed Llama Stack, which is being de-emphasized and is mid-rename.
+
+  The RHOAI built-in pgvector provider integration is EA2 as of 3.5 and is deliberately **not** used. Module 5's retrieval tool queries Postgres directly, which requires nothing pre-GA, keeps the non-GA dependency count at one, and remains forward-compatible with that integration when it reaches GA.
 - **External services:** `registry.redhat.io` (RHOAI and operator images), `quay.io` (workbench and MCP server images), `huggingface.co` (model weights, unless pre-staged into cluster storage at provisioning), `github.com` (the agent repo cloned into each workbench), `pypi.org` (Python dependencies). The environment is not air-gapped.
 - **AAP version:** Not applicable. Ansible Automation Platform is not in the product list.
 - **Non-GA products:** One. **MCP Gateway**, Tech Preview via Red Hat Connectivity Link. It ships inside RHOAI and the normal operator catalog, so no separate entitlement or non-standard registry is needed. It is no longer load-bearing: module 6 teaches governed tool access as a build step, and if the gateway regresses before the event the documented fallback is tool scoping at the MCP server or registry level plus RBAC, which demonstrates the same principle. No learning objective fails without it.

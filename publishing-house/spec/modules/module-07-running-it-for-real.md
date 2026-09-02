@@ -8,7 +8,7 @@ Participants re-run the full set of earlier failure cases against the assembled 
 
 ### Audience and Time
 
-Technical Sellers and Services, intermediate. 13 minutes.
+Technical Sellers and Services, intermediate. 17 minutes.
 
 Requires all earlier modules. This is the only module that depends on every one of them.
 
@@ -23,7 +23,7 @@ Requires all earlier modules. This is the only module that depends on every one 
 |---------|-------|----------|
 | 1 | Re-run every earlier failure | 6 min |
 | 2 | Record the baseline | 2 min |
-| 3 | Symptom to layer | 5 min |
+| 3 | Symptom to layer | 9 min |
 
 ### Detailed Steps
 
@@ -49,5 +49,5 @@ Requires all earlier modules. This is the only module that depends on every one 
 - **Every case must have been seen before in its own module.** Nothing new is introduced here. The value is the contrast between the module's original failure and the current behaviour.
 - **A participant who is behind must not be blocked.** The regression set should run against whatever state the agent is in and report per-case results, so someone who did not finish module 5 still gets a meaningful result for modules 1 to 4.
 - **MLflow is the baseline store**, which is GA and already provisioned for module 1. No new component is introduced in this module.
-- **Known tension, flagged for content review.** Thirteen minutes covering both verification and positioning is tight, and the positioning segment is the artifact a Technical Seller carries back to a customer. If review agrees it is too thin, the cleanest correction is moving four minutes from module 2, which is the largest block, rather than reducing the 15-minute reserve. The reserve exists because this lab's mass-login event sits in module 1 and conference sessions lose time at the front.
+- **Timing resolved 2026-09-02.** This module was originally 13 minutes and that was too tight for a segment whose output is the artifact a Technical Seller carries back to a customer. Two minutes came from module 4 and two from module 6, taking it to 17 and giving the symptom-to-layer work 9 minutes. Module 2 was deliberately left at 22, being both the differentiator and the hardest diagnosis in the lab. The 15-minute reserve is untouched, because this lab's mass-login event sits in module 1 and conference sessions lose time at the front.
 - **Delivery model is self-paced.** The symptom-to-layer section is the most discussion-shaped part of the lab and benefits most from a facilitator, so it needs a complete participant-readable equivalent in the content, with the discussion prompts in the facilitator guide.

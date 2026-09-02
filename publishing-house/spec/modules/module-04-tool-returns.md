@@ -8,7 +8,7 @@ Participants find the empty result in the trace, then change the contract the to
 
 ### Audience and Time
 
-Technical Sellers and Services, intermediate. 16 minutes.
+Technical Sellers and Services, intermediate. 14 minutes.
 
 Requires module 3. Tool results must be reaching the model before the shape of those results matters.
 
@@ -21,8 +21,8 @@ Requires module 3. Tool results must be reaching the model before the shape of t
 
 | Section | Title | Duration |
 |---------|-------|----------|
-| 1 | The success that is not one | 4 min |
-| 2 | Find the empty envelope | 4 min |
+| 1 | The success that is not one | 3 min |
+| 2 | Find the empty envelope | 3 min |
 | 3 | Give failure a shape | 6 min |
 | 4 | Re-run and see it surface | 2 min |
 
@@ -54,6 +54,6 @@ Requires module 3. Tool results must be reaching the model before the shape of t
 - **The empty envelope must be structurally guaranteed.** The supplied tool wrapper returns the same object for a legitimate empty match and for a thrown exception. Do not rely on the model choosing to misread anything.
 - **At least one failure case must be non-obvious.** A tool that is simply unreachable is easy. The instructive case is a query the backend accepts and answers with nothing because a parameter was silently dropped, which looks identical to a genuine miss.
 - **The retry path must not mask the lesson.** Retrying a `no_results` is wrong and must be visible as wrong. Only `upstream_unavailable` should retry.
-- **The categories must be few and obvious.** Four is enough. A larger taxonomy turns the module into a design discussion and it only has 16 minutes.
+- **The categories must be few and obvious.** Four is enough. A larger taxonomy turns the module into a design discussion and it only has 14 minutes.
 - **This module's contract is a hard dependency for module 5.** Retrieval that returns nothing has to be distinguishable from retrieval that failed, and module 5's success signal depends on that distinction already existing.
 - Tool call ids from module 3 must be correct, or categories attach to the wrong call and the trace becomes unreadable.
