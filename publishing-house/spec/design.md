@@ -8,6 +8,20 @@ This slot asks for "this is how you build an agent", the prerequisite before gov
 
 Three other candidate labs sit in this slot, and all three consume a hosted or centrally served model, LB1782 states outright that participants "consume a centrally-hosted, pre-deployed Granite model". None of them configures a serving runtime. That is the gap this design leads with, and it is the one part of the rejected version that carried no overlap with anything.
 
+## Strategic Alignment
+
+Red Hat AI's agentic strategy names five themes. This lab sits on two of them, quoting the strategy document directly:
+
+> **Self-Hosted Inference That Works for Agents:** Make vLLM reliable for agentic workloads, specifically tool calling, multi-turn reasoning, and code execution, so customers stop defaulting to frontier APIs.
+
+> **Deploying/Managing Your First Agent on Red Hat:** Provide a Day 0 to Day 2 onboarding path with starter kits, templates, playground, and integrated docs.
+
+The same document states the stakes plainly: "If open-weight models on vLLM cannot reliably handle agentic tool calling, customers default to frontier APIs, and the sovereignty and open-source value propositions collapse." Module 2 is that problem in a room, which is the strongest argument for why this lab leads with serving configuration rather than treating it as setup.
+
+**Where agent identity sits, and why it is not here.** Agent identity is moving quickly: A2A Agent Cards, SPIFFE and SPIRE workload binding, and signed cards. That work now lands in **OpenShell**, which the strategy names as the unified agent security and lifecycle project, with an operator planned for RHOAI 3.6 handling identity injection. The neighbouring Agents Security/Governance lab is built on OpenShell and lists SPIFFE and SPIRE in its product set. Adopting agent cards here would rebuild the overlap that got the previous design rejected.
+
+The two are different axes and this design owns only the first. Module 6 is about **caller identity deciding which tools an agent may reach**. Agent identity is about **who the agent cryptographically is when another agent calls it**. Neither Kagenti, SPIRE nor any A2A component is present in the dev cluster's catalogs today.
+
 ## Overview
 
 Most agent tutorials build something that works on the demo input and leave the participant with no idea why it breaks the first time it meets a real one. This lab builds a multi-step agent on Red Hat OpenShift AI one layer at a time, and opens every layer with that layer failing.
