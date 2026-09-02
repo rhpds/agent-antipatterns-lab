@@ -28,7 +28,7 @@ Requires module 3. Tool results must be reaching the model before the shape of t
 
 ### Detailed Steps
 
-1. Run the agent on the supplied question whose subject falls outside what the backing data covers.
+1. Run the agent on the supplied question: *"Is the K-600 high-pressure sensor available at the Portland depot?"* Portland is not a Kestrel depot.
 2. Observe a fluent answer that reads as authoritative and reports no problem.
 3. Open the trace. The tool was called, returned quickly, and the run terminated cleanly on the model's stop condition. Every signal says success.
 4. Open the tool's actual return value. It is a valid object with an empty results array and no indication that anything went wrong.
@@ -52,7 +52,7 @@ Requires module 3. Tool results must be reaching the model before the shape of t
 ### Infrastructure Notes
 
 - **The empty envelope must be structurally guaranteed.** The supplied tool wrapper returns the same object for a legitimate empty match and for a thrown exception. Do not rely on the model choosing to misread anything.
-- **At least one failure case must be non-obvious.** A tool that is simply unreachable is easy. The instructive case is a query the backend accepts and answers with nothing because a parameter was silently dropped, which looks identical to a genuine miss.
+- **The planted case is a silently dropped parameter, not an unreachable backend.** `check_stock` does not recognise "Portland", drops the depot filter rather than rejecting it, and returns an empty result set with a 200. That is indistinguishable from the sensor genuinely being out of stock everywhere. An unreachable backend would be too easy; this is the case engineers actually meet.
 - **The retry path must not mask the lesson.** Retrying a `no_results` is wrong and must be visible as wrong. Only `upstream_unavailable` should retry.
 - **The categories must be few and obvious.** Four is enough. A larger taxonomy turns the module into a design discussion and it only has 14 minutes.
 - **This module's contract is a hard dependency for module 5.** Retrieval that returns nothing has to be distinguishable from retrieval that failed, and module 5's success signal depends on that distinction already existing.

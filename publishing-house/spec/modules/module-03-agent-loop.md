@@ -28,7 +28,7 @@ Requires module 2. The agent must be able to call a tool before loop behaviour i
 
 ### Detailed Steps
 
-1. Run the agent on the supplied multi-step question, which needs two different tools to answer.
+1. Run the agent on the supplied multi-step question: *"Can we get a replacement coolant pump for a K-400 to the Denver depot this week?"* Answering needs `find_part` and then `check_stock`.
 2. Observe that it runs for noticeably longer than the module 2 run and eventually returns a partial or generic answer.
 3. Open the trace. Count the turns. The run hit the iteration cap.
 4. Read the tool invocations in sequence. The same tool, the same arguments, every turn.
@@ -52,7 +52,7 @@ Requires module 2. The agent must be able to call a tool before loop behaviour i
 ### Infrastructure Notes
 
 - **The repetition must come from the harness, not the model.** The supplied loop discards tool results and re-sends an identical message list, so the repeat is structurally guaranteed. Do not rely on the model choosing to repeat itself; that is stochastic and will not reproduce identically across a room.
-- **The multi-step question must genuinely require two tools**, and the second tool's input must depend on the first tool's output, so that a loop which discards results cannot accidentally succeed.
+- **The chain must be unbreakable.** `check_stock` takes a part number, and the part number exists only in `find_part`'s output, so a loop that discards tool results cannot reach the second call by luck. Do not let `check_stock` accept a free-text description as a fallback.
 - **The iteration cap must be low enough to hit quickly** and high enough that the corrected run is visibly below it. A cap around six turns against a corrected run of two or three reads clearly in a trace.
 - **Both defects must be fixable independently**, so a participant who only completes the first still sees a behaviour change and is not stuck.
 - **Tool call ids matter.** The corrected loop must associate each result with the call it answers. Getting this wrong produces a confusing downstream failure in module 4, where error categories attach to the wrong call.

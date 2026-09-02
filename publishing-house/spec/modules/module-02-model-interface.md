@@ -32,7 +32,7 @@ Requires module 1, specifically the habit of reading the payload rather than the
 
 ### Detailed Steps
 
-1. Start from the failed run in module 1. Re-read the response payload: `tool_calls` empty, `content` full.
+1. Start from the failed run in module 1, the K-400 coolant pump part number. Re-read the response payload: `tool_calls` empty, `content` full.
 2. Strengthen the prompt using the supplied stronger instruction, which tells the model explicitly to use the available tool. Re-run.
 3. Observe that the answer changes wording and `tool_calls` is still empty. Prompt strength is not the variable.
 4. Look at the `content` field closely rather than at the rendered answer. The model's tool call is in there, as text, in the format this model family emits.
@@ -41,7 +41,7 @@ Requires module 1, specifically the habit of reading the payload rather than the
 7. Identify the single difference: `--tool-call-parser`. One endpoint sets a parser that does not match this model; the other sets `hermes`.
 8. Note that the mismatch fails silently rather than loudly. vLLM parsed nothing, found nothing to put in `tool_calls`, and returned a valid response.
 9. Repoint the agent's configuration at the validated endpoint. Write the change to the config file on the workbench, not to a shell variable.
-10. Re-run the original question from module 1.
+10. Re-run the K-400 coolant pump question from module 1.
 11. Confirm in the response payload that `tool_calls` is now populated and `content` no longer holds the call. **This is the module's success signal.**
 12. Confirm in the trace that a tool was invoked and its result returned to the model.
 13. Note what has not been fixed: the agent now calls tools, and the next module shows it calling the same one indefinitely.

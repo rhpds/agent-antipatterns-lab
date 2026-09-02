@@ -31,7 +31,7 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 1. Open the workbench, which is already running from the pre-lab step.
 2. Open the agent project. Identify the three files that matter: the tool definitions, the loop, and the configuration that names the model endpoint.
 3. Note that the endpoint currently configured is the one the lab starts on. Do not change it yet.
-4. Open the supplied test question. It asks for something the model cannot know, in a domain one of the declared tools obviously owns.
+4. Open the supplied test question: *"A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?"* Kestrel Industrial is fictional, so the model cannot know the answer, and `find_part` obviously owns it.
 5. Run the agent. It returns a fluent, specific, confident answer in a few seconds.
 6. Note the answer. It is wrong, and nothing about its presentation says so.
 7. Open the request payload that the agent sent. Confirm the tools were declared: the `tools` array is populated.
@@ -50,7 +50,7 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 ### Infrastructure Notes
 
 - **The starting endpoint is the deliberately mismatched one.** The failure in this module is the same one module 2 diagnoses, seen without explanation. Do not reveal the cause here.
-- **The test question must be unanswerable without a tool.** It has to require a fact the model cannot hold, in a domain a declared tool obviously covers, so the model attempts a tool call every time. If the model can plausibly answer from memory there is nothing in the payload to point at.
+- **The test question must be unanswerable without a tool.** Kestrel part numbers exist nowhere outside the lab's fixture data, so the model cannot answer from memory and attempts a `find_part` call every time. Verify during authoring that it invents a plausible part number rather than refusing, since a refusal gives the participant nothing in the payload to point at.
 - **MLflow authentication needs the documented workaround.** Known issue RHOAIENG-44516: Kubernetes tokens are not accepted through the OpenShift AI Gateway, so `MLFLOW_TRACKING_URI` must point at a direct Route. Known issue RHOAIENG-45969: artifact serving backed by S3 is not configured by the automatic workbench integration, so parameters, metrics and tags log correctly but `log_artifact()` needs manual setup. This module only needs the former.
 - **The payload view must be first-class, not an afterthought.** Participants need a reliable way to see the raw request and response, whether that is a logging wrapper in the supplied agent code or a saved file per run. The trace supplements it. Reading the wire is the lab's differentiator and it cannot depend on a participant knowing how to enable debug logging.
 - **Login and workbench startup are a pre-lab step, not part of this module's 12 minutes.** Budgeting four minutes for thirty conference logins plus thirty workbench pods pulling images and binding PVCs was not realistic; workbench spawn alone routinely takes several minutes at that concurrency. Participants must arrive with the console open and the workbench running. The lab guide's front matter carries the login instructions, and the room needs them done before the clock starts. If this is not enforced, module 1 consumes the entire 15-minute reserve and every later module runs at zero margin.

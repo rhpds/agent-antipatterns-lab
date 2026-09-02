@@ -28,7 +28,7 @@ Requires module 4. Without the error contract, an empty retrieval is indistingui
 
 ### Detailed Steps
 
-1. Ask the agent a question whose answer lives only in the lab's document corpus, which the model has never seen.
+1. Ask the agent: *"What's the recommended service interval for the K-400 coolant pump seal?"* The answer exists only in Kestrel service bulletin SB-2024-117.
 2. Observe a specific, plausible, wrong answer. Note that nothing in module 4's work catches this, because no tool failed. The model simply answered from memory.
 3. Confirm in the trace that no retrieval happened, because no retrieval tool exists yet.
 4. Inspect the pre-populated knowledge source. Confirm the corpus is already ingested and searchable, and run one query directly against it outside the agent to see what a passage looks like.
@@ -36,7 +36,7 @@ Requires module 4. Without the error contract, an empty retrieval is indistingui
 6. Note the return shape carries the retrieved passages and their source identifiers, not just concatenated text. The source identifier is what makes the answer checkable.
 7. Re-run the original question.
 8. Confirm in the trace that the retrieval tool was called, that passages came back, and that the answer's content corresponds to a passage rather than to the model's prior. **This is the module's success signal.**
-9. Ask a question deliberately outside the corpus.
+9. Ask a question deliberately outside the corpus: *"What's the service interval on a Kestrel K-900?"* No K-900 exists.
 10. Confirm the retrieval returns `no_results` and that the agent reports the gap rather than inventing. Compare directly against the module's opening run, which invented.
 11. Note the remaining limitation for module 7: grounding makes the answer checkable, it does not make it correct, and nothing yet verifies that the retrieved passage actually answers the question asked.
 
@@ -53,7 +53,7 @@ Requires module 4. Without the error contract, an empty retrieval is indistingui
 - **Vector store settled 2026-09-02: PostgreSQL with the pgvector extension**, deployed as a plain Deployment via GitOps, queried directly by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector as a remote vector store provider, so a participant meets the direction the platform is going rather than an arbitrary pick. No operator is required, and nothing here is pre-GA.
 - **The RHOAI built-in pgvector provider integration is deliberately not used.** It is EA2 as of 3.5. Querying Postgres directly from the retrieval tool needs nothing pre-GA, keeps this design's non-GA dependency count at one, and stays forward-compatible with that integration when it reaches GA. If it has GA'd by authoring time, switching to it is a contained change to one tool.
 - **Alternatives were checked against the dev cluster and rejected.** There is no Milvus, Qdrant, Weaviate or Chroma operator in any catalog source. The Milvus path runs through OGX, the renamed Llama Stack, which is being de-emphasized and is mid-rename. Red Hat Data Grid and certified Postgres or Elasticsearch operators all work but add an operator dependency for no teaching benefit at this module's depth.
-- **The corpus must be genuinely outside the model's training data.** Synthetic internal documentation for a fictional product works. Anything drawn from public sources risks the model answering correctly from memory, which destroys the opening beat.
-- **The opening invention must be reliable rather than stochastic.** Choose a question where the model's prior is strong and specific, so it invents confidently every time rather than hedging. Verify this against the actual served model during authoring, not against a different one.
+- **The corpus is Kestrel service bulletins**, written for the lab. Because Kestrel and its K-series are invented, nothing in the corpus can be answered from training data, which is what makes the opening invention reliable. Do not seed it from real manufacturer documentation.
+- **The opening invention must be reliable rather than stochastic.** The seal service interval was chosen because maintenance intervals are a domain where models answer confidently from pattern rather than hedging, so the invention should be consistent under greedy decoding. Verify against the actual served model during authoring, not a different one, and swap the question if the model refuses instead of inventing.
 - **The out-of-corpus question must be unambiguous.** It should be obviously unanswerable from the corpus, so the `no_results` path is clearly the correct behaviour and not a retrieval tuning problem.
 - **Scope discipline.** This module deliberately does not tune retrieval quality, chunking, or embedding choice. The objective is a grounded agent, not a tuned retriever. Three existing assets already own retrieval in depth and going deeper here would duplicate one of them: LB1782 in this same topic slot builds a full RAG pipeline over enterprise documentation, `showroom-agentic-ai-llamastack` carries a dedicated RAG module, and `enterprise-rag-intel-continuum` is an entire lab about the pipeline. Checked against the published repositories on 2026-09-02.

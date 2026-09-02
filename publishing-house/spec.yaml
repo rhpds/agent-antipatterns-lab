@@ -7,12 +7,14 @@ project:
   showroom_type: classic
   intake_type: new
   automation_type: gitops
-  description: 'Participants build a multi-step agent on OpenShift AI one layer at a time. Each
-    layer opens with the way that layer commonly breaks, diagnosed from the request and response
-    payloads on the inference endpoint, and closes with the build step that prevents it: a serving
-    runtime configured so tool calls are parsed at all, a loop that stops on the model''s reported
-    stop condition, tool returns that surface failure instead of hiding it, a searchable knowledge
-    source, and governed tool access through the platform.'
+  description: 'Participants build a multi-step field service agent on OpenShift AI one layer
+    at a time, for a fictional industrial chiller manufacturer. Each layer opens with the way
+    that layer commonly breaks, diagnosed from the request and response payloads on the inference
+    endpoint or from the execution trace, and closes with the build step that prevents it: a
+    serving runtime configured so tool calls are parsed at all, a loop that stops on the model''s
+    reported stop condition, tool returns that surface failure instead of hiding it, a searchable
+    service-bulletin corpus, and tool access through the platform so tools can be added without
+    redeploying the agent.'
   jira_ticket: RHDPCD-1073
   workflow_id: ae352eec-d9fb-4849-b96e-cf7a6a4cf4dc
 spec:
@@ -197,13 +199,14 @@ approval_checklist:
       tool-call configuration coverage, and the repository shows no such module. The second
       match, VLLM Playground at 90, is the genuine overlap and is bounded explicitly in the
       module 2 outline.'
-    design_overview: 'Participants build a multi-step agent on OpenShift AI one layer at a time.
-      Each layer opens with that layer failing in a way that raises no error, is diagnosed from
-      the request and response payloads on the inference endpoint, and closes with the build
-      step that prevents it: a serving runtime whose parser matches the model, a loop that stops
-      on the model''s reported stop condition, tool returns that can express failure, a searchable
-      knowledge source, and governed tool access. The order is forced by dependency rather than
-      preference.'
+    design_overview: 'Participants build a multi-step field service parts agent on OpenShift
+      AI one layer at a time, set at a fictional industrial chiller manufacturer so that no
+      module can be answered from training data. Each layer opens with that layer failing in
+      a way that raises no error, is diagnosed from the evidence rather than the answer, and
+      closes with the build step that prevents it: a serving runtime whose parser matches the
+      model, a loop that stops on the model''s reported stop condition, tool returns that can
+      express failure, a searchable knowledge source, and tool access routed through the platform.
+      The order is forced by dependency for the early modules and by weight for the later ones.'
     module_summaries:
     - title: What you are building, and how to see inside it
       overview: Participants meet the agent they will build and establish the habit the lab

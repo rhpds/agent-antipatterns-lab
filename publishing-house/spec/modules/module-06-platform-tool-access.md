@@ -31,8 +31,8 @@ Requires module 3, or any working agent with more than one tool registered.
 3. Replace the per-tool configuration with a single gateway endpoint.
 4. Re-run a question from an earlier module. Confirm the agent still behaves identically. Moving to the gateway should change nothing about what the agent does.
 5. Request the tool list the gateway serves. Confirm it matches the tools the agent had before, and note that the agent is now discovering them at runtime rather than carrying them.
-6. Register the supplied additional tool at the gateway. This is a platform operation and touches nothing in the agent.
-7. Without editing the agent, rebuilding it, or restarting it, ask the agent a question that needs the new tool.
+6. Register the supplied `estimate_delivery` tool at the gateway. This is a platform operation and touches nothing in the agent.
+7. Without editing the agent, rebuilding it, or restarting it, ask: *"If we ship that pump from Denver to the customer site in Boulder, when does it arrive?"* Answering requires `estimate_delivery`.
 8. Confirm the agent discovered and used a tool it did not have two minutes ago. **This is the module's success signal, and it is a visible new capability rather than an absence.**
 9. Note what this changes about deployment: the tool catalog became a property of the platform, versioned and changed independently of the agent's release cycle.
 

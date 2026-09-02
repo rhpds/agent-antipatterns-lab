@@ -27,7 +27,7 @@ Requires all earlier modules. This is the only module that depends on every one 
 
 ### Detailed Steps
 
-1. Run the supplied regression set. It contains one input per earlier module: the module 1 question that needed a tool, the module 3 multi-step question, the module 4 question that falls outside the backing data, and the module 5 questions inside and outside the corpus.
+1. Run the supplied regression set. It contains one input per earlier module: the K-400 coolant pump part number, the Denver depot availability chain, the Portland depot query that silently returns nothing, and the K-400 seal service interval alongside the K-900 question that has no answer.
 2. For each, confirm the corrected behaviour in the trace rather than in the answer. Tool calls populate, the run terminates on the model's stop condition, failures surface with a category, retrieval grounds the answer, and the out-of-corpus question returns an explicit gap.
 3. Note any case that regressed. The most likely is module 2's repoint reverting after a workbench restart, which is why it was written to a config file rather than an environment variable.
 4. Record the run as a named baseline in MLflow, so the assembled behaviour has a reference point that a later change can be compared against.

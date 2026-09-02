@@ -32,6 +32,37 @@ Participants build the agent themselves. In each module they add a capability, r
 
 The order is forced by dependency rather than preference. A model that cannot emit a parseable tool call makes every later layer untestable. A loop that never terminates makes error handling unobservable. Error handling has to be honest before retrieval is worth adding, because otherwise a search that returns nothing reads as an answer. Module 6 comes late because decoupling tool changes from agent releases only matters once there are several tools worth changing, and module 7 can only verify an agent that is fully assembled.
 
+## Scenario
+
+The lab is set at **Kestrel Industrial**, a fictional manufacturer of industrial process chillers. The company, its product line and its documentation are invented, which is a requirement rather than a flourish: module 5 depends on the model being unable to answer from training data, and any real product risks it answering correctly from memory and destroying that module's opening.
+
+The agent is a field service parts assistant. A service engineer asks it what part they need and whether they can get it.
+
+**Products:** the K-200, K-400 and K-600 process chillers.
+
+**Tools, introduced in the order the modules need them:**
+
+| Tool | Introduced | Purpose |
+|---|---|---|
+| `find_part` | Module 1 | Symptom or description plus model, returns candidate part numbers |
+| `check_stock` | Module 3 | Part number plus depot, returns availability and lead time. Consumes `find_part`'s output |
+| `search_bulletins` | Module 5 | Retrieval over Kestrel service bulletins held in pgvector |
+| `estimate_delivery` | Module 6 | Registered at the gateway mid-lab and used with no redeploy |
+
+**The question each module runs on:**
+
+| Module | Input | Why this input |
+|---|---|---|
+| 1, 2 | "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?" | Unanswerable without a tool, so a tool call is attempted every run |
+| 3 | "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?" | Needs `find_part` then `check_stock`, and the second call cannot be made without the first's output |
+| 4 | "Is the K-600 high-pressure sensor available at the Portland depot?" | Portland is not a depot in the fixture data. `check_stock` silently drops the unrecognised depot filter and returns an empty result identical to genuinely out of stock |
+| 5 | "What's the recommended service interval for the K-400 coolant pump seal?" | Answerable only from service bulletin SB-2024-117, so the model invents confidently until retrieval exists |
+| 5 (miss) | "What's the service interval on a Kestrel K-900?" | The K-900 does not exist, so retrieval returns nothing and the agent must say so rather than invent |
+| 6 | "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?" | Requires `estimate_delivery`, which the agent did not have two minutes earlier |
+| 7 | All of the above, as a regression set | One input per earlier module |
+
+**Why this domain and not an obvious one.** Incident response, ticket triage and alert handling were all rejected. The neighbouring Agents Security/Governance lab uses ticket read and update personas, and LB1782 in this same slot is an SRE incident-response scenario. Field service parts gives the same structural properties, a chained lookup, a plausible empty result, and a document corpus, without standing on either. It also avoids app-platform coding-agent territory, which this topic slot excludes.
+
 ## Target Audience
 
 - **Role:** Technical Sellers and Services, solution architects, consultants, and delivery engineers who build or advise on agent solutions with customers.
