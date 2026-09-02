@@ -1,95 +1,104 @@
-# Four Ways Your Agent Fails in Production — and the Red Hat AI Feature That Fixes Each
+# Building an Agent on OpenShift AI: Each Step, and How It Breaks First
+
+## Topic Alignment
+
+This design replaces a version rejected at content review on 2026-09-01 for overlapping the Agents, Security/Governance slot. The rejection was correct: the previous four rounds covered tool governance, observability and policy enforcement, which is the neighbouring lab's subject, not this one's.
+
+This slot asks for "this is how you build an agent", the prerequisite before governance. So the lab now builds an agent rather than governing an inherited one. Governance appears once, in module 6, as the way tools get connected on the platform, and carries no learning objective of its own. Adversarial scanning and policy enforcement are gone.
+
+Three other candidate labs sit in this slot, and all three consume a hosted or centrally served model, LB1782 states outright that participants "consume a centrally-hosted, pre-deployed Granite model". None of them configures a serving runtime. That is the gap this design leads with, and it is the one part of the rejected version that carried no overlap with anything.
 
 ## Overview
 
-The gap between an agent prototype that impresses in a meeting and a system that survives production is where enterprise agent projects die — and the failures are consistent across every framework and every vendor. This lab uses four of those failure modes as the entry point to four Red Hat AI capabilities, one for each platform layer: serve, govern, observe, enforce. Across the four rounds it names and sources seven distinct anti-patterns, since several of the rounds carry more than one.
+Most agent tutorials build something that works on the demo input and leave the participant with no idea why it breaks the first time it meets a real one. This lab builds a multi-step agent on Red Hat OpenShift AI one layer at a time, and opens every layer with that layer failing.
 
-Participants inherit a working agent prototype that is about to ship. In each of four rounds they run the agent against a realistic input, watch it fail plausibly, diagnose the cause from an execution trace, and then apply a supplied configuration to a named Red Hat AI component to fix it. Round 1 redeploys the model endpoint with a validated tool-calling configuration and corrects the agent's stop-condition handling. Round 2 puts all tool access behind MCP Gateway with identity-based filtering. Round 3 instruments the agent with MLflow Tracing to find an error the agent reported as a success, and applies a structured error contract. Round 4 moves a compliance rule out of the system prompt into the TrustyAI Guardrails Orchestrator and a gateway authorization policy. Diagnosis is the reasoning work; remediation is guided, so participants finish each round having used the product to address an agentic development anti-pattern.
+Participants build the agent themselves. In each module they add a capability, run it against a realistic input, watch it fail in a way that produces no error and no obvious symptom, find the cause in the request and response payloads on the inference endpoint, and then build the step that prevents it. The rule the lab runs on is established in module 1 and holds throughout: the agent's answer is a claim, the wire is the evidence.
+
+The order is forced by dependency rather than preference. A model that cannot emit a parseable tool call makes every later layer untestable. A loop that never terminates makes error handling unobservable. Error handling has to be honest before retrieval is worth adding, because otherwise a search that returns nothing reads as an answer. Governance only means something once the agent is genuinely reaching tools.
 
 ## Target Audience
 
-- **Role:** Technical Sellers and Services — solution architects, consultants, and delivery engineers who position or implement agent solutions with customers.
+- **Role:** Technical Sellers and Services, solution architects, consultants, and delivery engineers who build or advise on agent solutions with customers.
 - **Experience level:** Intermediate
-- **What they already know:** What an LLM agent is and how one is structured; they have built or demoed at least one. Comfortable with the OpenShift web console and basic `oc` CLI operations. Able to read Python.
-- **What they don't know:** The platform-layer contract that keeps agents working in production — why model serving configuration (not prompt quality) determines whether tool calls are emitted, how gateway-enforced tool authorization defeats prompt injection, how to diagnose from a trace instead of from the final answer, and why compliance rules must be enforced outside the model.
+- **What they already know:** What an LLM agent is, conceptually. Comfortable with the OpenShift web console and basic `oc` operations. Able to read Python and modify supplied code.
+- **What they don't know:** That model serving configuration, not prompt quality, decides whether tool calls happen at all; that a loop which does not read the model's stop condition will repeat itself indefinitely; that a tool returning a well-formed empty result is indistinguishable from success unless the contract makes it distinguishable.
 
 ## Prerequisites
 
-- Working knowledge of the OpenShift web console and basic `oc` CLI operations (log in, switch project, view a pod log).
-- Familiarity with LLM agents at a conceptual level — having built or demoed one is sufficient.
-- Ability to read Python. No requirement to write it beyond applying supplied configuration.
-- No prior experience with vLLM, MCP, MLflow, or TrustyAI is required — each is introduced in the round that uses it.
-- **Can the lab validate these automatically?** No. This is a classic Showroom lab with no solve/validate automation, so prerequisites are trust-based and stated in the lab introduction rather than machine-checked.
+- Working knowledge of the OpenShift web console and basic `oc` operations (log in, switch project, read a pod log).
+- Familiarity with LLM agents at a conceptual level. Having built one is helpful and not required.
+- Ability to read Python and edit supplied code. Participants modify a working file rather than writing from scratch.
+- No prior experience with vLLM, MCP, or vector search is required. Each is introduced in the module that uses it.
+- **Can the lab validate these automatically?** No. This is a classic Showroom lab with no solve/validate automation, so prerequisites are trust-based and stated in the introduction rather than machine-checked.
 
 ## Learning Objectives
 
-1. Analyze an OpenShift AI execution trace to diagnose an agent's runtime behavior rather than judging it by its final output.
-2. Troubleshoot a model endpoint's tool-calling configuration from an execution trace, and explain why a mismatched chat template or tool parser causes an agent to silently never call tools.
-3. Configure an agent loop to inspect the model's stop condition rather than trusting the first response or parsing text for a completion signal.
-4. Configure MCP Gateway so an agent is exposed only to the tools its identity authorizes, and demonstrate why this stops prompt-injection tool abuse at the infrastructure layer.
-5. Monitor an agent with MLflow Tracing and use it to locate a failure that the agent reported as a success.
-6. Implement a structured tool-error contract (error category, retryable flag, detail) so that silent tool failures surface instead of becoming confident, empty answers.
-7. Migrate a compliance-critical business rule out of a system prompt into the TrustyAI Guardrails Orchestrator and gateway authorization policy.
-8. Demonstrate the four failure modes and the corresponding Red Hat AI feature in a customer conversation.
+1. Deploy a vLLM serving runtime on OpenShift AI configured so that a model's tool calls are emitted and parsed rather than stranded as text in the response body.
+2. Analyze the request and response payloads on an inference endpoint to determine whether a tool call was emitted, parsed, or silently discarded.
+3. Troubleshoot an agent that never calls a tool by comparing the endpoint's serving arguments against the tool-call format the model was trained to produce.
+4. Build an agent loop that terminates on the model's reported stop condition rather than on a text heuristic, a first response, or an iteration cap.
+5. Implement a structured tool-error contract of category, retryable flag and detail so that failed tool calls surface instead of becoming confident empty answers.
+6. Integrate a searchable knowledge source so the agent grounds its answers in retrieved content rather than in model memory.
+7. Configure tool access through MCP Gateway so the agent reaches its tools by a governed path rather than by direct connection.
+8. Verify the assembled agent end to end against the failure cases from every earlier step before treating it as more than a prototype.
 
 ## Content Type
 
 Lab (hands-on), delivered self-paced.
 
-**Delivery model.** Participant-facing content must stand completely alone. Every instruction, warning and risk mitigation lives in text a participant reads, so nothing breaks for someone working ahead of the room or recovering from a failed step. A separate, short facilitator guide carries the discussion beats that benefit from a person in the room — the framing in Module 1, the "what would you change first" moment in Round 1, and the customer-conversation work in Module 6 — but no step depends on a facilitator speaking for its outcome to be correct.
+**Delivery model.** Participant-facing content stands alone. Every instruction, warning and recovery step lives in text a participant reads, so nothing breaks for someone working ahead of the room or recovering from a failed step. A short facilitator guide carries the discussion beats that benefit from a person present, the framing in module 1 and the customer-conversation work in module 7, but no step depends on a facilitator speaking for its outcome to be correct.
 
 ## Products & Technologies
 
-- **Red Hat OpenShift AI 3.4 or later** — the platform for all four rounds. 3.4 is the minimum, being the release where MLflow and NeMo Guardrails reached GA. Validated during development on 3.4.3. The delivered version will be whatever is current at the event, which on the cadence observed to date will be at least one release beyond 3.4. Components exercised:
-  - vLLM model serving via **Red Hat AI Inference Server** — Round 1
-  - **MCP Gateway** — Round 2
-  - **MLflow Tracing** — Round 3
-  - **TrustyAI Guardrails Orchestrator** — Round 4
-  - **EvalHub**, with the **Garak** adversarial-scanning provider — Round 4 verification
-- **Red Hat OpenShift Container Platform 4.x** — underlying platform
-- **Red Hat Connectivity Link** (Kuadrant AuthPolicy, Authorino) — gateway authorization in Round 4; installed as a dependency of MCP Gateway
-- Upstream projects: vLLM, Model Context Protocol (MCP), MLflow, OpenTelemetry
-- Model: `RedHatAI/Qwen3-8B-FP8-dynamic` — Red Hat validated (model card states validation on RHOAI 2.24 / RHAIIS 3.2.1). The validated serving recipe follows Red Hat's own documented Qwen reference configuration for the KServe vLLM runtime:
+- **Red Hat OpenShift AI 3.4 or later**, the platform for the whole lab. Validated during development on 3.4.3. Components exercised:
+  - vLLM model serving via **Red Hat AI Inference Server**, module 2, and the endpoint every later module runs against
+  - **MLflow Tracing**, module 1 as the instrument, module 7 as the verification record
+  - **MCP Gateway**, module 6
+- **Red Hat OpenShift Container Platform 4.20 or later**, underlying platform
+- **Red Hat Connectivity Link** (Kuadrant, Authorino), installed as a dependency of MCP Gateway
+- Upstream projects: vLLM, Model Context Protocol, MLflow, OpenTelemetry
+- Vector store for module 5, selection open, see Infrastructure Requirements
+- Model: `RedHatAI/Qwen3-8B-FP8-dynamic`, Red Hat validated. The serving recipe follows Red Hat's documented Qwen reference configuration for the KServe vLLM runtime:
 
   ```
   --dtype=auto --max-model-len=32768 --enable-auto-tool-choice \
   --tool-call-parser=hermes --reasoning-parser=qwen3 --gpu-memory-utilization=0.90
   ```
 
-  Two points carry into the build. **`--reasoning-parser=qwen3` is not optional.** Red Hat documents a known issue where Qwen3 models emit raw tags when the correct reasoning parser is unavailable — a second silent tool-calling failure sitting directly beside the one Round 1 plants. Omitting it risks a participant diagnosing the wrong fault, so it belongs in the validated endpoint and must not be what distinguishes the broken endpoint from the working one. **`--gpu-memory-utilization=0.90` is the documented default and is retained unchanged**, which the one-instance-per-GPU layout makes possible; co-scheduling instances on a shared device would have forced invented per-instance fractions instead.
+  **`--reasoning-parser=qwen3` is not optional and must be identical on both endpoints.** Red Hat documents a known issue where Qwen3 models emit raw tags when the correct reasoning parser is unavailable. That is a second silent tool-calling failure sitting next to the one module 2 plants, presenting a similar symptom from a different cause. If it differs between the two endpoints, a participant can diagnose the wrong fault and still appear to be right. The only permitted difference is the `--tool-call-parser` value.
 
-**Component maturity.** These are delivery commitments and RHDP will hold the lab to them, so the table gives two statuses: what was observed against 3.4.x during development, and what has to hold when the lab runs at Red Hat One in February 2027. On the release cadence observed to date, RHOAI will have shipped at least one further release by then; the exact version is an assumption to confirm, not a commitment.
+**Component maturity.** These are delivery commitments. Two statuses are given: what was observed against 3.4.x during development, and what has to hold at Red Hat One in February 2027.
 
-| Component | At validation (3.4.x) | Expected at event (Feb 2027) | Note |
+| Component | At validation (3.4.x) | Expected at event | Note |
 |---|---|---|---|
 | vLLM model serving | GA | GA | Core to Red Hat AI |
-| vLLM tool-calling configuration | **Documented serving-runtime arguments — not preview on this path** | Same | **Resolved 2026-08-19.** The contested reading splits by delivery vehicle, and both halves were right. Standalone RHAIIS *does* carry a Developer Preview notice on tool calling, and it scopes the whole feature rather than one parser — the identical boilerplate appears in the Qwen 3 chapter and the gpt-oss chapter of "Extending Red Hat AI Inference with tool calling capabilities." That notice does not govern this lab: the lab serves through RHOAI/KServe, where `--enable-auto-tool-choice` and `--tool-call-parser` are ordinary vLLM arguments passed via *Additional serving runtime arguments* on the vLLM NVIDIA GPU ServingRuntime, documented in GA deployment procedures with no preview caveat. Stated precisely, this is the *absence* of a preview caveat rather than the *presence* of an affirmative support statement — Red Hat documents the flags in GA procedures but publishes no "tool calling is supported" commitment. Recommend the infra reviewer confirm with the RHOAI product team. |
-| MCP Gateway | Tech Preview, Red Hat provided | **Tech Preview — GA not announced** | **Confirmed 2026-08-19.** Technology Preview via Red Hat Connectivity Link; operator v0.7.1 verified installed on the dev cluster 2026-08-18. Round 2's identity-based tool filtering belongs to this component, not to a separate one — Authorino validates the OAuth2 token, extracts permissions from the identity provider, mints a signed JWT "wristband" and injects it as an `x-authorized-tools` header, which the MCP Broker validates against a trusted public key to filter the `tools/list` response. The MCP catalog in AI hub and the MCP lifecycle operator are the Developer Preview pieces; this lab depends on neither. Fallback if it regresses: tool scoping at the MCP server/registry level plus RBAC — same principle, no gateway dependency. |
-| MLflow (incl. Tracing) | GA since OpenShift AI 3.4 | GA | Delivered via the MLflow Operator. Traces are OpenTelemetry-compatible; any OTEL sink can back the lab if needed |
-| TrustyAI Guardrails Orchestrator | GA since OpenShift AI 2.19 | GA | No mitigation required. Note that what reached Tech Preview in 3.0 was the Llama Stack integration, not the orchestrator itself |
-| NeMo Guardrails | GA since OpenShift AI 3.4 | GA | Deploys via the TrustyAI Operator as a single CR; no NVIDIA subscription required |
-| Garak, EvalHub | Tech Preview as of 3.4 | **Tech Preview — GA not expected** | **Resolved 2026-08-19, and the answer is worse than assumed.** EvalHub is not GA in 3.4 and is not GA in 3.5: the client SDK/CLI and the Evaluation Stack UI are Technology Preview in both releases, and no GA date is announced. Garak's own tier is ambiguous — Technology Preview as an EvalHub provider, but described as developer preview in OpenShift AI 3.4 in Red Hat blog material. A distribution rename is also in flight: the Garak provider ships in the Llama Stack distribution in 3.4 and in the OGX distribution in 3.5. This lab reaches Garak through the TrustyAI EvalHub CR rather than that distribution, which is why it worked on the dev cluster with `llamastackoperator` set to Removed, but the vehicle is moving underneath the lab and needs re-verification against whatever ships at the event. Verified installing and running on 3.4.3: a single-probe benchmark returned an Attack Success Rate in about 11 seconds end to end. **Author decision 2026-08-19: Garak remains Round 4's verification instrument, with Tech Preview status disclosed to participants.** (3.5 notes consulted were Early Access, so final GA text could still shift.) |
+| vLLM tool-calling configuration | Documented serving-runtime arguments, not preview on this path | Same | Resolved 2026-08-19. Standalone Red Hat AI Inference Server carries a Developer Preview notice on tool calling, and it scopes the whole feature rather than one parser — the same boilerplate appears in the Qwen 3 chapter and the gpt-oss chapter. That notice does not govern this lab. On RHOAI/KServe these are ordinary vLLM arguments passed via *Additional serving runtime arguments*, documented in GA deployment procedures with no preview caveat. Stated precisely, that is the absence of a preview label rather than an affirmative support statement. Recommend the infra reviewer confirm with the RHOAI product team. |
+| MLflow (incl. Tracing) | GA since OpenShift AI 3.4 | GA | Traces are OpenTelemetry-compatible, so any OTEL sink can back the lab |
+| MCP Gateway | Tech Preview via Red Hat Connectivity Link | Tech Preview, GA not announced | Operator v0.7.1, verified installed on the dev cluster 2026-08-18. Now supporting rather than load-bearing: module 6 carries no learning objective that fails without it. Documented fallback if it regresses, tool scoping at the MCP server or registry level plus RBAC. |
+| Vector store (module 5) | Not yet selected | To be confirmed | The one genuinely open item in this design. See Infrastructure Requirements. |
 
-**Maturity resolution status.** All three open rows were settled against primary Red Hat documentation on 2026-08-19. Two resolved more favourably than the design assumed — the Developer Preview notice on tool calling does not govern the RHOAI/KServe path this lab uses, and MCP Gateway's Tech Preview status is confirmed with its identity-filtering mechanism documented. One resolved less favourably: EvalHub and Garak remain Technology Preview across two consecutive releases with no announced GA, and Round 4 keeps them on its critical path by author decision, with the status disclosed rather than mitigated. The one item still open is not a maturity question but a support question — whether Red Hat will affirmatively state that vLLM tool calling is supported on KServe, as distinct from merely documenting it without caveat. That is for the infra reviewer to take up with the RHOAI product team.
+Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the rejected version and are all removed. That takes both Tech Preview dependencies off the critical path.
 
 ## Module Map
 
-| Module | Title | Duration |
-|--------|-------|----------|
-| 1 | Meet the prototype | 15 min |
-| 2 | Round 1 — Loop discipline and tool-calling configuration | 20 min |
-| 3 | Round 2 — Tool governance with MCP Gateway | 22 min |
-| 4 | Round 3 — Observability with MLflow Tracing | 18 min |
-| 5 | Round 4 — Enforcement with Guardrails Orchestrator | 15 min |
-| — | **Total hands-on** | **90 min** |
-| — | Field wrap and positioning (module 6, discussion) | 15 min |
-| — | **Total content** | **105 min** |
-| — | Reserve for room settle, mass login, transitions and overrun | 15 min |
-| — | **Total slot** | **2 hours** |
+| Module | Title | Duration | Opens with | Closes with |
+|---|---|---|---|---|
+| 1 | What you are building, and how to see inside it | 12 min | A confident answer built from nothing | Reading the wire and the first trace |
+| 2 | The model interface: making tool calls fire at all | 22 min | Tools declared, none ever called, no error | A serving runtime whose parser matches the model |
+| 3 | The agent loop: stop conditions and turn control | 16 min | The same tool called until the iteration cap | Termination on the model's reported stop condition |
+| 4 | Tool returns that tell the truth | 16 min | A well-formed empty result read as success | A structured error contract |
+| 5 | Giving the agent knowledge it can search | 14 min | A plausible answer from model memory | Answers grounded in retrieved content |
+| 6 | Connecting tools through the platform | 12 min | Point-to-point wiring with nothing governing reach | Tool access through MCP Gateway |
+| 7 | Running it for real: verification and field positioning | 13 min | Every layer passing alone, none checked together | Every earlier failure case re-run against the whole |
+| — | **Total content** | **105 min** | | |
+| — | Reserve for room settle, mass login, transitions and overrun | 15 min | | |
+| — | **Total slot** | **2 hours** | | |
 
-The schedule deliberately budgets 105 minutes of content into a 120-minute slot. Every conference session loses time at the front to logistics before a word of content, and this lab's single mass-login event sits in Module 1. Module 6 is protected from compression because it carries the customer-conversation script, which is the one artifact a Technical Seller takes back to a customer.
+The schedule budgets 105 minutes into a 120-minute slot deliberately. Every conference session loses time at the front to logistics, and this lab's single mass-login event sits in module 1.
 
-Each round follows the same rhythm: the agent fails plausibly, participants diagnose from the trace, then apply a supplied configuration to a named component. The order is forced by dependency. A model that cannot call tools has to be fixed before tool routing matters, tool routing has to work before error visibility matters, and enforcement only means anything once the agent is taking actions. Module 1 teaches the trace-reading that every later round depends on.
+Module 2 carries the most time because it is the layer no other candidate in this slot teaches, and because its diagnosis is the hardest in the lab: the model emitted a correct tool call, the parser did not match it, and the call was left in the response body as text with nothing raising an error.
+
+**Known tension, flagged for content review.** Module 7 carries both end-to-end verification and the customer-conversation work in 13 minutes, and that is tight. In the earlier design the positioning segment was protected from compression because it is the artifact a Technical Seller takes back to a customer. If review agrees it is too thin, the cleanest correction is moving four minutes from module 2 rather than shortening the reserve.
 
 ## Difficulty Level
 
@@ -97,62 +106,58 @@ Intermediate
 
 ## Environment
 
-**Learner view:** Each participant starts with a pre-provisioned OpenShift AI workbench containing the inherited agent prototype — a working, non-streaming Python agent with its tool definitions and loop code. Two shared, class-wide model endpoints of the same model are already serving: one deliberately configured with a mismatched tool-call parser, and one with the validated recipe. The broken endpoint sets `--enable-auto-tool-choice` with a parser that does not match the model, which fails silently — tool-call text is left in the response content and `tool_calls` stays empty. Omitting the flags entirely would not work, because vLLM rejects such a request with HTTP 400 rather than producing the confident wrong answer the round depends on. The participant's agent starts pointed at the broken endpoint. Also pre-deployed: an MCP server catalog exposing 18 tools (two of them with colliding descriptions, planted for Round 2), an MLflow tracking server reachable by Route, and a Guardrails Orchestrator instance. Running the agent against the demo input succeeds; running it against a realistic input fails.
+**Learner view:** Each participant starts with a pre-provisioned OpenShift AI workbench holding a partially built agent: tool definitions, a stub loop, and a supplied test input. Nothing in it works end to end at the start, and that is the point. Two shared class-wide endpoints serve the same model, one with a deliberately mismatched tool-call parser and one with the validated recipe, and the participant's agent starts pointed at the broken one. Also pre-deployed: an MCP server exposing the lab's tools, an MLflow tracking server reachable by Route, and a populated vector store for module 5.
 
 **Automation needed:** Yes
 
-Automation must provision: the OpenShift AI workbench per participant with the prototype repo pre-cloned; both shared model endpoints (broken and validated) on the shared GPU; the MCP server catalog and its 18 tool definitions including the planted description collision; MCP Gateway with per-identity token claims; the MLflow tracking server plus an OpenShift Route to it; the TrustyAI Guardrails Orchestrator and the Kuadrant AuthPolicy used in Round 4; EvalHub with the Garak provider and RBAC for the evaluation job in Round 4; and the per-round "broken" starting state so every participant begins each round from an identical, deterministic failure.
+Automation must provision the workbench per participant with the agent repo pre-cloned; both shared endpoints; the MCP server and its tool definitions; MCP Gateway with per-identity token claims; the MLflow tracking server and Route; the vector store with its corpus already ingested; and a reset path that returns any module to its starting state.
 
 **Provisioning findings from dev-cluster verification (RHOAI 3.4.3):**
 
-- **MCP Gateway is the heaviest item by a wide margin.** Reaching a working identity-filtered catalog took nine non-obvious manual steps, none of them discoverable from CRD field documentation — gateway namespace admission rules, a hand-created Kuadrant CR, ReferenceGrants for cross-namespace references, an explicit `publicHost`, a real Redis session store on a NetworkPolicy-permitted port, an additive NetworkPolicy for the broker's gRPC ext_proc port, a `ping` method on upstream servers, an `id` field on tools, and a required `spec.prefix`. All of it must be pre-baked; none of it can happen in the room.
-- **MLflow is a cluster-wide singleton.** The CR must be named `mlflow` and always lands in `redhat-ods-applications` regardless of where it is created, so no per-participant tracking server is possible. This constrains the topology choice in Phase 5.
-- **EvalHub and Garak install cleanly** through the TrustyAI operator with no configuration beyond a normal EvalHub CR, and a single-probe Garak benchmark returned an Attack Success Rate in about 11 seconds end to end.
-- **GuardrailsOrchestrator requires a real KServe ServingRuntime**, so Round 4's enforcement path cannot be validated until Round 1's model serving is working. This is a sequencing dependency for the build, not a design flaw.
+- **MCP Gateway is the heaviest item by a wide margin.** Reaching a working identity-filtered catalog took nine non-obvious manual steps, none discoverable from CRD field documentation: gateway namespace admission rules, a hand-created Kuadrant CR, ReferenceGrants for cross-namespace references, an explicit `publicHost`, a real Redis session store on a NetworkPolicy-permitted port, an additive NetworkPolicy for the broker's gRPC ext_proc port, a `ping` method on upstream servers, an `id` field on tools, and a required `spec.prefix`. All of it must be pre-baked. This is a large part of why module 6 is now 12 minutes and supporting rather than a full round.
+- **MLflow is a cluster-wide singleton.** The CR must be named `mlflow` and always lands in `redhat-ods-applications` regardless of where it is created, so no per-participant tracking server is possible. This forces the shared-cluster topology.
+- **Identity filtering has two documented paths and the build must pick one.** Red Hat documents an OAuth2 flow where Authorino validates the token, mints a signed JWT and injects it as an `x-authorized-tools` header which the MCP Broker uses to filter `tools/list`. Dev-cluster verification used Kubernetes ServiceAccount identity forwarded as `X-Auth-Request-User` with `MCPServerRegistration.userSpecificList`. Both work and they differ in provisioning burden.
 
 **Authoring constraints carried into the modules:**
 
-- The agent must be built **non-streaming**. Upstream vLLM issue #31871 reports the hermes tool-call parser returning raw text instead of parsed `tool_calls` in streaming mode — the exact symptom Round 1 teaches, occurring as a live bug even when configuration is correct. A streaming agent would make the documented fix appear not to work.
-- Round 3 must document the MLflow authentication workaround. Known issue RHOAIENG-44516: Kubernetes tokens are not accepted through the OpenShift AI Gateway, so service accounts cannot authenticate via the dashboard MLflow URL. The module instructs participants to use a direct OpenShift Route as `MLFLOW_TRACKING_URI`. Known issue RHOAIENG-45969: MLflow artifact serving backed by S3 is not configured by the automatic workbench integration — parameters, metrics and tags log correctly, but `log_artifact()` requires manual setup.
-- Every planted failure must be structural — broken loop code, colliding tool descriptions, a misconfigured gateway, an unstructured error return — and never dependent on the model choosing to misbehave. Stochastic failures would not reproduce identically across a room.
+- The agent must be **non-streaming**. Upstream vLLM issue #31871 reports the hermes tool-call parser returning raw text instead of parsed `tool_calls` in streaming mode, which is the exact symptom module 2 teaches, occurring as a live bug even when configuration is correct. A streaming agent would make the documented fix appear not to work.
+- Module 1 must document the MLflow authentication workaround. Known issue RHOAIENG-44516: Kubernetes tokens are not accepted through the OpenShift AI Gateway, so a direct Route is used as `MLFLOW_TRACKING_URI`. Known issue RHOAIENG-45969: artifact serving backed by S3 is not configured by the automatic workbench integration.
+- **Every planted failure must be structural**, a mismatched parser, a loop that discards its stop condition, an unstructured tool return, an empty retrieval result, and never dependent on the model choosing to misbehave. Stochastic failures will not reproduce identically across a room, and vLLM's continuous batching means numerics vary with whatever else is in the batch.
 
 ## Infrastructure Requirements
 
-- **Platform:** OpenShift (OCP) — Red Hat OpenShift AI is the base for all four rounds
-- **Cloud provider:** AWS — chosen over the CNV default because the lab requires a GPU with native FP8 compute, which is an instance-type question AWS answers directly
+- **Platform:** OpenShift, with Red Hat OpenShift AI
+- **Cloud provider:** AWS. Chosen over the CNV default because the lab needs a GPU with native FP8 compute, which is an instance-type question AWS answers directly.
 - **Cluster type:** Multinode
-- **OCP version:** 4.20 minimum. Dev-cluster validation ran on 4.21.21 with RHOAI 3.4.x
-- **Topology:** **Shared-cluster.** This is forced rather than preferred. MLflow is a cluster-wide singleton — the CR must be named `mlflow` and always lands in `redhat-ods-applications` regardless of where it is created — so a per-participant tracking server is not possible, and Round 3 depends on one. The two shared class-wide model endpoints point the same way.
+- **OCP version:** 4.20 minimum. Dev-cluster validation ran on 4.21.21 with RHOAI 3.4.x.
+- **Topology:** Shared cluster. Forced rather than preferred: MLflow is a cluster-wide singleton, so a per-participant tracking server is not possible, and module 1 depends on one. The two shared endpoints point the same way.
 - **Sizing:**
   - Control plane: 3 × 16 vCPU / 64 GB RAM
-  - Workers: 6 × 16 vCPU / 64 GB RAM / 200 GB disk — carrying 30 participant workbenches plus MCP Gateway and its Redis session store, the MLflow tracking server, the Guardrails Orchestrator, EvalHub, and the 18-tool MCP server catalog. Sized with roughly 35% headroom on purpose: dev-cluster experience showed pods failing to schedule on a node that was mostly idle, because requests were over-reserved relative to actual use.
+  - Workers: 6 × 16 vCPU / 64 GB RAM / 200 GB disk, carrying 30 workbenches plus MCP Gateway and its Redis session store, the MLflow tracking server, the MCP server, and the vector store. Sized with roughly 35% headroom deliberately: dev-cluster experience showed pods failing to schedule on a node that was mostly idle because requests were over-reserved relative to use.
   - Planning cap: **30 concurrent participants**
-- **Automation approach:** GitOps (Helm + ArgoCD), with `bootstrap-tenant` included for per-user namespace and RBAC under the shared-cluster topology
-- **AI/MaaS:** **GPU, not MaaS** — 1 GPU node, 4 × NVIDIA L40S 48 GB (AWS g6e.12xlarge: 4 GPUs, 48 vCPU, 384 GB RAM). Model `RedHatAI/Qwen3-8B-FP8-dynamic`, open-source tier.
+- **Automation approach:** GitOps (Helm + ArgoCD), with `bootstrap-tenant` for per-user namespace and RBAC under the shared-cluster topology
+- **AI/MaaS:** **GPU, not MaaS.** 1 GPU node, 4 × NVIDIA L40S 48 GB (AWS g6e.12xlarge). Model `RedHatAI/Qwen3-8B-FP8-dynamic`, open-source tier.
 
-  MaaS cannot satisfy this lab. Round 1's mechanic is switching the agent between two serving configurations of the same model, and a hosted chat API exposes no serving configuration — the round would have no failure to diagnose.
+  MaaS cannot satisfy this lab. Module 2's mechanic is comparing two serving configurations of the same model, and a hosted chat API exposes no serving configuration, so the module would have no failure to diagnose. This is also what separates the design from the other candidates in the slot, all of which consume a centrally hosted model.
 
-  L40S rather than A100 is a hard requirement, not a preference. The model is an FP8 checkpoint, and native FP8 compute (W8A8) requires compute capability 8.9 or later — Ada Lovelace or Hopper. On Ampere, vLLM does not fail; it silently falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before the tensor cores. That delivers the memory saving and none of the FP8 throughput, which would be an indefensible trace in a lab whose subject is serving configuration.
+  L40S rather than A100 is a hard requirement. The model is an FP8 checkpoint, and native FP8 compute requires compute capability 8.9 or later, meaning Ada Lovelace or Hopper. On Ampere vLLM does not fail; it silently falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before the tensor cores. That gives the memory saving and none of the FP8 throughput, which would be an indefensible trace in a lab whose subject is serving configuration.
 
-  Four GPUs resolve the co-scheduling problem the proposal review raised. Rather than fitting multiple instances onto one device with explicit `gpu_memory_utilization` fractions, each vLLM instance gets its own GPU: the broken endpoint on GPU 0, three replicas of the validated endpoint on GPUs 1–3. This delivers the design's "third replica of the validated endpoint" intent — the broken endpoint is dead weight from Round 1 onward, and GPU 0 is repurposable once the room has converged — while keeping the failure domain per-endpoint.
-
-  On throughput, which is the real question rather than memory: published benchmarks show Qwen3-8B sustaining a concurrency sweep to 256 simultaneous requests on a single A10G with zero dropped requests and median TTFT around 524 ms. L40S is materially faster and adds native FP8, so 30 concurrent participants spread across three validated replicas carries substantial headroom. One constraint carries into the build — keep `--max-model-len` bounded rather than maximal, since single-GPU concurrency degradation under long context lengths is a reported vLLM behaviour.
-- **External services:** `registry.redhat.io` (RHOAI and operator images), `quay.io` (workbench and MCP server images), `huggingface.co` (Qwen3-8B-FP8-dynamic weights, unless pre-staged into cluster storage during provisioning), `github.com` (the inherited agent prototype repo, cloned into each workbench), `pypi.org` (Python dependencies for the agent, MCP servers and MLflow client). The environment is not air-gapped.
-- **AAP version:** Not applicable — Ansible Automation Platform is not in the product list for this lab
-- **Non-GA products:** Three pre-GA dependencies as of validation — the vLLM tool-calling configuration (Developer Preview, and itself unconfirmed; see the maturity table), MCP Gateway (Tech Preview), and EvalHub with the Garak provider (Tech Preview as of 3.4). MLflow, NeMo Guardrails and the TrustyAI Guardrails Orchestrator are all GA and are not pre-GA dependencies.
-
-  **Access plan:** all three ship inside RHOAI 3.4+ and the TrustyAI operator, so provisioning installs them through the normal operator catalog — no separate entitlement, early-access programme or non-standard registry. Two carry documented fallbacks if maturity regresses before the event: tool scoping at the MCP server/registry level plus RBAC in place of MCP Gateway, and any OpenTelemetry-compatible sink in place of MLflow. Garak via EvalHub is load-bearing for Round 4 verification and has no equivalent fallback, so its GA timing must be settled against the RHOAI release notes before submission.
+  Four GPUs map one vLLM instance per GPU: the broken endpoint on GPU 0, three replicas of the validated endpoint on GPUs 1 to 3. This avoids per-instance `gpu_memory_utilization` fractions entirely and keeps the failure domain per endpoint. After module 2 the whole room repoints to the validated endpoint, so peak concurrent generation lands there. Published benchmarks show Qwen3-8B sustaining a sweep to 256 concurrent requests on a single A10G with no dropped requests; L40S is materially faster with native FP8, so 30 participants across three replicas carries substantial headroom. Keep `--max-model-len` at the documented 32768 rather than maximal, since single-GPU throughput degrades under concurrency at very long context lengths.
+- **Vector store:** open. Module 5 needs a searchable corpus and nothing more exotic. The selection should favour whatever RHOAI already ships or GitOps can stand up without a new operator dependency, and it should be sized for a read-only corpus ingested at provisioning time rather than written during the lab. Flagged for the infra reviewer.
+- **External services:** `registry.redhat.io` (RHOAI and operator images), `quay.io` (workbench and MCP server images), `huggingface.co` (model weights, unless pre-staged into cluster storage at provisioning), `github.com` (the agent repo cloned into each workbench), `pypi.org` (Python dependencies). The environment is not air-gapped.
+- **AAP version:** Not applicable. Ansible Automation Platform is not in the product list.
+- **Non-GA products:** One. **MCP Gateway**, Tech Preview via Red Hat Connectivity Link. It ships inside RHOAI and the normal operator catalog, so no separate entitlement or non-standard registry is needed. It is no longer load-bearing: module 6 teaches governed tool access as a build step, and if the gateway regresses before the event the documented fallback is tool scoping at the MCP server or registry level plus RBAC, which demonstrates the same principle. No learning objective fails without it.
 
 ## Assessment Strategy (Optional)
 
-Trust-based, stated explicitly. This is a classic Showroom lab with no solve/validate automation to author, so completion is not machine-verified. Each round instead ends in a visible, unambiguous result the participant confirms for themselves:
+Trust-based, stated explicitly. This is a classic Showroom lab with no solve/validate automation, so completion is not machine-verified. Each module instead ends in a visible, unambiguous result the participant confirms, chosen so it does not depend on the model choosing correctly.
 
 | Module | Observable success signal |
 |---|---|
-| 1 | The agent runs green on the demo input and red on the realistic input; the participant has the first trace open. |
-| 2 (Beat A) | `tool_calls` changes from empty, with tool-call text stranded in the response content, to populated — the agent invokes a tool. |
-| 2 (Beat B) | The run terminates on the model's own stop condition rather than the iteration cap, verifiable by the turn count ending well below the cap. |
-| 3 | The tool catalog visible to the agent shrinks from 18 to the identity-authorized subset, and a prompt-injection attempt for an unauthorized tool is refused by the gateway. |
-| 4 | The swallowed error is located in the trace, and the re-run surfaces it as a structured, categorized failure instead of a confident empty answer. |
-| 5 | The adversarial set that previously breached the prompt-based rule is now blocked, with the guardrail returning a blocked verdict for every case. |
-| 6 | No machine-verifiable signal. Module 6 is discussion-led and produces a takeaway artifact rather than a system state. |
+| 1 | The agent returns an answer, and the participant locates the corresponding request, response and trace. |
+| 2 | `tool_calls` changes from empty, with tool-call text stranded in the response content, to populated. The agent invokes a tool. |
+| 3 | The run terminates on the model's stop condition rather than the iteration cap, verifiable by a turn count well below the cap. |
+| 4 | The swallowed failure re-runs as a structured, categorized error instead of a confident empty answer. |
+| 5 | The same question that previously produced a plausible invention now returns an answer traceable to a retrieved passage, and a question outside the corpus returns an explicit miss rather than an invention. |
+| 6 | The tool list the agent can reach is served through the gateway, and a tool outside its identity's authorization does not appear. |
+| 7 | Every earlier failure case re-run against the assembled agent produces the corrected behaviour. No machine-verifiable signal for the positioning segment, which produces a takeaway artifact. |

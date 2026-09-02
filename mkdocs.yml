@@ -1,15 +1,15 @@
-site_name: "Four Ways Your Agent Fails in Production \u2014 and the Red Hat AI Feature\
-  \ That Fixes Each"
+site_name: 'Building an Agent on OpenShift AI: Each Step, and How It Breaks First'
 docs_dir: publishing-house/spec
 nav:
 - Home: index.md
 - Design Spec: design.md
 - Modules:
-  - Module 1 - Meet The Prototype: modules/module-01-meet-the-prototype.md
-  - Module 2 - Loop Discipline: modules/module-02-loop-discipline.md
-  - Module 3 - Tool Governance: modules/module-03-tool-governance.md
-  - Module 4 - Observability: modules/module-04-observability.md
-  - Module 5 - Enforcement: modules/module-05-enforcement.md
-  - Module 6 - Field Wrap: modules/module-06-field-wrap.md
+  - Module 1 - What You Are Building: modules/module-01-what-you-are-building.md
+  - Module 2 - Model Interface: modules/module-02-model-interface.md
+  - Module 3 - Agent Loop: modules/module-03-agent-loop.md
+  - Module 4 - Tool Returns: modules/module-04-tool-returns.md
+  - Module 5 - Knowledge Search: modules/module-05-knowledge-search.md
+  - Module 6 - Platform Tool Access: modules/module-06-platform-tool-access.md
+  - Module 7 - Running It For Real: modules/module-07-running-it-for-real.md
 plugins:
 - techdocs-core
