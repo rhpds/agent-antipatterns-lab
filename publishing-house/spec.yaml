@@ -1,143 +1,141 @@
-# Publishing House — Project Spec
-# Lifecycle: intake → content_review → infra_review → jira_sync → development → ready → published
-# No secrets in this file. Tokens live in ~/.config/publishing-house/auth.json
-# Stage is managed by SonataFlow and cached in .ph-state — do not edit stage.current manually.
-# NOTE: This file is also in the template repo. The Scaffolder overlays project.* values.
-# TODO: Eliminate this copy — Scaffolder should pull from template repo directly.
-
 project:
-  slug: "agent-antipatterns-lab"
-  owner_email: "davidwil@redhat.com"
-  content_type: "lab"
-  deployment_mode: "rhdp_published"
-  initiative_key: "rh1_2027"
-  showroom_type: "classic"
-  intake_type: "new"
-  automation_type: "gitops"
-  description: "Participants inherit a working agent prototype that fails in production. Across four rounds they diagnose a planted anti-pattern — loop discipline, tool governance, observability, and enforcement — from execution traces, then fix it by applying a named Red Hat AI platform component: vLLM tool-calling recipes, MCP Gateway, MLflow Tracing, and TrustyAI Guardrails Orchestrator."
-  # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
-  jira_ticket: "RHDPCD-1073"
-  workflow_id: "ae352eec-d9fb-4849-b96e-cf7a6a4cf4dc"
-
+  slug: agent-antipatterns-lab
+  owner_email: davidwil@redhat.com
+  content_type: lab
+  deployment_mode: rhdp_published
+  initiative_key: rh1_2027
+  showroom_type: classic
+  intake_type: new
+  automation_type: gitops
+  description: "Participants inherit a working agent prototype that fails in production.\
+    \ Across four rounds they diagnose a planted anti-pattern \u2014 loop discipline,\
+    \ tool governance, observability, and enforcement \u2014 from execution traces,\
+    \ then fix it by applying a named Red Hat AI platform component: vLLM tool-calling\
+    \ recipes, MCP Gateway, MLflow Tracing, and TrustyAI Guardrails Orchestrator."
+  jira_ticket: RHDPCD-1073
+  workflow_id: ae352eec-d9fb-4849-b96e-cf7a6a4cf4dc
 spec:
-  title: "Four Ways Your Agent Fails in Production — and the Red Hat AI Feature That Fixes Each"
+  title: "Four Ways Your Agent Fails in Production \u2014 and the Red Hat AI Feature\
+    \ That Fixes Each"
   learning_objectives:
-    - "Analyze an OpenShift AI execution trace to diagnose an agent's runtime behavior rather than judging it by its final output."
-    - "Troubleshoot a model endpoint's tool-calling configuration from an execution trace, and explain why a mismatched chat template or tool parser causes an agent to silently never call tools."
-    - "Configure an agent loop to inspect the model's stop condition rather than trusting the first response or parsing text for a completion signal."
-    - "Configure MCP Gateway so an agent is exposed only to the tools its identity authorizes, and demonstrate why this stops prompt-injection tool abuse at the infrastructure layer."
-    - "Monitor an agent with MLflow Tracing and use it to locate a failure that the agent reported as a success."
-    - "Implement a structured tool-error contract (error category, retryable flag, detail) so that silent tool failures surface instead of becoming confident, empty answers."
-    - "Migrate a compliance-critical business rule out of a system prompt into the TrustyAI Guardrails Orchestrator and gateway authorization policy."
-    - "Demonstrate the four failure modes and the corresponding Red Hat AI feature in a customer conversation."
-  modules:                 # [{id, title, duration_min}] — id is stable (e.g. module-01)
-    - id: module-01
-      title: "Meet the prototype"
-      duration_min: 15
-      status: not_started
-    - id: module-02
-      title: "Round 1 — Loop discipline and tool-calling configuration"
-      duration_min: 20
-      status: not_started
-    - id: module-03
-      title: "Round 2 — Tool governance with MCP Gateway"
-      duration_min: 22
-      status: not_started
-    - id: module-04
-      title: "Round 3 — Observability with MLflow Tracing"
-      duration_min: 18
-      status: not_started
-    - id: module-05
-      title: "Round 4 — Enforcement with Guardrails Orchestrator"
-      duration_min: 15
-      status: not_started
-    - id: module-06
-      title: "Field wrap and positioning"
-      duration_min: 15
-      status: not_started
+  - Analyze an OpenShift AI execution trace to diagnose an agent's runtime behavior
+    rather than judging it by its final output.
+  - Troubleshoot a model endpoint's tool-calling configuration from an execution trace,
+    and explain why a mismatched chat template or tool parser causes an agent to silently
+    never call tools.
+  - Configure an agent loop to inspect the model's stop condition rather than trusting
+    the first response or parsing text for a completion signal.
+  - Configure MCP Gateway so an agent is exposed only to the tools its identity authorizes,
+    and demonstrate why this stops prompt-injection tool abuse at the infrastructure
+    layer.
+  - Monitor an agent with MLflow Tracing and use it to locate a failure that the agent
+    reported as a success.
+  - Implement a structured tool-error contract (error category, retryable flag, detail)
+    so that silent tool failures surface instead of becoming confident, empty answers.
+  - Migrate a compliance-critical business rule out of a system prompt into the TrustyAI
+    Guardrails Orchestrator and gateway authorization policy.
+  - Demonstrate the four failure modes and the corresponding Red Hat AI feature in
+    a customer conversation.
+  modules:
+  - id: module-01
+    title: Meet the prototype
+    duration_min: 15
+    status: not_started
+  - id: module-02
+    title: "Round 1 \u2014 Loop discipline and tool-calling configuration"
+    duration_min: 20
+    status: not_started
+  - id: module-03
+    title: "Round 2 \u2014 Tool governance with MCP Gateway"
+    duration_min: 22
+    status: not_started
+  - id: module-04
+    title: "Round 3 \u2014 Observability with MLflow Tracing"
+    duration_min: 18
+    status: not_started
+  - id: module-05
+    title: "Round 4 \u2014 Enforcement with Guardrails Orchestrator"
+    duration_min: 15
+    status: not_started
+  - id: module-06
+    title: Field wrap and positioning
+    duration_min: 15
+    status: not_started
   environment:
-    platform: "ocp"            # ocp | rhel-vms — determines which sizing fields apply
-    topology: "shared-cluster" # shared-cluster | per-student | cnv-pool
-    cloud_provider: aws        # cnv | aws | troshka — cnv is default
-    max_concurrent_users: 30   # planning cap; sized on peak concurrent generation, not model footprint
-
-    # --- OCP-specific fields (only when platform = ocp) ---
-    ocp_version: "4.20"                # e.g. 4.20 — minimum 4.20; leave empty for rhel-vms
-    cluster_type: "multinode"          # sno | multinode — only for platform = ocp
-    control_plane_instance_count: 3    # 1 if sno, 3 if multinode
-    control_plane_cpu: 16              # 32 if sno, 16 if multinode
-    control_plane_ram_gb: 64           # 128 if sno, 64 if multinode
-    worker_count: 6                    # number of OCP worker nodes
-    worker_cpu: 16                     # vCPU per worker
-    worker_ram_gb: 64                  # RAM per worker in GB
-    worker_disk_gb: 200                # disk per worker in GB
-
-    # --- VM-specific fields (only when platform = rhel-vms) ---
-    # Each entry: {role, count, cpu, ram_gb, disk_gb, os}
+    platform: ocp
+    topology: shared-cluster
+    cloud_provider: aws
+    max_concurrent_users: 30
+    ocp_version: '4.20'
+    cluster_type: multinode
+    control_plane_instance_count: 3
+    control_plane_cpu: 16
+    control_plane_ram_gb: 64
+    worker_count: 6
+    worker_cpu: 16
+    worker_ram_gb: 64
+    worker_disk_gb: 200
     vms_per_student: []
-
-    # --- Common fields (both platforms) ---
-    aap_version: ""                    # required if AAP in products — N/A, AAP not in product list
-    ai_requirement: "gpu"              # maas | gpu | none
-    ai_model_tier: "open-source"       # open-source | frontier (if ai_requirement = maas or gpu)
-    ai_model_name: "RedHatAI/Qwen3-8B-FP8-dynamic"
-    ai_justification: >-
-      MaaS cannot satisfy this lab. Round 1's entire mechanic is switching the agent between two
-      serving configurations of the same model — one with a mismatched tool-call parser, one with
-      the validated recipe. A hosted chat API exposes no serving configuration, so the round has
-      no failure to diagnose and no fix to apply. Self-hosted vLLM is therefore required.
-      L40S specifically, not A100: the model is an FP8 checkpoint, and native FP8 compute (W8A8)
-      requires compute capability 8.9 or later — Ada Lovelace or Hopper. On Ampere (A100, SM80)
-      vLLM does not fail, it silently falls back to weight-only W8A16 via FP8 Marlin, dequantizing
-      to 16-bit before the tensor cores. That yields the memory saving and none of the FP8
-      throughput, which is an unacceptable trace for a lab whose subject is serving configuration.
-      Sizing is a throughput question, not a memory one: after Round 1 the whole room repoints to
-      the validated endpoint, so peak concurrent generation lands there. Four GPUs map one vLLM
-      instance per GPU — broken endpoint on GPU 0, three validated replicas on GPUs 1-3 — which
-      avoids per-instance gpu_memory_utilization fractions entirely and keeps the failure domain
-      per-endpoint. Public benchmarks show Qwen3-8B sustaining 256 concurrent requests on a single
-      A10G with no dropped requests; L40S is materially faster with native FP8, so 30 concurrent
-      participants across three replicas carries substantial headroom.
-    non_ga_products:                   # list of non-GA products/versions
-      # Maturity questions resolved against primary Red Hat documentation 2026-08-19.
-      - "MCP Gateway — Tech Preview via Red Hat Connectivity Link (operator v0.7.1, Red Hat provided)"
-      - "EvalHub with Garak adversarial-scanning provider — Tech Preview in RHOAI 3.4 and 3.5, no announced GA"
-      # NOT non-GA on this lab's delivery path: vLLM tool-calling configuration. The Developer
-      # Preview notice attaches to standalone RHAIIS, not to RHOAI/KServe, where the flags are
-      # documented serving-runtime arguments in GA procedures. See the design doc maturity table.
-    non_ga_access_plan: >-
-      Both ship inside Red Hat OpenShift AI 3.4+ and the TrustyAI operator, so no separate
-      entitlement, early-access programme or non-standard registry is required — provisioning
-      installs them through the normal operator catalog.
-
-      MCP Gateway carries a documented fallback if its maturity regresses before the event: tool
-      scoping at the MCP server/registry level plus RBAC, same principle without the gateway
-      dependency. Round 2's identity-based tool filtering is a capability of this Tech Preview
-      gateway rather than of the Developer Preview MCP catalog or lifecycle operator, neither of
-      which this lab uses.
-
-      EvalHub with Garak is Round 4's verification instrument and has no equivalent fallback.
-      Its status was investigated rather than assumed: it is Tech Preview in both 3.4 and 3.5
-      with no GA date announced, and the Garak provider is being moved from the Llama Stack
-      distribution to the OGX distribution between those releases. This lab reaches it through
-      the TrustyAI EvalHub CR rather than that distribution, so the rename is not expected to
-      break it, but it requires re-verification against the RHOAI version shipping at the event.
-      Author decision 2026-08-19: retain Garak on Round 4's critical path and disclose Tech
-      Preview status to participants rather than mitigate it. Round 4's assessed outcome — the
-      Guardrails Orchestrator returning a blocked verdict — rests on a component that has been
-      GA since RHOAI 2.19, so a Garak regression would cost the quantified Attack Success Rate
-      but would not invalidate the round's learning objective.
-    external_services:                 # named external service dependencies e.g. [github.com]
-      - "registry.redhat.io"           # RHOAI and operator component images
-      - "quay.io"                      # workbench and MCP server images
-      - "huggingface.co"               # Qwen3-8B-FP8-dynamic model weights (unless pre-staged to cluster storage)
-      - "github.com"                   # inherited agent prototype repo, cloned into each workbench
-      - "pypi.org"                     # Python dependencies for the agent, MCP servers and MLflow client
-    gpu_nodes: 1                       # number of GPU nodes (0 = none)
-    gpu_type: "NVIDIA L40S 48GB x4 per node (AWS g6e.12xlarge — 4 GPUs, 48 vCPU, 384GB RAM)"
+    aap_version: ''
+    ai_requirement: gpu
+    ai_model_tier: open-source
+    ai_model_name: RedHatAI/Qwen3-8B-FP8-dynamic
+    ai_justification: "MaaS cannot satisfy this lab. Round 1's entire mechanic is\
+      \ switching the agent between two serving configurations of the same model \u2014\
+      \ one with a mismatched tool-call parser, one with the validated recipe. A hosted\
+      \ chat API exposes no serving configuration, so the round has no failure to\
+      \ diagnose and no fix to apply. Self-hosted vLLM is therefore required. L40S\
+      \ specifically, not A100: the model is an FP8 checkpoint, and native FP8 compute\
+      \ (W8A8) requires compute capability 8.9 or later \u2014 Ada Lovelace or Hopper.\
+      \ On Ampere (A100, SM80) vLLM does not fail, it silently falls back to weight-only\
+      \ W8A16 via FP8 Marlin, dequantizing to 16-bit before the tensor cores. That\
+      \ yields the memory saving and none of the FP8 throughput, which is an unacceptable\
+      \ trace for a lab whose subject is serving configuration. Sizing is a throughput\
+      \ question, not a memory one: after Round 1 the whole room repoints to the validated\
+      \ endpoint, so peak concurrent generation lands there. Four GPUs map one vLLM\
+      \ instance per GPU \u2014 broken endpoint on GPU 0, three validated replicas\
+      \ on GPUs 1-3 \u2014 which avoids per-instance gpu_memory_utilization fractions\
+      \ entirely and keeps the failure domain per-endpoint. Public benchmarks show\
+      \ Qwen3-8B sustaining 256 concurrent requests on a single A10G with no dropped\
+      \ requests; L40S is materially faster with native FP8, so 30 concurrent participants\
+      \ across three replicas carries substantial headroom."
+    non_ga_products:
+    - "MCP Gateway \u2014 Tech Preview via Red Hat Connectivity Link (operator v0.7.1,\
+      \ Red Hat provided)"
+    - "EvalHub with Garak adversarial-scanning provider \u2014 Tech Preview in RHOAI\
+      \ 3.4 and 3.5, no announced GA"
+    non_ga_access_plan: "Both ship inside Red Hat OpenShift AI 3.4+ and the TrustyAI\
+      \ operator, so no separate entitlement, early-access programme or non-standard\
+      \ registry is required \u2014 provisioning installs them through the normal\
+      \ operator catalog.\nMCP Gateway carries a documented fallback if its maturity\
+      \ regresses before the event: tool scoping at the MCP server/registry level\
+      \ plus RBAC, same principle without the gateway dependency. Round 2's identity-based\
+      \ tool filtering is a capability of this Tech Preview gateway rather than of\
+      \ the Developer Preview MCP catalog or lifecycle operator, neither of which\
+      \ this lab uses.\nEvalHub with Garak is Round 4's verification instrument and\
+      \ has no equivalent fallback. Its status was investigated rather than assumed:\
+      \ it is Tech Preview in both 3.4 and 3.5 with no GA date announced, and the\
+      \ Garak provider is being moved from the Llama Stack distribution to the OGX\
+      \ distribution between those releases. This lab reaches it through the TrustyAI\
+      \ EvalHub CR rather than that distribution, so the rename is not expected to\
+      \ break it, but it requires re-verification against the RHOAI version shipping\
+      \ at the event. Author decision 2026-08-19: retain Garak on Round 4's critical\
+      \ path and disclose Tech Preview status to participants rather than mitigate\
+      \ it. Round 4's assessed outcome \u2014 the Guardrails Orchestrator returning\
+      \ a blocked verdict \u2014 rests on a component that has been GA since RHOAI\
+      \ 2.19, so a Garak regression would cost the quantified Attack Success Rate\
+      \ but would not invalidate the round's learning objective."
+    external_services:
+    - registry.redhat.io
+    - quay.io
+    - huggingface.co
+    - github.com
+    - pypi.org
+    gpu_nodes: 1
+    gpu_type: "NVIDIA L40S 48GB x4 per node (AWS g6e.12xlarge \u2014 4 GPUs, 48 vCPU,\
+      \ 384GB RAM)"
   duration_hours: 2
-  audience: "intermediate"   # beginner | intermediate | advanced
-
+  audience: intermediate
 development:
   automation:
     gitops:
@@ -146,131 +144,129 @@ development:
     status: not_started
   healthCheck:
     status: not_started
-
 compliance:
   last_hard_check: null
   hard_result: null
-
 tracking:
   paused: false
   pause_reason: null
-
-# Approval checklist — filled collaboratively by author + skill + system + reviewers
 approval_checklist:
-
   content:
     prerequisites_verifiable: false
-    assessment_strategy: >-
-      Trust-based and stated explicitly. Classic Showroom with no solve/validate automation
-      to author, so completion is not machine-verified. Each of the four rounds instead ends in
-      a visible, unambiguous result the participant confirms for themselves, chosen so that it
-      does not depend on the model choosing correctly — tool_calls becoming populated where
-      tool-call text had been stranded in the response content, the tool catalog shrinking from
-      18 to the identity-authorized subset, the swallowed error surfacing as a structured
-      failure, and the guardrail returning a blocked verdict for every case in the adversarial
-      set. Module 1 confirms environment and trace access; module 6 is discussion-led and
-      produces a takeaway artifact rather than a system state.
-    catalog_gap: >-
-      Eight catalog items score above 50% relevance, but each covers one or two of the four
-      platform layers rather than the sequence. The same caveat repeats across the top three
-      matches: they teach observability and tracing but not vLLM serving configuration,
-      identity-based tool governance, or moving compliance rules into platform enforcement.
-      The two highest matches, AgentOps in Production (99%) and LB2144 (93%), both address
-      agent quality for a system the participant already owns and understands; this design
-      addresses agent failure modes and the platform contract that prevents them, and is
-      positioned as the prerequisite to that material rather than a competitor for the same
-      slot. Two lower matches overlap at round level rather than lab level: VLLM Playground
-      (74%) already teaches tool-calling parsers per model family, which is Round 1 territory,
-      and the MCP Registry lab (80%) covers tool access control by allowlist, which is
-      adjacent to Round 2's identity-based gateway filtering. No catalog item teaches
-      anti-pattern first, and none is structured as diagnose-from-trace then remediate.
-    design_overview: >-
-      Participants inherit a working agent prototype that demos perfectly and fails on
-      realistic input. Across four rounds they diagnose a planted structural anti-pattern from
-      an OpenShift AI execution trace, then fix it by applying a supplied configuration to a
-      named Red Hat AI component: vLLM tool-calling configuration, MCP Gateway, MLflow Tracing,
-      and the TrustyAI Guardrails Orchestrator. Diagnosis is the reasoning work and remediation
-      is guided, so the lab stays at Intermediate level for Technical Sellers and Services
-      while every round demonstrates real product usage.
+    assessment_strategy: "Trust-based and stated explicitly. Classic Showroom with\
+      \ no solve/validate automation to author, so completion is not machine-verified.\
+      \ Each of the four rounds instead ends in a visible, unambiguous result the\
+      \ participant confirms for themselves, chosen so that it does not depend on\
+      \ the model choosing correctly \u2014 tool_calls becoming populated where tool-call\
+      \ text had been stranded in the response content, the tool catalog shrinking\
+      \ from 18 to the identity-authorized subset, the swallowed error surfacing as\
+      \ a structured failure, and the guardrail returning a blocked verdict for every\
+      \ case in the adversarial set. Module 1 confirms environment and trace access;\
+      \ module 6 is discussion-led and produces a takeaway artifact rather than a\
+      \ system state."
+    catalog_gap: 'Eight catalog items score above 50% relevance, but each covers one
+      or two of the four platform layers rather than the sequence. The same caveat
+      repeats across the top three matches: they teach observability and tracing but
+      not vLLM serving configuration, identity-based tool governance, or moving compliance
+      rules into platform enforcement. The two highest matches, AgentOps in Production
+      (99%) and LB2144 (93%), both address agent quality for a system the participant
+      already owns and understands; this design addresses agent failure modes and
+      the platform contract that prevents them, and is positioned as the prerequisite
+      to that material rather than a competitor for the same slot. Two lower matches
+      overlap at round level rather than lab level: VLLM Playground (74%) already
+      teaches tool-calling parsers per model family, which is Round 1 territory, and
+      the MCP Registry lab (80%) covers tool access control by allowlist, which is
+      adjacent to Round 2''s identity-based gateway filtering. No catalog item teaches
+      anti-pattern first, and none is structured as diagnose-from-trace then remediate.'
+    design_overview: 'Participants inherit a working agent prototype that demos perfectly
+      and fails on realistic input. Across four rounds they diagnose a planted structural
+      anti-pattern from an OpenShift AI execution trace, then fix it by applying a
+      supplied configuration to a named Red Hat AI component: vLLM tool-calling configuration,
+      MCP Gateway, MLflow Tracing, and the TrustyAI Guardrails Orchestrator. Diagnosis
+      is the reasoning work and remediation is guided, so the lab stays at Intermediate
+      level for Technical Sellers and Services while every round demonstrates real
+      product usage.'
     module_summaries:
-      - title: "Meet the prototype"
-        overview: >-
-          Participants inherit an agent prototype that passes its demo input and produces a
-          confident, fabricated answer on realistic input. They learn to read an execution
-          trace — model turns, tool invocations, tool results, stop conditions — and establish
-          the rule the rest of the lab runs on: the final answer is a claim, the trace is the
-          evidence. Nothing is fixed here.
-      - title: "Round 1 — Loop discipline and tool-calling configuration"
-        overview: >-
-          Two sequenced beats. First the agent never calls a tool, because the endpoint serves
-          without the validated chat template and tool parser, and participants learn that
-          prompt quality cannot fix a tool call nothing parsed. Then the agent calls tools but
-          repeats the same call forever, because the harness never inspects the model's stop
-          condition.
-      - title: "Round 2 — Tool governance with MCP Gateway"
-        overview: >-
-          The agent calls the wrong tool from a catalog of 18, two of which have overlapping
-          descriptions, and returns a plausible wrong answer with no error anywhere.
-          Participants put all tool access behind MCP Gateway so the catalog is filtered by
-          identity, correct the colliding descriptions, then watch the gateway refuse a
-          prompt-injection attempt without ever reading the prompt.
-      - title: "Round 3 — Observability with MLflow Tracing"
-        overview: >-
-          The agent reports success on a summary built from nothing, because a tool returned a
-          well-formed empty envelope the model read as valid data. Participants find the
-          swallowed failure in the trace, apply a structured error contract of category,
-          retryable flag and detail, and add a task-objective verification step so a result
-          that returns cleanly but does not satisfy the request is caught before the model
-          summarizes it.
-      - title: "Round 4 — Enforcement with Guardrails Orchestrator"
-        overview: >-
-          A compliance rule encoded in the system prompt holds for twenty adversarial cases and
-          fails on the twenty-first, because that request asks for an APR range and the rule on
-          its own wording covers only an interest rate. Participants split the rule in two and
-          enforce each half where it belongs: the content constraint becomes an unconditional
-          detector in the TrustyAI Guardrails Orchestrator, and the conditional
-          unverified-customer half becomes a Kuadrant AuthPolicy on the rate-lookup tool. They
-          then verify deterministic enforcement by re-running the full set through Garak via
-          EvalHub and reading the resulting Attack Success Rate.
-      - title: "Field wrap and positioning"
-        overview: >-
-          Discussion-led synthesis converting the four rounds into a customer conversation
-          script that maps what a customer describes to the anti-pattern and the Red Hat AI
-          capability that addresses it. Also names two failure modes covered by discussion
-          rather than hands-on, and closes on why no single published taxonomy contains all
-          four of the lab's failures.
+    - title: Meet the prototype
+      overview: "Participants inherit an agent prototype that passes its demo input\
+        \ and produces a confident, fabricated answer on realistic input. They learn\
+        \ to read an execution trace \u2014 model turns, tool invocations, tool results,\
+        \ stop conditions \u2014 and establish the rule the rest of the lab runs on:\
+        \ the final answer is a claim, the trace is the evidence. Nothing is fixed\
+        \ here."
+    - title: "Round 1 \u2014 Loop discipline and tool-calling configuration"
+      overview: Two sequenced beats. First the agent never calls a tool, because the
+        endpoint serves without the validated chat template and tool parser, and participants
+        learn that prompt quality cannot fix a tool call nothing parsed. Then the
+        agent calls tools but repeats the same call forever, because the harness never
+        inspects the model's stop condition.
+    - title: "Round 2 \u2014 Tool governance with MCP Gateway"
+      overview: The agent calls the wrong tool from a catalog of 18, two of which
+        have overlapping descriptions, and returns a plausible wrong answer with no
+        error anywhere. Participants put all tool access behind MCP Gateway so the
+        catalog is filtered by identity, correct the colliding descriptions, then
+        watch the gateway refuse a prompt-injection attempt without ever reading the
+        prompt.
+    - title: "Round 3 \u2014 Observability with MLflow Tracing"
+      overview: The agent reports success on a summary built from nothing, because
+        a tool returned a well-formed empty envelope the model read as valid data.
+        Participants find the swallowed failure in the trace, apply a structured error
+        contract of category, retryable flag and detail, and add a task-objective
+        verification step so a result that returns cleanly but does not satisfy the
+        request is caught before the model summarizes it.
+    - title: "Round 4 \u2014 Enforcement with Guardrails Orchestrator"
+      overview: 'A compliance rule encoded in the system prompt holds for twenty adversarial
+        cases and fails on the twenty-first, because that request asks for an APR
+        range and the rule on its own wording covers only an interest rate. Participants
+        split the rule in two and enforce each half where it belongs: the content
+        constraint becomes an unconditional detector in the TrustyAI Guardrails Orchestrator,
+        and the conditional unverified-customer half becomes a Kuadrant AuthPolicy
+        on the rate-lookup tool. They then verify deterministic enforcement by re-running
+        the full set through Garak via EvalHub and reading the resulting Attack Success
+        Rate.'
+    - title: Field wrap and positioning
+      overview: Discussion-led synthesis converting the four rounds into a customer
+        conversation script that maps what a customer describes to the anti-pattern
+        and the Red Hat AI capability that addresses it. Also names two failure modes
+        covered by discussion rather than hands-on, and closes on why no single published
+        taxonomy contains all four of the lab's failures.
     rcars_overlap_pct: 99
     rcars_top_matches:
-      - title: "AgentOps in Production — AI Observability on OpenShift"
-        ci_name: "published.agentops-ocp.prod"
-        url: "https://catalog.demo.redhat.com/catalog?item=published.agentops-ocp.prod"
-        relevance_score: 99
-        why_it_fits: >-
-          Directly covers MLflow Tracing and multi-agent observability on Red Hat OpenShift AI,
-          teaching participants to use distributed traces to diagnose agent failures and silent
-          failures. Also addresses MCP and LangGraph agent architectures.
-      - title: "LB2144: AI AgentOps OpenShift (AWS)"
-        ci_name: "summit-2026.lb2144-agentops-ocp-aws.prod"
-        url: "https://catalog.demo.redhat.com/catalog?item=summit-2026.lb2144-agentops-ocp-aws.prod"
-        relevance_score: 93
-        why_it_fits: >-
-          Covers MLflow Tracing, MCP and multi-agent observability on Red Hat OpenShift AI,
-          teaching diagnosis of agent failures from execution traces. The mortgage lending
-          scenario provides a regulated-industry context.
-      - title: "Agentic AI with Llama Stack and 3rd party Frameworks"
-        ci_name: "published.agentic-ai-openshift.prod"
-        url: "https://catalog.demo.redhat.com/catalog?item=published.agentic-ai-openshift.prod"
-        relevance_score: 89
-        why_it_fits: >-
-          Overlapping coverage of vLLM model serving, MCP integration, AI safety guardrails and
-          agentic tracing, but built on Llama Stack, LangGraph and Langfuse rather than the
-          MLflow Tracing and TrustyAI combination this design uses.
-    rejections: []
-
+    - title: "AgentOps in Production \u2014 AI Observability on OpenShift"
+      ci_name: published.agentops-ocp.prod
+      url: https://catalog.demo.redhat.com/catalog?item=published.agentops-ocp.prod
+      relevance_score: 99
+      why_it_fits: Directly covers MLflow Tracing and multi-agent observability on
+        Red Hat OpenShift AI, teaching participants to use distributed traces to diagnose
+        agent failures and silent failures. Also addresses MCP and LangGraph agent
+        architectures.
+    - title: 'LB2144: AI AgentOps OpenShift (AWS)'
+      ci_name: summit-2026.lb2144-agentops-ocp-aws.prod
+      url: https://catalog.demo.redhat.com/catalog?item=summit-2026.lb2144-agentops-ocp-aws.prod
+      relevance_score: 93
+      why_it_fits: Covers MLflow Tracing, MCP and multi-agent observability on Red
+        Hat OpenShift AI, teaching diagnosis of agent failures from execution traces.
+        The mortgage lending scenario provides a regulated-industry context.
+    - title: Agentic AI with Llama Stack and 3rd party Frameworks
+      ci_name: published.agentic-ai-openshift.prod
+      url: https://catalog.demo.redhat.com/catalog?item=published.agentic-ai-openshift.prod
+      relevance_score: 89
+      why_it_fits: Overlapping coverage of vLLM model serving, MCP integration, AI
+        safety guardrails and agentic tracing, but built on Llama Stack, LangGraph
+        and Langfuse rather than the MLflow Tracing and TrustyAI combination this
+        design uses.
+    rejections:
+    - id: 59e7f3be-4be9-4995-ad73-f3496017e65a
+      text: This should not have been submitted yet. David Williams needs to update
+        it to match the topic, since this has too much overlap with the other agent
+        lab.
+      resolved: false
+      reviewer: nstephan@redhat.com
+      timestamp: '2026-09-01T08:00:34.497053+00:00'
   infra:
     peak_environments: null
-    cost_per_run_est: ""
-    provisioning_time_est: ""
-    agnosticv_base_ci: ""
-    approved_by: ""
+    cost_per_run_est: ''
+    provisioning_time_est: ''
+    agnosticv_base_ci: ''
+    approved_by: ''
     rejections: []
