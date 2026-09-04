@@ -7,35 +7,36 @@ project:
   showroom_type: classic
   intake_type: new
   automation_type: gitops
-  description: 'Participants build a multi-step field service agent on OpenShift AI one layer
-    at a time, for a fictional industrial chiller manufacturer. Each layer opens with the way
-    that layer commonly breaks, diagnosed from the request and response payloads on the inference
-    endpoint or from the execution trace, and closes with the build step that prevents it: a
-    serving runtime configured so tool calls are parsed at all, a loop that stops on the model''s
-    reported stop condition, tool returns that surface failure instead of hiding it, a searchable
-    service-bulletin corpus, and tool access through the platform so tools can be added without
-    redeploying the agent.'
+  description: 'Participants build a multi-step field service agent on OpenShift AI
+    one layer at a time, for a fictional industrial chiller manufacturer. Each layer
+    opens with the way that layer commonly breaks, diagnosed from the request and
+    response payloads on the inference endpoint or from the execution trace, and closes
+    with the build step that prevents it: a serving runtime configured so tool calls
+    are parsed at all, a loop that stops on the model''s reported stop condition,
+    tool returns that surface failure instead of hiding it, a searchable service-bulletin
+    corpus, and tool access through the platform so tools can be added without redeploying
+    the agent.'
   jira_ticket: RHDPCD-1073
   workflow_id: ae352eec-d9fb-4849-b96e-cf7a6a4cf4dc
 spec:
   title: 'Building an Agent on OpenShift AI: Each Step, and How It Breaks First'
   learning_objectives:
-  - Deploy a vLLM serving runtime on OpenShift AI configured so that a model's tool calls are
-    emitted and parsed rather than stranded as text in the response body.
-  - Analyze the request and response payloads on an inference endpoint to determine whether
-    a tool call was emitted, parsed, or silently discarded.
-  - Troubleshoot an agent that never calls a tool by comparing the endpoint's serving arguments
-    against the tool-call format the model was trained to produce.
-  - Build an agent loop that terminates on the model's reported stop condition rather than on
-    a text heuristic, a first response, or an iteration cap.
-  - Implement a structured tool-error contract of category, retryable flag and detail so that
-    failed tool calls surface instead of becoming confident empty answers.
-  - Integrate a searchable knowledge source so the agent grounds its answers in retrieved content
-    rather than in model memory.
-  - Configure an agent to reach its tools through MCP Gateway so that tools can be added or
-    changed without modifying or redeploying the agent.
-  - Verify the assembled agent end to end against the failure cases from every earlier step
-    before treating it as more than a prototype.
+  - Deploy a vLLM serving runtime on OpenShift AI configured so that a model's tool
+    calls are emitted and parsed rather than stranded as text in the response body.
+  - Analyze the request and response payloads on an inference endpoint to determine
+    whether a tool call was emitted, parsed, or silently discarded.
+  - Troubleshoot an agent that never calls a tool by comparing the endpoint's serving
+    arguments against the tool-call format the model was trained to produce.
+  - Build an agent loop that terminates on the model's reported stop condition rather
+    than on a text heuristic, a first response, or an iteration cap.
+  - Implement a structured tool-error contract of category, retryable flag and detail
+    so that failed tool calls surface instead of becoming confident empty answers.
+  - Integrate a searchable knowledge source so the agent grounds its answers in retrieved
+    content rather than in model memory.
+  - Configure an agent to reach its tools through MCP Gateway so that tools can be
+    added or changed without modifying or redeploying the agent.
+  - Verify the assembled agent end to end against the failure cases from every earlier
+    step before treating it as more than a prototype.
   modules:
   - id: module-01
     title: What you are building, and how to see inside it
@@ -84,43 +85,48 @@ spec:
     ai_requirement: gpu
     ai_model_tier: open-source
     ai_model_name: RedHatAI/Qwen3-8B-FP8-dynamic
-    ai_justification: 'MaaS cannot satisfy this lab. Module 2''s mechanic is comparing two serving
-      configurations of the same model, one with a mismatched tool-call parser and one with
-      the validated recipe. A hosted chat API exposes no serving configuration, so the module
-      has no failure to diagnose and no fix to apply. Self-hosted vLLM is therefore required.
-      This is also what separates the design from the other candidates in this topic slot, all
-      of which consume a centrally hosted model. L40S specifically, not A100: the model is an
-      FP8 checkpoint, and native FP8 compute (W8A8) requires compute capability 8.9 or later,
-      meaning Ada Lovelace or Hopper. On Ampere (A100, SM80) vLLM does not fail, it silently
-      falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before the tensor
-      cores. That yields the memory saving and none of the FP8 throughput, which is an indefensible
-      trace for a lab whose subject is serving configuration. Sizing is a throughput question,
-      not a memory one: after module 2 the whole room repoints to the validated endpoint, so
-      peak concurrent generation lands there. Four GPUs map one vLLM instance per GPU, the broken
-      endpoint on GPU 0 and three validated replicas on GPUs 1-3, which avoids per-instance
-      gpu_memory_utilization fractions entirely and keeps the failure domain per-endpoint. Published
-      benchmarks show Qwen3-8B sustaining 256 concurrent requests on a single A10G with no dropped
-      requests; L40S is materially faster with native FP8, so 30 concurrent participants across
-      three replicas carries substantial headroom.'
+    ai_justification: 'MaaS cannot satisfy this lab. Module 2''s mechanic is comparing
+      two serving configurations of the same model, one with a mismatched tool-call
+      parser and one with the validated recipe. A hosted chat API exposes no serving
+      configuration, so the module has no failure to diagnose and no fix to apply.
+      Self-hosted vLLM is therefore required. This is also what separates the design
+      from the other candidates in this topic slot, all of which consume a centrally
+      hosted model. L40S specifically, not A100: the model is an FP8 checkpoint, and
+      native FP8 compute (W8A8) requires compute capability 8.9 or later, meaning
+      Ada Lovelace or Hopper. On Ampere (A100, SM80) vLLM does not fail, it silently
+      falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before
+      the tensor cores. That yields the memory saving and none of the FP8 throughput,
+      which is an indefensible trace for a lab whose subject is serving configuration.
+      Sizing is a throughput question, not a memory one: after module 2 the whole
+      room repoints to the validated endpoint, so peak concurrent generation lands
+      there. Four GPUs map one vLLM instance per GPU, the broken endpoint on GPU 0
+      and three validated replicas on GPUs 1-3, which avoids per-instance gpu_memory_utilization
+      fractions entirely and keeps the failure domain per-endpoint. Published benchmarks
+      show Qwen3-8B sustaining 256 concurrent requests on a single A10G with no dropped
+      requests; L40S is materially faster with native FP8, so 30 concurrent participants
+      across three replicas carries substantial headroom.'
     non_ga_products:
-    - MCP Gateway - Tech Preview via Red Hat Connectivity Link (operator v0.7.1, Red Hat provided)
-    non_ga_access_plan: 'One non-GA dependency, down from three in the rejected version. Removing
-      the guardrails and adversarial-scanning rounds took EvalHub and Garak off the design entirely.
+    - MCP Gateway - Tech Preview via Red Hat Connectivity Link (operator v0.7.1, Red
+      Hat provided)
+    non_ga_access_plan: 'One non-GA dependency, down from three in the rejected version.
+      Removing the guardrails and adversarial-scanning rounds took EvalHub and Garak
+      off the design entirely.
 
-      MCP Gateway ships inside Red Hat OpenShift AI and installs through the normal operator
-      catalog, so no separate entitlement, early-access programme or non-standard registry is
-      required. It is supporting rather than load-bearing: module 6 teaches governed tool access
-      as a build step and carries no assessed outcome that fails without it. Documented fallback
-      if it regresses before the event is tool scoping at the MCP server or registry level plus
-      RBAC, which demonstrates the same principle without the gateway dependency.
+      MCP Gateway ships inside Red Hat OpenShift AI and installs through the normal
+      operator catalog, so no separate entitlement, early-access programme or non-standard
+      registry is required. It is supporting rather than load-bearing: module 6 teaches
+      governed tool access as a build step and carries no assessed outcome that fails
+      without it. Documented fallback if it regresses before the event is tool scoping
+      at the MCP server or registry level plus RBAC, which demonstrates the same principle
+      without the gateway dependency.
 
-      The vector store for module 5 is settled and adds no non-GA dependency: PostgreSQL with
-      the pgvector extension, deployed as a plain Deployment via GitOps and queried directly
-      by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector as a remote vector
-      store provider, so the lab shows a participant the direction the platform is going. The
-      RHOAI built-in pgvector provider integration is EA2 as of 3.5 and is deliberately not
-      used, because querying Postgres directly needs nothing pre-GA and remains forward-compatible
-      with that integration.'
+      The vector store for module 5 is settled and adds no non-GA dependency: PostgreSQL
+      with the pgvector extension, deployed as a plain Deployment via GitOps and queried
+      directly by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector
+      as a remote vector store provider, so the lab shows a participant the direction
+      the platform is going. The RHOAI built-in pgvector provider integration is EA2
+      as of 3.5 and is deliberately not used, because querying Postgres directly needs
+      nothing pre-GA and remains forward-compatible with that integration.'
     external_services:
     - registry.redhat.io
     - quay.io
@@ -128,7 +134,8 @@ spec:
     - github.com
     - pypi.org
     gpu_nodes: 1
-    gpu_type: NVIDIA L40S 48GB x4 per node (AWS g6e.12xlarge — 4 GPUs, 48 vCPU, 384GB RAM)
+    gpu_type: "NVIDIA L40S 48GB x4 per node (AWS g6e.12xlarge \u2014 4 GPUs, 48 vCPU,\
+      \ 384GB RAM)"
   duration_hours: 2
   audience: intermediate
 development:
@@ -148,150 +155,164 @@ tracking:
 approval_checklist:
   content:
     prerequisites_verifiable: false
-    assessment_strategy: 'Trust-based and stated explicitly. Classic Showroom with no solve/validate
-      automation to author, so completion is not machine-verified. Each module instead ends
-      in a visible, unambiguous result the participant confirms, chosen so it does not depend
-      on the model choosing correctly: tool_calls becoming populated where tool-call text had
-      been stranded in the response content, a turn count ending well below the iteration cap
-      on the model''s own stop condition, a swallowed failure surfacing as a categorized error,
-      an answer traceable to a retrieved passage alongside an out-of-corpus question returning
-      an explicit miss, and a tool catalog served through the gateway for the agent''s identity.
-      Module 1 establishes payload and trace access; module 7 re-runs every earlier failure
-      case against the assembled agent and produces a takeaway artifact rather than a system
-      state.'
-    catalog_gap: 'Rewritten 2026-09-02 after the topic-alignment rejection, and verified against
-      the published repositories rather than catalog metadata alone.
+    assessment_strategy: 'Trust-based and stated explicitly. Classic Showroom with
+      no solve/validate automation to author, so completion is not machine-verified.
+      Each module instead ends in a visible, unambiguous result the participant confirms,
+      chosen so it does not depend on the model choosing correctly: tool_calls becoming
+      populated where tool-call text had been stranded in the response content, a
+      turn count ending well below the iteration cap on the model''s own stop condition,
+      a swallowed failure surfacing as a categorized error, an answer traceable to
+      a retrieved passage alongside an out-of-corpus question returning an explicit
+      miss, and a tool catalog served through the gateway for the agent''s identity.
+      Module 1 establishes payload and trace access; module 7 re-runs every earlier
+      failure case against the assembled agent and produces a takeaway artifact rather
+      than a system state.'
+    catalog_gap: 'Rewritten 2026-09-02 after the topic-alignment rejection, and verified
+      against the published repositories rather than catalog metadata alone.
 
-      Slot candidates: LB1782, LB2158 and LB1472 all consume a hosted or centrally served model.
-      LB1782 states participants consume a centrally-hosted, pre-deployed Granite model via
-      MaaS. None configures a serving runtime, so none can teach why tool calls fail to parse,
-      which is this design''s largest module.
+      Slot candidates: LB1782, LB2158 and LB1472 all consume a hosted or centrally
+      served model. LB1782 states participants consume a centrally-hosted, pre-deployed
+      Granite model via MaaS. None configures a serving runtime, so none can teach
+      why tool calls fail to parse, which is this design''s largest module.
 
-      Existing catalog assets, checked directly. The closest is the published vLLM Playground
-      (showroom-vllm-playground), whose module 3 teaches parser selection including the Qwen-to-Hermes
-      pairing, and whose module 4 covers MCP integration. Playground teaches the choice on the
-      happy path through a UI checkbox and a parser dropdown defaulting to Auto-detect, decided
-      before anything runs. Module 2 here owns the inverse: the choice is already wrong, nothing
-      reported it, and the evidence exists only in the request and response payloads. The parser-by-model-family
+      Existing catalog assets, checked directly. The closest is the published vLLM
+      Playground (showroom-vllm-playground), whose module 3 teaches parser selection
+      including the Qwen-to-Hermes pairing, and whose module 4 covers MCP integration.
+      Playground teaches the choice on the happy path through a UI checkbox and a
+      parser dropdown defaulting to Auto-detect, decided before anything runs. Module
+      2 here owns the inverse: the choice is already wrong, nothing reported it, and
+      the evidence exists only in the request and response payloads. The parser-by-model-family
       reference table is deliberately not reproduced.
 
       AgentOps in Production (agentops-in-prod-showroom, duplicated in rhai-features-workshop)
-      scored 99 percent against the rejected design with observability, metrics, tracing and
-      evaluation modules. All of that is removed; MLflow now appears only as the instrument
-      for reading a trace. AgentOps in Action (agentops-in-action-workshop) owns identity-aware
-      authorization and adversarial testing in the neighbouring slot; guardrails and adversarial
-      scanning are removed and module 6 carries no assessed outcome. Retrieval is bounded to
-      one module because LB1782, showroom-agentic-ai-llamastack and enterprise-rag-intel-continuum
-      each own it in depth. Red Hat AI Inference (redhat-ai-inference) owns serving lifecycle,
-      benchmarking and scale in the Inference slot, which is why this design is framed as building
-      an agent rather than as inference.
+      scored 99 percent against the rejected design with observability, metrics, tracing
+      and evaluation modules. All of that is removed; MLflow now appears only as the
+      instrument for reading a trace. AgentOps in Action (agentops-in-action-workshop)
+      owns identity-aware authorization and adversarial testing in the neighbouring
+      slot; guardrails and adversarial scanning are removed and module 6 carries no
+      assessed outcome. Retrieval is bounded to one module because LB1782, showroom-agentic-ai-llamastack
+      and enterprise-rag-intel-continuum each own it in depth. Red Hat AI Inference
+      (redhat-ai-inference) owns serving lifecycle, benchmarking and scale in the
+      Inference slot, which is why this design is framed as building an agent rather
+      than as inference.
 
-      rhpds/vllm-tool-calling is a deployment quickstart rather than a lab, providing per-model
-      kustomize manifests. It is a reusable provisioning asset, not competing content.
+      rhpds/vllm-tool-calling is a deployment quickstart rather than a lab, providing
+      per-model kustomize manifests. It is a reusable provisioning asset, not competing
+      content.
 
-      RCARS re-run 2026-09-02 against the reworked design returned 39 candidates. The top match
-      is 99 percent, the same headline figure the previous design carried, but against a different
-      asset and for a different reason. Previously it was an agent-operations lab whose entire
-      subject this design was duplicating. Now it is a 360-minute Llama Stack lab that shares
-      retrieval and MCP connection, both of which are bounded here to one short module each,
-      and that does not teach serving configuration at all. The score should be read alongside
-      that check: RCARS relevance is AI-generated, its summary for the top match asserts vLLM
-      tool-call configuration coverage, and the repository shows no such module. The second
-      match, VLLM Playground at 90, is the genuine overlap and is bounded explicitly in the
-      module 2 outline.'
-    design_overview: 'Participants build a multi-step field service parts agent on OpenShift
-      AI one layer at a time, set at a fictional industrial chiller manufacturer so that no
-      module can be answered from training data. Each layer opens with that layer failing in
-      a way that raises no error, is diagnosed from the evidence rather than the answer, and
-      closes with the build step that prevents it: a serving runtime whose parser matches the
-      model, a loop that stops on the model''s reported stop condition, tool returns that can
-      express failure, a searchable knowledge source, and tool access routed through the platform.
-      The order is forced by dependency for the early modules and by weight for the later ones.'
+      RCARS re-run 2026-09-02 against the reworked design returned 39 candidates.
+      The top match is 99 percent, the same headline figure the previous design carried,
+      but against a different asset and for a different reason. Previously it was
+      an agent-operations lab whose entire subject this design was duplicating. Now
+      it is a 360-minute Llama Stack lab that shares retrieval and MCP connection,
+      both of which are bounded here to one short module each, and that does not teach
+      serving configuration at all. The score should be read alongside that check:
+      RCARS relevance is AI-generated, its summary for the top match asserts vLLM
+      tool-call configuration coverage, and the repository shows no such module. The
+      second match, VLLM Playground at 90, is the genuine overlap and is bounded explicitly
+      in the module 2 outline.'
+    design_overview: 'Participants build a multi-step field service parts agent on
+      OpenShift AI one layer at a time, set at a fictional industrial chiller manufacturer
+      so that no module can be answered from training data. Each layer opens with
+      that layer failing in a way that raises no error, is diagnosed from the evidence
+      rather than the answer, and closes with the build step that prevents it: a serving
+      runtime whose parser matches the model, a loop that stops on the model''s reported
+      stop condition, tool returns that can express failure, a searchable knowledge
+      source, and tool access routed through the platform. The order is forced by
+      dependency for the early modules and by weight for the later ones.'
     module_summaries:
     - title: What you are building, and how to see inside it
-      overview: Participants meet the agent they will build and establish the habit the lab
-        depends on. They run it once, get a confident invented answer, and learn to read the
-        request and response payloads and the resulting trace rather than the answer. Nothing
-        is built; the output is a habit and a baseline.
+      overview: Participants meet the agent they will build and establish the habit
+        the lab depends on. They run it once, get a confident invented answer, and
+        learn to read the request and response payloads and the resulting trace rather
+        than the answer. Nothing is built; the output is a habit and a baseline.
     - title: 'The model interface: making tool calls fire at all'
-      overview: The agent declared tools and called none. Strengthening the prompt changes nothing.
-        The model did emit a correct tool call and the parser configured on the endpoint did
-        not match it, so the call was left in the response body as text with no error raised.
-        Participants compare the two class endpoints, find the single differing serving argument,
-        repoint, and watch tool_calls populate. This is the layer no other candidate in the
-        slot teaches.
+      overview: The agent declared tools and called none. Strengthening the prompt
+        changes nothing. The model did emit a correct tool call and the parser configured
+        on the endpoint did not match it, so the call was left in the response body
+        as text with no error raised. Participants compare the two class endpoints,
+        find the single differing serving argument, repoint, and watch tool_calls
+        populate. This is the layer no other candidate in the slot teaches.
     - title: 'The agent loop: stop conditions and turn control'
-      overview: The agent now calls the same tool repeatedly until the iteration cap. The supplied
-        loop never appends tool results to the conversation and never reads why the model stopped,
-        so the repetition is caused by code rather than by the model. Participants fix both
-        defects and the run terminates on the model's own stop condition.
+      overview: The agent now calls the same tool repeatedly until the iteration cap.
+        The supplied loop never appends tool results to the conversation and never
+        reads why the model stopped, so the repetition is caused by code rather than
+        by the model. Participants fix both defects and the run terminates on the
+        model's own stop condition.
     - title: Tool returns that tell the truth
-      overview: A tool asked for something it cannot supply returns a well-formed empty envelope
-        with a 200 status, and the model reads it as valid data meaning nothing found. Participants
-        replace the return shape with a contract of category, retryable flag and detail, so
-        failure becomes representable and the later layers become debuggable.
+      overview: A tool asked for something it cannot supply returns a well-formed
+        empty envelope with a 200 status, and the model reads it as valid data meaning
+        nothing found. Participants replace the return shape with a contract of category,
+        retryable flag and detail, so failure becomes representable and the later
+        layers become debuggable.
     - title: Giving the agent knowledge it can search
-      overview: Asked something outside its training data the agent invents a plausible answer
-        rather than admitting the gap. Participants add a retrieval tool over a pre-populated
-        corpus so answers come from retrieved passages with source identifiers. Because the
-        error contract already exists, a retrieval miss returns an explicit gap instead of an
-        invention.
+      overview: Asked something outside its training data the agent invents a plausible
+        answer rather than admitting the gap. Participants add a retrieval tool over
+        a pre-populated corpus so answers come from retrieved passages with source
+        identifiers. Because the error contract already exists, a retrieval miss returns
+        an explicit gap instead of an invention.
     - title: Connecting tools through the platform
-      overview: 'Tools are hardcoded into the agent, so adding one means editing, rebuilding
-        and redeploying it in every environment. Participants point the agent at MCP Gateway
-        so it discovers tools at runtime, then register a new tool at the gateway and watch
-        the agent pick it up with no code change or restart. Teaches connection only: no identity,
-        filtering or authorization, which the neighbouring lab owns.'
+      overview: 'Tools are hardcoded into the agent, so adding one means editing,
+        rebuilding and redeploying it in every environment. Participants point the
+        agent at MCP Gateway so it discovers tools at runtime, then register a new
+        tool at the gateway and watch the agent pick it up with no code change or
+        restart. Teaches connection only: no identity, filtering or authorization,
+        which the neighbouring lab owns.'
     - title: 'Running it for real: verification and field positioning'
       overview: Every layer was verified alone and none against all the others. Participants
-        re-run the full set of earlier failure cases against the assembled agent, record a baseline
-        in MLflow, and convert the build into a symptom-to-layer checklist for customer conversations,
-        naming the two failure modes covered by discussion rather than hands-on.
+        re-run the full set of earlier failure cases against the assembled agent,
+        record a baseline in MLflow, and convert the build into a symptom-to-layer
+        checklist for customer conversations, naming the two failure modes covered
+        by discussion rather than hands-on.
     rcars_overlap_pct: 99
     rcars_top_matches:
     - title: Agentic AI with Llama Stack and 3rd party Frameworks
       ci_name: published.agentic-ai-openshift.prod
       url: https://catalog.demo.redhat.com/catalog?item=published.agentic-ai-openshift.prod
       relevance_score: 99
-      why_it_fits: 'Re-run 2026-09-02 against the reworked design. RCARS scores it 99 and its
-        generated summary claims it covers vLLM model serving with tool-call configuration.
-        That claim was checked against the repository (showroom-agentic-ai-llamastack) rather
-        than accepted: its 14 modules are introduction, llamastack, exploring-llamastack, RAG,
-        evals, shields, web-search, backend-setup, mcp, agent-llamastack, agent-langgraph, langfuse,
-        langflow and workbench. There is no serving-configuration module, so it does not teach
-        why a mismatched tool-call parser strands a call in the response body, which is this
-        lab''s largest block. It is also 360 minutes against this lab''s 120, and is built on
-        Llama Stack, now renamed OGX and being de-emphasized. Genuine overlap is retrieval and
-        MCP connection, both deliberately bounded here to one short module each.'
+      why_it_fits: 'Re-run 2026-09-02 against the reworked design. RCARS scores it
+        99 and its generated summary claims it covers vLLM model serving with tool-call
+        configuration. That claim was checked against the repository (showroom-agentic-ai-llamastack)
+        rather than accepted: its 14 modules are introduction, llamastack, exploring-llamastack,
+        RAG, evals, shields, web-search, backend-setup, mcp, agent-llamastack, agent-langgraph,
+        langfuse, langflow and workbench. There is no serving-configuration module,
+        so it does not teach why a mismatched tool-call parser strands a call in the
+        response body, which is this lab''s largest block. It is also 360 minutes
+        against this lab''s 120, and is built on Llama Stack, now renamed OGX and
+        being de-emphasized. Genuine overlap is retrieval and MCP connection, both
+        deliberately bounded here to one short module each.'
     - title: VLLM Playground
       ci_name: agd-v2.vllm-playground-aws.prod
       url: https://catalog.demo.redhat.com/catalog?item=agd-v2.vllm-playground-aws.prod
       relevance_score: 90
-      why_it_fits: 'The closest real overlap, and it scored higher on re-run than the 74 recorded
-        against the previous design. Its module 3 teaches tool-call parser selection including
-        the Qwen-to-Hermes pairing this lab uses, and its module 4 covers MCP integration. Verified
-        from the repository: it teaches the choice on the happy path through a web UI checkbox
-        and a parser dropdown defaulting to Auto-detect, with a parser-by-model-family reference
-        table, all decided before anything runs. Module 2 here owns the inverse case, where
-        the choice is already wrong, nothing reports it, and the evidence exists only in the
-        request and response payloads. The parser reference table is deliberately not reproduced.
-        The two are complementary and the boundary is written into the module 2 outline as an
-        authoring constraint.'
-    - title: Taking MCP Servers to Production on OpenShift AI with the Red Hat MCP Registry
+      why_it_fits: 'The closest real overlap, and it scored higher on re-run than
+        the 74 recorded against the previous design. Its module 3 teaches tool-call
+        parser selection including the Qwen-to-Hermes pairing this lab uses, and its
+        module 4 covers MCP integration. Verified from the repository: it teaches
+        the choice on the happy path through a web UI checkbox and a parser dropdown
+        defaulting to Auto-detect, with a parser-by-model-family reference table,
+        all decided before anything runs. Module 2 here owns the inverse case, where
+        the choice is already wrong, nothing reports it, and the evidence exists only
+        in the request and response payloads. The parser reference table is deliberately
+        not reproduced. The two are complementary and the boundary is written into
+        the module 2 outline as an authoring constraint.'
+    - title: Taking MCP Servers to Production on OpenShift AI with the Red Hat MCP
+        Registry
       ci_name: published.openshift-mcp-lab.prod
       url: https://catalog.demo.redhat.com/catalog?item=published.openshift-mcp-lab.prod
       relevance_score: 84
-      why_it_fits: Covers MCP server operationalization and tool governance at the registry
-        level with least-privilege access control and RBAC. Module 6 here is 10 minutes, carries
-        one objective, and teaches only that routing tool access through the platform decouples
-        tool changes from agent releases. It deliberately teaches no identity, filtering or
-        authorization, which is this lab's boundary against both this asset and the neighbouring
-        Security/Governance lab.
+      why_it_fits: Covers MCP server operationalization and tool governance at the
+        registry level with least-privilege access control and RBAC. Module 6 here
+        is 10 minutes, carries one objective, and teaches only that routing tool access
+        through the platform decouples tool changes from agent releases. It deliberately
+        teaches no identity, filtering or authorization, which is this lab's boundary
+        against both this asset and the neighbouring Security/Governance lab.
     rejections:
     - id: 59e7f3be-4be9-4995-ad73-f3496017e65a
-      text: This should not have been submitted yet. David Williams needs to update it to match
-        the topic, since this has too much overlap with the other agent lab.
-      resolved: true
+      text: This should not have been submitted yet. David Williams needs to update
+        it to match the topic, since this has too much overlap with the other agent
+        lab.
+      resolved: false
       reviewer: nstephan@redhat.com
       timestamp: '2026-09-01T08:00:34.497053+00:00'
   infra:
