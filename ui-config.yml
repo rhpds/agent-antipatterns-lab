@@ -9,8 +9,11 @@ view_switcher:
   default_mode: split
 
 tabs:
-  - name: ">_ terminal"
-    path: /wetty
-    port: 443
-  - name: Placeholder
+  - name: OCP Console
+    url: 'https://console-openshift-console.${DOMAIN}'
+  - name: ">_ OCP Terminal"
+    url: 'https://codeserver-codeserver.${DOMAIN}'
+  - name: Workbench
+    url: /placeholder
+  - name: MLflow
     url: /placeholder
