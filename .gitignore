@@ -4,3 +4,8 @@ www/
 
 # Session worklog is maintained outside this repo (vault project folder)
 publishing-house/worklog.yaml
+
+# local test/venv state
+.venv/
+__pycache__/
+.pytest_cache/
