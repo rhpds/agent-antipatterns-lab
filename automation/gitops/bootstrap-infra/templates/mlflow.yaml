@@ -1,0 +1,47 @@
+{{- if and .Values.rhoai.enabled .Values.mlflow.enabled }}
+---
+# Cluster-wide singleton: name MUST be literally "mlflow"; lands in the RHOAI applications namespace.
+apiVersion: mlflow.opendatahub.io/v1
+kind: MLflow
+metadata:
+  name: mlflow
+  namespace: {{ .Values.rhoai.applicationsNamespace }}
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 4) | nindent 4 }}
+spec:
+  backendStoreUri: {{ .Values.mlflow.backendStoreUri | quote }}
+  # RHOAIENG-45969: must be explicit or log_artifact() fails.
+  serveArtifacts: true
+  artifactsDestination: {{ .Values.mlflow.artifactsDestination | quote }}
+  storage:
+    accessModes: ["ReadWriteOnce"]
+    resources:
+      requests:
+        storage: {{ .Values.mlflow.storageSize }}
+  replicas: {{ .Values.mlflow.replicas }}
+  {{- with .Values.mlflow.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if .Values.mlflow.directRoute.enabled }}
+---
+# RHOAIENG-44516 workaround: Route straight to the Service. Clients send
+# `Authorization: Bearer <SA token>` plus `X-MLflow-Workspace: <namespace>`.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mlflow
+  namespace: {{ .Values.rhoai.applicationsNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  to:
+    kind: Service
+    name: mlflow
+  port:
+    targetPort: 8443
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
+{{- end }}

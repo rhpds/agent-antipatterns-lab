@@ -2,3 +2,32 @@ deployer:
   domain: apps.example.com
 
 username: user1
+
+# Must match bootstrap-infra modelServing.namespace / rhoai.applicationsNamespace.
+modelServing:
+  # Binds the user read-only to the shared serving namespace (module 2: compare endpoints).
+  access: true
+  namespace: llm-serving
+
+# RBAC for the workbench (Notebook CR) and MLflow tracking (module 1/7).
+# MLflow clients send `X-MLflow-Workspace: <username>-app` with their SA token.
+rbac:
+  workbench: true
+  mlflow: true
+
+# Module 5 vector store: pgvector Postgres as a plain Deployment (no operator).
+pgvector:
+  enabled: true
+  # TODO: Docker Hub image; 30 simultaneous pulls risk rate limits and docker.io is not
+  # in spec external_services. Mirror to quay.io and point this at the mirror.
+  image: docker.io/pgvector/pgvector:pg16
+  database: kestrel
+  user: kestrel
+  # Lab-only credential for invented data, reachable only inside the user's namespace.
+  password: kestrel-lab
+  storageSize: 2Gi
+  # UID of the postgres user in the image; run under nonroot-v2 SCC.
+  runAsUser: 999
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {cpu: "1", memory: 1Gi}

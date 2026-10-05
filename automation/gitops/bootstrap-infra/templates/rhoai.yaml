@@ -1,0 +1,55 @@
+{{- if .Values.rhoai.enabled }}
+---
+apiVersion: dscinitialization.opendatahub.io/v2
+kind: DSCInitialization
+metadata:
+  name: default-dsci
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 0) | nindent 4 }}
+spec:
+  applicationsNamespace: {{ .Values.rhoai.applicationsNamespace }}
+  monitoring:
+    managementState: Managed
+    namespace: redhat-ods-monitoring
+  trustedCABundle:
+    managementState: Managed
+    customCABundle: ""
+---
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 2) | nindent 4 }}
+spec:
+  components:
+    dashboard:
+      managementState: Managed
+    workbenches:
+      managementState: Managed
+    kserve:
+      managementState: Managed
+      # RawDeployment only: no Serverless / Service Mesh needed.
+      rawDeploymentServiceConfig: {{ .Values.rhoai.kserveRawServiceConfig }}
+    mlflowoperator:
+      managementState: {{ ternary "Managed" "Removed" .Values.mlflow.enabled }}
+    # Not used by this lab.
+    aipipelines:
+      managementState: Removed
+    modelregistry:
+      managementState: Removed
+    ray:
+      managementState: Removed
+    kueue:
+      managementState: Removed
+    trainer:
+      managementState: Removed
+    trainingoperator:
+      managementState: Removed
+    trustyai:
+      managementState: Removed
+    feastoperator:
+      managementState: Removed
+    llamastackoperator:
+      managementState: Removed
+{{- end }}

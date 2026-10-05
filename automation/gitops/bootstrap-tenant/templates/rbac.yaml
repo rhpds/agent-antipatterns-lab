@@ -13,3 +13,60 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
   name: {{ .Values.username }}
+{{- if or .Values.rbac.workbench .Values.rbac.mlflow }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab-user
+  namespace: {{ .Values.username }}-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+rules:
+{{- if .Values.rbac.workbench }}
+  - apiGroups: ["kubeflow.org"]
+    resources: ["notebooks"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+{{- end }}
+{{- if .Values.rbac.mlflow }}
+  # MLflow authorises against these virtual resources (see dev-cluster README).
+  - apiGroups: ["mlflow.kubeflow.org"]
+    resources: ["experiments", "runs", "artifacts"]
+    verbs: ["get", "list", "create", "update"]
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.username }}-lab-user
+  namespace: {{ .Values.username }}-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lab-user
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: {{ .Values.username }}
+{{- end }}
+{{- if .Values.modelServing.access }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.username }}-serving-viewer
+  namespace: {{ .Values.modelServing.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lab-serving-viewer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: {{ .Values.username }}
+{{- end }}

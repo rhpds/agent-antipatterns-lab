@@ -1,0 +1,133 @@
+{{- if include "infra.serving" . }}
+{{- $m := .Values.modelServing }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $m.namespace }}
+  labels:
+    opendatahub.io/dashboard: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+---
+# Read-only view of the serving config so participants can compare endpoints
+# (module 2). Bound per user from the bootstrap-tenant chart.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab-serving-viewer
+  namespace: {{ $m.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+rules:
+  - apiGroups: ["serving.kserve.io"]
+    resources: ["servingruntimes", "inferenceservices"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list"]
+{{- range $m.endpoints }}
+---
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: {{ .name }}
+  namespace: {{ $m.namespace }}
+  labels:
+    opendatahub.io/dashboard: "true"
+  annotations:
+    openshift.io/display-name: {{ .displayName | quote }}
+    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  multiModel: false
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+  supportedModelFormats:
+    - name: vLLM
+      autoSelect: true
+  containers:
+    - name: kserve-container
+      image: {{ $m.image }}
+      command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
+      args:
+        - --port=8080
+        - --model={{ $m.model }}
+        - --served-model-name={{ $m.servedModelName }}
+        - --dtype=auto
+        - --max-model-len={{ $m.maxModelLen }}
+        - --gpu-memory-utilization={{ $m.gpuMemoryUtilization }}
+        - --seed={{ $m.seed }}
+        - {{ printf "--override-generation-config=%s" $m.overrideGenerationConfig | quote }}
+        - --enable-auto-tool-choice
+        - --reasoning-parser={{ $m.reasoningParser }}
+        # The single deliberate difference between the two endpoints:
+        - --tool-call-parser={{ .toolCallParser }}
+      env:
+        - name: HF_HOME
+          value: /hf-cache
+        - name: HOME
+          value: /tmp
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+      volumeMounts:
+        - name: shm
+          mountPath: /dev/shm
+        - name: hf-cache
+          mountPath: /hf-cache
+      # Weights are pulled from huggingface.co on first start (~9 GB), so allow a long startup.
+      startupProbe:
+        httpGet: {path: /health, port: 8080}
+        periodSeconds: 10
+        failureThreshold: 90
+      readinessProbe:
+        httpGet: {path: /health, port: 8080}
+        periodSeconds: 10
+      livenessProbe:
+        httpGet: {path: /health, port: 8080}
+        periodSeconds: 30
+        failureThreshold: 5
+  volumes:
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 8Gi
+    - name: hf-cache
+      emptyDir:
+        sizeLimit: 40Gi
+---
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: {{ .name }}
+  namespace: {{ $m.namespace }}
+  labels:
+    opendatahub.io/dashboard: "true"
+  annotations:
+    openshift.io/display-name: {{ .displayName | quote }}
+    serving.kserve.io/deploymentMode: RawDeployment
+    # Lab endpoint is cluster-internal and unauthenticated so participants need no token.
+    security.opendatahub.io/enable-auth: "false"
+    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  predictor:
+    minReplicas: {{ .replicas }}
+    maxReplicas: {{ .replicas }}
+    model:
+      modelFormat:
+        name: vLLM
+      runtime: {{ .name }}
+      resources:
+        {{- toYaml $m.resources | nindent 8 }}
+    nodeSelector:
+      {{- toYaml $m.nodeSelector | nindent 6 }}
+    tolerations:
+      {{- toYaml $m.tolerations | nindent 6 }}
+{{- end }}
+{{- end }}

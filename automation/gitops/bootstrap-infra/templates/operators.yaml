@@ -1,0 +1,52 @@
+{{- if .Values.operators.certManager.enabled }}
+---
+{{ include "infra.operator" (dict "ns" .Values.operators.certManager.namespace "name" .Values.operators.certManager.name "channel" .Values.operators.certManager.channel "source" .Values.operators.certManager.source "ownNamespaceOnly" true) }}
+{{- end }}
+{{- if .Values.gpu.enabled }}
+---
+{{ include "infra.operator" (dict "ns" .Values.nfd.namespace "name" .Values.nfd.name "channel" .Values.nfd.channel "source" .Values.nfd.source "ownNamespaceOnly" true) }}
+---
+{{ include "infra.operator" (dict "ns" .Values.gpu.namespace "name" .Values.gpu.name "channel" .Values.gpu.channel "source" .Values.gpu.source "ownNamespaceOnly" true) }}
+{{- end }}
+{{- if .Values.rhoai.enabled }}
+---
+{{ include "infra.operator" (dict "ns" .Values.rhoai.namespace "name" .Values.rhoai.name "channel" .Values.rhoai.channel "source" .Values.rhoai.source "ownNamespaceOnly" false) }}
+{{- end }}
+{{- if .Values.mcpGateway.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.mcpGateway.operatorNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+---
+# AllNamespaces mode (no targetNamespaces): Connectivity Link/Kuadrant operators watch cluster-wide.
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: mcp-system
+  namespace: {{ .Values.mcpGateway.operatorNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+spec:
+  upgradeStrategy: Default
+{{- range .Values.mcpGateway.operators }}
+{{- if .enabled }}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.mcpGateway.operatorNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-15"
+spec:
+  channel: {{ .channel }}
+  installPlanApproval: Automatic
+  name: {{ .name }}
+  source: {{ .source }}
+  sourceNamespace: openshift-marketplace
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,58 @@
+{{- if .Values.gpu.enabled }}
+---
+apiVersion: nfd.openshift.io/v1
+kind: NodeFeatureDiscovery
+metadata:
+  name: nfd-instance
+  namespace: {{ .Values.nfd.namespace }}
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 0) | nindent 4 }}
+spec:
+  # operand image intentionally unset: the operator picks the one matching the cluster.
+  workerConfig:
+    configData: |
+      core:
+        sleepInterval: 60s
+      sources:
+        pci:
+          deviceClassWhitelist:
+            - "0200"
+            - "03"
+            - "12"
+          deviceLabelFields:
+            - vendor
+---
+apiVersion: nvidia.com/v1
+kind: ClusterPolicy
+metadata:
+  name: gpu-cluster-policy
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 1) | nindent 4 }}
+spec:
+  daemonsets: {}
+  operator:
+    defaultRuntime: crio
+  driver:
+    enabled: true
+    rdma:
+      enabled: false
+  dcgmExporter:
+    enabled: true
+  dcgm:
+    enabled: true
+  devicePlugin:
+    enabled: true
+  gfd:
+    enabled: true
+  migManager:
+    enabled: false
+  nodeStatusExporter:
+    enabled: true
+  toolkit:
+    enabled: true
+  validator:
+    plugin:
+      env:
+        - name: WITH_WORKLOAD
+          value: "false"
+{{- end }}

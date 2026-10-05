@@ -1,0 +1,162 @@
+{{- /* Argo has no health check for Subscriptions or the DSC, so a sync-wave alone
+       does not wait for operators. These hook Jobs do the waiting. */ -}}
+{{- $wo := .Values.bootstrap.waitForOperators -}}
+{{- $wp := .Values.bootstrap.waitForPlatform -}}
+{{- if or $wo.enabled $wp.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.bootstrap.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bootstrap-wait
+  namespace: {{ .Values.bootstrap.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bootstrap-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+rules:
+  - apiGroups: ["operators.coreos.com"]
+    resources: ["clusterserviceversions"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list"]
+  - apiGroups: ["datasciencecluster.opendatahub.io"]
+    resources: ["datascienceclusters"]
+    verbs: ["get", "list"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bootstrap-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bootstrap-wait
+subjects:
+  - kind: ServiceAccount
+    name: bootstrap-wait
+    namespace: {{ .Values.bootstrap.namespace }}
+{{- end }}
+{{- if $wo.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-operators
+  namespace: {{ .Values.bootstrap.namespace }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: bootstrap-wait
+      restartPolicy: Never
+      containers:
+        - name: wait
+          image: {{ .Values.bootstrap.cliImage }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -u
+              deadline=$(( $(date +%s) + {{ $wo.timeoutSeconds }} ))
+              # "namespace package" pairs; CSV names start with the package name.
+              pairs=(
+              {{- if .Values.operators.certManager.enabled }}
+                "{{ .Values.operators.certManager.namespace }} {{ .Values.operators.certManager.name }}"
+              {{- end }}
+              {{- if .Values.gpu.enabled }}
+                "{{ .Values.nfd.namespace }} {{ .Values.nfd.name }}"
+                "{{ .Values.gpu.namespace }} {{ .Values.gpu.name }}"
+              {{- end }}
+              {{- if .Values.rhoai.enabled }}
+                "{{ .Values.rhoai.namespace }} {{ .Values.rhoai.name }}"
+              {{- end }}
+              {{- if .Values.mcpGateway.enabled }}
+              {{- range .Values.mcpGateway.operators }}{{ if .enabled }}
+                "{{ $.Values.mcpGateway.operatorNamespace }} {{ .name }}"
+              {{- end }}{{ end }}
+              {{- end }}
+              )
+              for pair in "${pairs[@]}"; do
+                set -- $pair
+                ns=$1; pkg=$2
+                until oc get csv -n "$ns" --no-headers -o custom-columns=N:.metadata.name,P:.status.phase 2>/dev/null | grep -E "^${pkg}\." | grep -q Succeeded; do
+                  if [ "$(date +%s)" -gt "$deadline" ]; then echo "TIMEOUT waiting for CSV $pkg in $ns"; exit 1; fi
+                  echo "waiting for CSV $pkg in $ns ..."; sleep 10
+                done
+                echo "CSV $pkg ready"
+              done
+{{- end }}
+{{- if $wp.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-platform
+  namespace: {{ .Values.bootstrap.namespace }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: bootstrap-wait
+      restartPolicy: Never
+      containers:
+        - name: wait
+          image: {{ .Values.bootstrap.cliImage }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -u
+              deadline=$(( $(date +%s) + {{ $wp.timeoutSeconds }} ))
+              wait_for() { # description, command...
+                desc=$1; shift
+                until "$@" >/dev/null 2>&1; do
+                  if [ "$(date +%s)" -gt "$deadline" ]; then echo "TIMEOUT: $desc"; exit 1; fi
+                  echo "waiting for: $desc"; sleep 10
+                done
+                echo "ok: $desc"
+              }
+              dsc_ready() { [ "$(oc get datasciencecluster default-dsc -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')" = "True" ]; }
+              gpus_allocatable() { oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' | grep -qE '^[1-9]'; }
+              {{- if .Values.rhoai.enabled }}
+              wait_for "DataScienceCluster default-dsc Ready" dsc_ready
+              wait_for "Gateway {{ .Values.mcpGateway.gateway.name }}" oc get gateway {{ .Values.mcpGateway.gateway.name }} -n {{ .Values.mcpGateway.gateway.namespace }}
+              {{- if .Values.mlflow.enabled }}
+              wait_for "MLflow CRD" oc get crd mlflows.mlflow.opendatahub.io
+              {{- end }}
+              wait_for "KServe ServingRuntime CRD" oc get crd servingruntimes.serving.kserve.io
+              {{- end }}
+              {{- if and .Values.gpu.enabled .Values.gpu.waitForAllocatable }}
+              wait_for "nvidia.com/gpu allocatable on a node" gpus_allocatable
+              {{- end }}
+              {{- if .Values.mcpGateway.enabled }}
+              wait_for "MCP Gateway CRDs" oc get crd mcpgatewayextensions.mcp.kuadrant.io mcpserverregistrations.mcp.kuadrant.io
+              {{- end }}
+{{- end }}
