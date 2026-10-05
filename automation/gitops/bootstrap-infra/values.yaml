@@ -67,7 +67,7 @@ rhoai:
   enabled: true
   namespace: redhat-ods-operator
   name: rhods-operator
-  channel: stable-3.4
+  channel: stable-3.5
   source: redhat-operators
   applicationsNamespace: redhat-ods-applications
   # KServe runs in RawDeployment mode (the only mode in 3.x), so no
