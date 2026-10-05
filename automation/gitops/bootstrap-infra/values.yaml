@@ -55,7 +55,9 @@ gpu:
   enabled: true
   namespace: nvidia-gpu-operator
   name: gpu-operator-certified
-  channel: stable
+  # Pinned to the catalog default verified on Dev CI (OCP 4.22) and the SNO.
+  # "stable" also exists but floats; pin so a catalog bump can't change the lab.
+  channel: v26.7
   source: certified-operators
   # Wait-job gate: block the platform wait until at least one node advertises
   # nvidia.com/gpu allocatable.
@@ -150,12 +152,12 @@ mcpGateway:
       channel: stable
       source: redhat-operators
       enabled: true
-    # TODO: the MCP Gateway operator (v0.7.1 on the SNO) package name/channel/source
-    # was not recorded. Find with: oc get packagemanifests -n openshift-marketplace | grep -iE 'mcp|rhcl|kuadrant'
-    - name: mcp-gateway-operator         # PLACEHOLDER NAME - verify
-      channel: stable
+    # MCP Gateway operator. Package/channel verified in the packagemanifests on
+    # both the SNO and Dev CI: only a "preview" channel exists (Tech Preview).
+    - name: mcp-gateway
+      channel: preview
       source: redhat-operators
-      enabled: false
+      enabled: true
   gateway:
     name: data-science-gateway
     namespace: openshift-ingress
