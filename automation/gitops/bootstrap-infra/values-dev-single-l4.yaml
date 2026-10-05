@@ -1,0 +1,41 @@
+# Dev-only override for a Dev CI cluster with a single NVIDIA L4 (g6.2xlarge:
+# 1x L4 24GB, 8 vCPU, 32GB RAM). Not for the event, which needs 4x L40S.
+#
+# Without GPU time-slicing a GPU cannot be shared between pods, so only one
+# endpoint can run at a time. Endpoint A (the mismatched one module 1 starts
+# on) runs; scale B up and A down to test the module 2 repoint.
+#
+# Usage: helm template ... -f values.yaml -f values-dev-single-l4.yaml
+
+operators:
+  certManager:
+    # The Dev CI base provision already installs cert-manager. A second
+    # OperatorGroup in the same namespace breaks OLM.
+    enabled: false
+
+mcpGateway:
+  # Module 6 only; enable once the platform is up.
+  enabled: false
+
+modelServing:
+  # 16k context keeps the KV cache small enough for one L4 next to ~9GB of FP8 weights.
+  maxModelLen: 16384
+  resources:
+    requests:
+      cpu: "4"
+      memory: 16Gi
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: "7"
+      memory: 26Gi
+      nvidia.com/gpu: "1"
+  # Lists replace rather than merge, so both endpoints are restated in full.
+  endpoints:
+    - name: qwen3-8b-a
+      displayName: Qwen3 8B class endpoint A
+      toolCallParser: llama3_json
+      replicas: 1
+    - name: qwen3-8b-b
+      displayName: Qwen3 8B class endpoint B
+      toolCallParser: hermes
+      replicas: 0
