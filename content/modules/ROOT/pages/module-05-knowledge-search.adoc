@@ -1,0 +1,73 @@
+= Module 5: Giving the agent knowledge it can search
+:page-duration: 14 min
+
+// DRAFT STRUCTURE ONLY. Headers, steps and commands come from
+// publishing-house/spec/modules/module-05-knowledge-search.md and the starter agent.
+// TODO(author): write the participant-facing prose for every section.
+// TODO(gpu): every PLACEHOLDER block needs real Qwen3 output from a GPU cluster.
+
+== Learning objectives
+
+* Integrate a searchable knowledge source so the agent grounds its answers in retrieved content rather than in model memory.
+* Verify that a retrieval miss produces an explicit gap rather than an invented answer.
+
+== The confident invention (3 min)
+
+. Ask about the coolant pump seal. The answer exists only in service bulletin SB-2024-117.
++
+[source,bash,role=execute]
+----
+python agent.py --q m5
+----
+. Note the specific, plausible, wrong answer. Module 4 does not catch it, because no tool failed.
+. Confirm in the trace that no retrieval happened.
+
+NOTE: PLACEHOLDER (gpu): the real invented service interval. Verify during authoring that the model invents rather than refuses.
+
+== Register the retrieval tool (5 min)
+
+. Query the pre-populated corpus directly, outside the agent:
++
+[source,bash,role=execute]
+----
+python retrieval.py "coolant pump seal service interval"
+----
+. Note each passage carries its source identifier, which is what makes an answer checkable.
+. Register the supplied `search_bulletins` tool:
++
+[source,bash,role=execute]
+----
+cp solutions/module-05/tools.py solutions/module-05/agent.py .
+----
+. Read the declaration, its parameters, and its return shape, which uses module 4's contract.
+
+// TODO(author): explain why the return shape carries passages and source ids, not concatenated text.
+
+== Ask again, grounded (4 min)
+
+. Re-run the question:
++
+[source,bash,role=execute]
+----
+python agent.py --q m5
+----
+. Confirm in the trace that `search_bulletins` was called, passages came back, and the answer matches SB-2024-117 rather than the model's prior. *This is the module's success signal.*
+
+NOTE: PLACEHOLDER (gpu): the real grounded answer and a trace screenshot showing the retrieved passage.
+
+== Ask something outside the corpus (2 min)
+
+. Ask about a product that does not exist:
++
+[source,bash,role=execute]
+----
+python agent.py --q m5-miss
+----
+. Confirm retrieval returns `no_results` and the agent reports the gap instead of inventing. Compare with the module's opening run.
+. Note the limit carried into module 7: grounding makes an answer checkable, not correct.
+
+NOTE: PLACEHOLDER (gpu): confirm the real model passes `product="K-900"` or that the score threshold catches the miss.
+
+== Key takeaways
+
+// TODO(author): carry over the takeaways from the spec in your own words.

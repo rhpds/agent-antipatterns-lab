@@ -1,0 +1,81 @@
+= Module 4: Tool returns that tell the truth
+:page-duration: 14 min
+
+// DRAFT STRUCTURE ONLY. Headers, steps and commands come from
+// publishing-house/spec/modules/module-04-tool-returns.md and the starter agent.
+// TODO(author): write the participant-facing prose for every section.
+// TODO(gpu): every PLACEHOLDER block needs real Qwen3 output from a GPU cluster.
+
+== Learning objectives
+
+* Implement a structured tool-error contract of category, retryable flag and detail so that failed tool calls surface instead of becoming confident empty answers.
+* Analyze a trace to distinguish a tool that returned no data from a tool that failed to run.
+
+== The success that is not one (3 min)
+
+. Run the question. Portland is not a Kestrel depot.
++
+[source,bash,role=execute]
+----
+python agent.py --q m4
+----
+. Note the answer: fluent, authoritative, and reporting no problem.
+
+NOTE: PLACEHOLDER (gpu): the real confident answer for `m4`.
+
+== Find the empty envelope (3 min)
+
+. Open the trace: the tool was called, returned quickly, and the run ended cleanly on `stop`.
+. Open the tool's actual return value:
++
+[source,bash,role=execute]
+----
+python payloads.py
+----
+. Note it is `{"results": []}` with no sign of failure.
+. Open `run_tool` in `tools.py`. It catches every exception and returns the same empty envelope. `check_stock` also drops a depot it does not recognise.
+
+// TODO(author): explain why "nothing matched" and "the call was invalid" look identical to the model.
+
+== Give failure a shape (6 min)
+
+. Apply the supplied error contract:
++
+[source,bash,role=execute]
+----
+cp solutions/module-04/tools.py solutions/module-04/agent.py .
+----
+. Read what changed:
+.. Every tool return carries `category` (`ok`, `no_results`, `bad_request`, `upstream_unavailable`), `retryable`, and `detail`.
+.. `check_stock` rejects an unknown depot as `bad_request`.
+.. The loop passes a non-`ok` result back to the model as a result, not as data, and retries only when `retryable` is true, once.
+
+// TODO(author): walk through the contract fields and why `retryable` belongs to the tool, not the loop.
+
+== Re-run and see it surface (2 min)
+
+. Re-run the Portland question:
++
+[source,bash,role=execute]
+----
+python agent.py --q m4
+----
+. Confirm the run surfaces a `bad_request` failure instead of a confident answer. *This is the module's success signal.*
+. Ask about the same part at a real depot. The K-600 has no stock anywhere, so this returns `no_results`, not `bad_request`:
++
+[source,bash,role=execute]
+----
+python agent.py "Is the K-600 high-pressure sensor available at the Denver depot?"
+----
+. Run a question the data does cover, and confirm `ok` appears in the trace:
++
+[source,bash,role=execute]
+----
+python agent.py --q m3
+----
+
+NOTE: PLACEHOLDER (gpu): how the real model phrases the surfaced failure, and a trace screenshot showing the `category` field.
+
+== Key takeaways
+
+// TODO(author): carry over the takeaways from the spec in your own words.

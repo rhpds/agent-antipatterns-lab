@@ -1,0 +1,74 @@
+= Module 3: The agent loop: stop conditions and turn control
+:page-duration: 16 min
+
+// DRAFT STRUCTURE ONLY. Headers, steps and commands come from
+// publishing-house/spec/modules/module-03-agent-loop.md and the starter agent.
+// TODO(author): write the participant-facing prose for every section.
+// TODO(gpu): every PLACEHOLDER block needs real Qwen3 output from a GPU cluster.
+
+== Learning objectives
+
+* Build an agent loop that terminates on the model's reported stop condition rather than on a text heuristic, a first response, or an iteration cap.
+* Analyze a multi-turn trace to distinguish a model repeating itself from a harness that discards what the model returned.
+
+== Watch it loop (4 min)
+
+// TODO(author): intro prose. Module 2 left the agent calling tools; this module shows it calling the same one indefinitely.
+
+. Run the multi-step question:
++
+[source,bash,role=execute]
+----
+python agent.py --q m3
+----
+. Note how long the run takes compared with module 2, and what it finally returns.
+
+NOTE: PLACEHOLDER (gpu): the real final output of the starter loop on `m3`. Against the mock it ends with "Stopped after 6 turns".
+
+== Find the discarded result (4 min)
+
+. Open the trace for the run and count the turns. The run hit the cap (`max_turns = 6` in `config.toml`).
+. Read the tool calls in order: the same tool with the same arguments on every turn.
++
+[source,bash,role=execute]
+----
+python payloads.py
+----
+. Open `agent.py` and find the two defects:
+.. The tool result is fetched and never appended to the message list.
+.. The loop exits on a turn counter and a text check, and never reads `finish_reason`.
+
+NOTE: PLACEHOLDER (gpu): screenshot of the MLflow trace showing six identical `find_part` calls.
+
+// TODO(author): the point to land here is that the repetition comes from the harness, not the model.
+
+== Fix the loop (6 min)
+
+. Apply the supplied fix:
++
+[source,bash,role=execute]
+----
+cp solutions/module-03/agent.py .
+----
+. Read what changed:
+.. Each tool result is appended with the `tool_call_id` it answers.
+.. The loop branches on `finish_reason`: continue on `tool_calls`, return on `stop`. The turn cap stays as a backstop only.
+
+// TODO(author): show the diff or the two key hunks, and explain why the cap is not the mechanism.
+
+== Confirm termination (2 min)
+
+. Re-run the question:
++
+[source,bash,role=execute]
+----
+python agent.py --q m3
+----
+. In the trace, confirm the turn count is well under the cap and the run ended on the model's own stop condition. *This is the module's success signal.*
+. Confirm `find_part` and `check_stock` were each called once, with different arguments, and that both results are in the message list.
+
+NOTE: PLACEHOLDER (gpu): expected turn count and final answer from the real model. Against the mock the fixed loop ends in 3 turns.
+
+== Key takeaways
+
+// TODO(author): carry over the takeaways from the spec in your own words.
