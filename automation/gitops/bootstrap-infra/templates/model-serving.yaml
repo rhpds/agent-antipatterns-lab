@@ -70,6 +70,10 @@ spec:
       env:
         - name: HF_HOME
           value: /hf-cache
+        # The Red Hat vLLM image defaults to offline mode; --model is a
+        # Hugging Face id, so the first start must download it.
+        - name: HF_HUB_OFFLINE
+          value: "0"
         - name: HOME
           value: /tmp
       ports:
@@ -100,6 +104,9 @@ spec:
     - name: hf-cache
       emptyDir:
         sizeLimit: 40Gi
+{{- /* KServe RawDeployment runs at least one pod even at minReplicas 0, so
+       replicas: 0 leaves the InferenceService out instead. */}}
+{{- if gt (int .replicas) 0 }}
 ---
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
@@ -129,5 +136,6 @@ spec:
       {{- toYaml $m.nodeSelector | nindent 6 }}
     tolerations:
       {{- toYaml $m.tolerations | nindent 6 }}
+{{- end }}
 {{- end }}
 {{- end }}
