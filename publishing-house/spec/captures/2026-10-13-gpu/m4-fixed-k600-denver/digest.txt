@@ -1,0 +1,17 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-9021534b9342c953", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"high-pressure sensor\", \"product\": \"K-600\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  4 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-9186a3f496c72549", "type": "function", "function": {"name": "check_stock", "arguments": "{\"part_number\": \"KI-HS-60233\", \"depot\": \"Denver\"}"}}]
+          content       = null
+
+--- model call 03 ---
+request:  6 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?"

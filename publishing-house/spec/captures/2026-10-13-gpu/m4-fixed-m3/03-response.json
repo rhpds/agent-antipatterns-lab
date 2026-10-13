@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-a87b8c087f0bea43",
+  "object": "chat.completion",
+  "created": 1791924859,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe replacement parts for your K-400 coolant pump are available at the Denver depot:\n\n1. **Coolant circulation pump assembly** (KI-CP-40817)  \n   - Stock: 3 units  \n   - Lead time: 1 day  \n\n2. **Coolant pump mechanical seal kit** (KI-SK-40233)  \n   - Stock: 12 units  \n   - Lead time: 1 day  \n\nBoth parts can be delivered to Denver this week. Let me know if you need further details!",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user asked about getting a replacement coolant pump for a K-400 to the Denver depot this week. Let me break down what's been done so far.\n\nFirst, I called the find_part function with \"coolant pump\" and K-400. The response gave two part numbers: KI-CP-40817 (the pump assembly) and KI-SK-40233 (the mechanical seal kit). Both are for K-400. \n\nNext, I checked the stock for each part at Denver. For KI-CP-40817, there are 3 units in stock with a lead time of 1 day. For KI-SK-40233, there are 12 units, same lead time. \n\nThe user wants to know if they can get it this week. Since the lead time is 1 day, and assuming today's date is within the week, both parts are available. The pump assembly is in stock, and the seal kit has more quantity. I should present both options, noting the part numbers, quantities, and lead time. Also, mention that both can be delivered this week. Need to make sure the answer is clear and concise, listing each part with their details.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 721,
+    "total_tokens": 1110,
+    "completion_tokens": 389,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

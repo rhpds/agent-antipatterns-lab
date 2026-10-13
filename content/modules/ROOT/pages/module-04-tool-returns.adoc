@@ -4,7 +4,9 @@
 // DRAFT STRUCTURE ONLY. Headers, steps and commands come from
 // publishing-house/spec/modules/module-04-tool-returns.md and the starter agent.
 // TODO(author): write the participant-facing prose for every section.
-// TODO(gpu): every PLACEHOLDER block needs real Qwen3 output from a GPU cluster.
+// CAPTURED blocks hold real Qwen3 output from 2026-10-13 (OpenShift AI 3.5.1, one L4,
+// endpoint B). Source runs and findings: publishing-house/spec/captures/2026-10-13-gpu/.
+// Replace each CAPTURED block with prose and listings when writing the module.
 
 == Learning objectives
 
@@ -21,7 +23,18 @@ python agent.py --q m4
 ----
 . Note the answer: fluent, authoritative, and reporting no problem.
 
-NOTE: PLACEHOLDER (gpu): the real confident answer for `m4`.
+[NOTE]
+.CAPTURED (gpu): `m4` with the module 3 loop and the starter tools, run `m4-start`
+====
+3 model calls, ended on `stop`. `check_stock(part_number="KI-HS-60233", depot="Portland")` returned `{"results": []}`.
+
+[source,text]
+----
+The high-pressure sensor (KI-HS-60233) for the K-600 is not currently available at the Portland depot. Would you like me to check availability at another depot or provide alternative options?
+----
+====
+// TODO(author): the real answer treats Portland as a real depot that is out of stock,
+// rather than claiming the part is in stock. Adjust "fluent, authoritative" framing (finding F5).
 
 == Find the empty envelope (3 min)
 
@@ -33,6 +46,9 @@ NOTE: PLACEHOLDER (gpu): the real confident answer for `m4`.
 python payloads.py
 ----
 . Note it is `{"results": []}` with no sign of failure.
+// TODO(author): confirmed on the real run: the default `python payloads.py` digest does
+// not print tool results. The envelope is in `python payloads.py --raw` (inside the
+// next request's `role: tool` message) or `runs/<dir>/summary.json`. Change the command.
 . Open `run_tool` in `tools.py`. It catches every exception and returns the same empty envelope. `check_stock` also drops a depot it does not recognise.
 
 // TODO(author): explain why "nothing matched" and "the call was invalid" look identical to the model.
@@ -74,7 +90,39 @@ python agent.py "Is the K-600 high-pressure sensor available at the Denver depot
 python agent.py --q m3
 ----
 
-NOTE: PLACEHOLDER (gpu): how the real model phrases the surfaced failure, and a trace screenshot showing the `category` field.
+[NOTE]
+.CAPTURED (gpu): the three runs above with `solutions/module-04`, runs `m4-fixed`, `m4-fixed-k600-denver`, `m4-fixed-m3`
+====
+Portland (`m4`), tool return for `check_stock`:
+
+[source,json]
+----
+{"category": "bad_request", "retryable": false, "detail": "unknown depot 'Portland'; Kestrel depots are Denver, Phoenix, Chicago", "data": null}
+----
+
+[source,text]
+----
+The part KI-HS-60233 (High-pressure sensor) is not available at the Portland depot. Kestrel depots are Denver, Phoenix, or Chicago. Would you like me to check availability at one of these locations instead?
+----
+
+K-600 at Denver, tool return for `check_stock`:
+
+[source,json]
+----
+{"category": "no_results", "retryable": false, "detail": "KI-HS-60233 has no stock at Denver", "data": {"results": []}}
+----
+
+[source,text]
+----
+The high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?
+----
+
+`m3`: all three tool returns are `"category": "ok"` (one `find_part`, two `check_stock`). Final answer: both parts in stock at Denver, 3 and 12 units, 1-day lead time.
+
+No run retried: every non-`ok` return had `retryable: false`.
+====
+
+NOTE: PLACEHOLDER (screenshot): a trace showing the `category` field. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
 
 == Key takeaways
 

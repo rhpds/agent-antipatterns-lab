@@ -33,7 +33,7 @@ modelServing:
   endpoints:
     - name: qwen3-8b-a
       displayName: Qwen3 8B class endpoint A
-      toolCallParser: llama3_json
+      toolCallParser: pythonic
       replicas: 1
     - name: qwen3-8b-b
       displayName: Qwen3 8B class endpoint B

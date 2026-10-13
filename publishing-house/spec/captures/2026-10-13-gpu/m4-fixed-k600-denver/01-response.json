@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-b81217019ad2d49c",
+  "object": "chat.completion",
+  "created": 1791924795,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-9021534b9342c953",
+            "type": "function",
+            "function": {
+              "name": "find_part",
+              "arguments": "{\"query\": \"high-pressure sensor\", \"product\": \"K-600\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking if the high-pressure sensor for the K-600 is available at the Denver depot. Let me break this down.\n\nFirst, I need to find the part number for the high-pressure sensor on a K-600. The user mentioned \"high-pressure sensor\" and the model K-600. So I should use the find_part function with query \"high-pressure sensor\" and product \"K-600\". That should give me the part number.\n\nOnce I have the part number, I can check the stock at Denver using the check_stock function. But I can't do that until I have the part number. So the first step is definitely find_part. Let me make sure the parameters are correct. The query is required, and product is optional but helpful here. \n\nWait, the user didn't specify the product in the query, but the model is K-600. So I should include product as K-600 in the find_part function. That way, the results are specific to that model. \n\nAfter getting the part number, I'll need to call check_stock with that part number and depot Denver. But I need to make sure the part number is correct. Let me structure the tool calls step by step. First, find_part with the given parameters, then use the result to check stock. \n\nI should also consider if there are multiple part numbers for the same component, but the user is asking specifically about the high-pressure sensor, so the query should be precise. Alright, let's start with the find_part function.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 401,
+    "total_tokens": 762,
+    "completion_tokens": 361,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

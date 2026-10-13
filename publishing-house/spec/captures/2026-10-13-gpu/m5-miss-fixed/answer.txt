@@ -1,0 +1,7 @@
+Question: What's the service interval on a Kestrel K-900?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The Kestrel K-900 model is not listed in the available tools (supported models: K-200, K-400, K-600). Could you confirm the correct model number? If the K-900 is a valid model, service intervals may be covered in technical documentation or contact Kestrel support directly for specifics.

@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-87b3923cd99679f6",
+  "object": "chat.completion",
+  "created": 1791924809,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-9186a3f496c72549",
+            "type": "function",
+            "function": {
+              "name": "check_stock",
+              "arguments": "{\"part_number\": \"KI-HS-60233\", \"depot\": \"Denver\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user asked if the K-600 high-pressure sensor is available at the Denver depot. First, I needed to find the part number for the high-pressure sensor on a K-600. I called the find_part function with the query \"high-pressure sensor\" and product \"K-600\". The response gave me the part number KI-HS-60233.\n\nNow, I have to check the stock status at the Denver depot. The next step is to use the check_stock function with the part number KI-HS-60233 and depot \"Denver\". I'll make sure to input the correct parameters. Let me verify the function's required parameters: part_number and depot are both required. \n\nI should structure the tool call correctly. The part number is KI-HS-60233, and the depot is Denver. So the JSON should have the name as \"check_stock\" and the arguments with those values. Double-checking for any typos in the part number and depot name. Everything looks good. Time to send the tool call.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 507,
+    "total_tokens": 777,
+    "completion_tokens": 270,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

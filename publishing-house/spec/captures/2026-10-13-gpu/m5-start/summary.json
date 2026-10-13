@@ -1,0 +1,20 @@
+{
+  "run_dir": "runs/20261013-145450-024244",
+  "question": "What's the recommended service interval for the K-400 coolant pump seal?",
+  "endpoint": "http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1",
+  "turns": 1,
+  "ended_by": "stop",
+  "tools_offered": [
+    "find_part",
+    "check_stock"
+  ],
+  "model_calls": [
+    {
+      "call": 1,
+      "finish_reason": "stop",
+      "tool_calls": 0
+    }
+  ],
+  "tool_calls": [],
+  "answer": "\n\nThe functions available to me are for finding part numbers and checking stock/lead times. I don't have access to service interval recommendations or maintenance schedules. For service intervals, please consult the Kestrel maintenance manual or contact Kestrel Technical Support directly."
+}

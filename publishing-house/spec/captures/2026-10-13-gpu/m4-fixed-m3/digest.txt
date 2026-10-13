@@ -1,0 +1,17 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-afd31a06a7d77a29", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  4 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-b55063794a6b9641", "type": "function", "function": {"name": "check_stock", "arguments": "{\"part_number\": \"KI-CP-40817\", \"depot\": \"Denver\"}"}}, {"id": "chatcmpl-tool-be097b2c3b4318ef", "type": "function", "function": {"name": "check_stock", "arguments": "{\"part_number\": \"KI-SK-40233\", \"depot\": \"Denver\"}"}}]
+          content       = null
+
+--- model call 03 ---
+request:  7 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe replacement parts for your K-400 coolant pump are available at the Denver depot:\n\n1. **Coolant circulation pump assembly** (KI-CP-40817)  \n   - Stock: 3 units  \n   - Lead time: 1 day  \n\n2. **Coolant pump mechanical seal kit** (KI-SK-40233)  \n   - Stock: 12 units  \n   - Lead time: 1 day  \n\nBoth parts can be delivered to Denver this week. Let me know if you need further details!"

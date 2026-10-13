@@ -1,0 +1,7 @@
+Question: Is the K-600 high-pressure sensor available at the Denver depot?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?
