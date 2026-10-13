@@ -22,7 +22,7 @@ Each directory is one run:
 | File | Contents |
 |---|---|
 | `answer.txt` | What `agent.py` printed |
-| `digest.txt` | What `python payloads.py` printed |
+| `digest.txt` | What `python payloads.py` printed, with the `Run:` and `Full JSON files are in` path lines removed |
 | `NN-request.json` / `NN-response.json` | The raw payloads of each model call |
 | `summary.json` | Turns, how the run ended, and the tool calls |
 
@@ -85,3 +85,12 @@ Final answers are in each run's `answer.txt`.
   - The direct MLflow Route answers 401 without a token.
   - With a bearer token it answers "Workspace context is required for this request." Setting `MLFLOW_WORKSPACE` makes the client fail with "the remote server does not support workspaces".
   - Trace screenshots for modules 3 to 5 are still needed. The payload files here hold the same calls and results.
+- **F9. Module 5's grounded answer adds one unsupported instruction.**
+  - `m5-fixed` says "Replace seal kit KI-SK-40233 with pump assembly KI-CP-40817."
+  - Its only source is the "Applies to" passage, which says the bulletin covers K-400 chillers fitted with those two parts. It gives no replacement instruction.
+  - The interval figures (6,500 hours or 14 months, 4,500 hours for dusty sites or glycol above 35%) are grounded.
+  - This supports module 7's point that grounding makes an answer checkable, not correct.
+- **F10. Qwen3's reasoning text varies between identical requests.**
+  - At temperature 0 and seed 0, byte-identical requests produced different `reasoning` lengths: `m3-starter` call 01 used 277 completion tokens and calls 02 to 06 used 321; `m1-endpointB` call 01 used 291 and calls 02 to 06 used 272.
+  - `content` and `tool_calls` were identical in every case, so the captured blocks hold.
+  - Participants viewing `--raw` output will see different reasoning text from each other.

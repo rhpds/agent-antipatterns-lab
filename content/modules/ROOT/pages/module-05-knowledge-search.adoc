@@ -83,6 +83,9 @@ The recommended service interval for the K-400 coolant pump seal is **every 6,50
 Always reference the full bulletin for context.
 ----
 ====
+// TODO(author): "Replace seal kit KI-SK-40233 with pump assembly KI-CP-40817" is not in the
+// bulletin. The "Applies to" passage only names the units the bulletin covers. The interval
+// figures are grounded. Possible evidence for module 7's "checkable, not correct" (finding F9).
 
 NOTE: PLACEHOLDER (screenshot): a trace showing the retrieved passage. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
 
