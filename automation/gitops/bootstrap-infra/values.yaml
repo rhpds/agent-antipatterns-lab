@@ -133,11 +133,12 @@ modelServing:
   endpoints:
     - name: qwen3-8b-a        # module 1 starting endpoint (the mismatched one)
       displayName: Qwen3 8B class endpoint A
-      # TODO: the spec does not name the broken parser ("deliberately mismatched").
-      # llama3_json is a placeholder chosen because it leaves Qwen3's hermes-style
-      # <tool_call> output in `content` without an error. Confirm with the module
-      # 2 author and verify on Dev CI that no 400 is raised and tool_calls is empty.
-      toolCallParser: llama3_json
+      # The deliberately mismatched parser. Verified on OpenShift AI 3.5.1 (vLLM in
+      # rhaii/vllm-cuda-rhel9, 2026-10-13): pythonic returns 200 with tool_calls null
+      # and Qwen3's <tool_call> block left in `content`. llama3_json does not work
+      # here: it fails every request with HTTP 500 because Qwen3's tokenizer has no
+      # <|python_tag|> token.
+      toolCallParser: pythonic
       replicas: 1
     - name: qwen3-8b-b        # validated recipe
       displayName: Qwen3 8B class endpoint B

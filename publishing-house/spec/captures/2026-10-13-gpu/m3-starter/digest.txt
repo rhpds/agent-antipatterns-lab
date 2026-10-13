@@ -1,0 +1,35 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-b48adb7b95ae7e59", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-b2c35ee70225a596", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 03 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-8dca722d7e19826a", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 04 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-8332fa4e10289753", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 05 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-a3c5e8b41ccb0404", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 06 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-a27e243964ad12d2", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null

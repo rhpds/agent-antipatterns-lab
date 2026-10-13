@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-9722f8f51c16ea28",
+  "object": "chat.completion",
+  "created": 1791924899,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-88f7d9c51a061c36",
+            "type": "function",
+            "function": {
+              "name": "search_bulletins",
+              "arguments": "{\"query\": \"service interval for coolant pump seal\", \"product\": \"K-400\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking about the recommended service interval for the K-400 coolant pump seal. Let me break this down.\n\nFirst, they mentioned the K-400 model, so the product is K-400. The query is about the coolant pump seal's service interval. Since they need information on maintenance intervals, I should use the search_bulletins function. That function is designed to look up service bulletins, which likely contain the recommended service intervals. \n\nThe parameters required for search_bulletins are \"query\" and optionally \"product\". The query here would be \"service interval for coolant pump seal\", and the product is K-400. By providing both, I can get specific bulletins related to their chiller model. \n\nI don't need to use find_part or check_stock here because the user isn't asking for a part number or stock information. The focus is on maintenance guidance. So, the correct function to call is search_bulletins with the specified parameters.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 517,
+    "total_tokens": 762,
+    "completion_tokens": 245,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

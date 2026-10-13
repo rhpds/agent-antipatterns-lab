@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-9e9c9658e58a80fd",
+  "object": "chat.completion",
+  "created": 1791924787,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe part KI-HS-60233 (High-pressure sensor) is not available at the Portland depot. Kestrel depots are Denver, Phoenix, or Chicago. Would you like me to check availability at one of these locations instead?",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user asked about the availability of the K-600 high-pressure sensor at the Portland depot. First, I used the find_part function to get the part number, which returned KI-HS-60233. Then, I tried checking the stock with check_stock, but the depot \"Portland\" isn't valid. The allowed depots are Denver, Phoenix, and Chicago. I need to inform the user that Portland isn't an option and suggest the correct depots. Also, maybe offer to check the available depots for them. Let me make sure the response is clear and helpful.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 594,
+    "total_tokens": 777,
+    "completion_tokens": 183,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

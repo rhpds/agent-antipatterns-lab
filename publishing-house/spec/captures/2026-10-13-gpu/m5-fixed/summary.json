@@ -1,0 +1,61 @@
+{
+  "run_dir": "runs/20261013-145459-675430",
+  "question": "What's the recommended service interval for the K-400 coolant pump seal?",
+  "endpoint": "http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1",
+  "turns": 2,
+  "ended_by": "stop",
+  "tools_offered": [
+    "find_part",
+    "check_stock",
+    "search_bulletins"
+  ],
+  "model_calls": [
+    {
+      "call": 1,
+      "finish_reason": "tool_calls",
+      "tool_calls": 1
+    },
+    {
+      "call": 2,
+      "finish_reason": "stop",
+      "tool_calls": 0
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "search_bulletins",
+      "arguments": {
+        "query": "service interval for coolant pump seal",
+        "product": "K-400"
+      },
+      "result": {
+        "category": "ok",
+        "retryable": false,
+        "detail": "",
+        "data": {
+          "passages": [
+            {
+              "source": "SB-2024-117",
+              "section": "Service interval",
+              "text": "Replace the coolant pump mechanical seal every 6,500 operating hours or 14 months, whichever comes first. Units in dusty environments, or running coolant glycol above 35 percent, should be serviced at 4,500 operating hours.",
+              "score": 0.62
+            },
+            {
+              "source": "SB-2024-117",
+              "section": "Applies to",
+              "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+              "score": 0.614
+            },
+            {
+              "source": "SB-2024-117",
+              "section": "Inspection",
+              "text": "At each quarterly visit, check the weep port beneath the pump housing. Any steady drip means the seal has failed early and must be replaced before the unit is returned to service.",
+              "score": 0.515
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "answer": "\n\nThe recommended service interval for the K-400 coolant pump seal is **every 6,500 operating hours or 14 months**, whichever comes first. However, units in **dusty environments** or those running coolant glycol above **35%** should be serviced at **4,500 hours** instead. \n\n**Key details from bulletin SB-2024-117**:\n- Replace seal kit **KI-SK-40233** with pump assembly **KI-CP-40817**.\n- **Inspect the weep port** during quarterly visits; a steady drip indicates seal failure requiring immediate replacement.\n\nAlways reference the full bulletin for context."
+}

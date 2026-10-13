@@ -4,7 +4,9 @@
 // DRAFT STRUCTURE ONLY. Headers, steps and commands come from
 // publishing-house/spec/modules/module-03-agent-loop.md and the starter agent.
 // TODO(author): write the participant-facing prose for every section.
-// TODO(gpu): every PLACEHOLDER block needs real Qwen3 output from a GPU cluster.
+// CAPTURED blocks hold real Qwen3 output from 2026-10-13 (OpenShift AI 3.5.1, one L4,
+// endpoint B). Source runs and findings: publishing-house/spec/captures/2026-10-13-gpu/.
+// Replace each CAPTURED block with prose and listings when writing the module.
 
 == Learning objectives
 
@@ -23,7 +25,15 @@ python agent.py --q m3
 ----
 . Note how long the run takes compared with module 2, and what it finally returns.
 
-NOTE: PLACEHOLDER (gpu): the real final output of the starter loop on `m3`. Against the mock it ends with "Stopped after 6 turns".
+[NOTE]
+.CAPTURED (gpu): starter loop on `m3`, run `m3-starter`
+====
+[source,text]
+----
+Answer:
+Stopped after 6 turns without a final answer.
+----
+====
 
 == Find the discarded result (4 min)
 
@@ -38,7 +48,21 @@ python payloads.py
 .. The tool result is fetched and never appended to the message list.
 .. The loop exits on a turn counter and a text check, and never reads `finish_reason`.
 
-NOTE: PLACEHOLDER (gpu): screenshot of the MLflow trace showing six identical `find_part` calls.
+[NOTE]
+.CAPTURED (gpu): `python payloads.py` after the starter run, run `m3-starter` (calls 02 to 06 are identical to 01 apart from the call id)
+====
+[source,text]
+----
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-b48adb7b95ae7e59", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+----
+Every request has 2 messages: the tool result is never appended.
+====
+
+NOTE: PLACEHOLDER (screenshot): the MLflow trace showing six identical `find_part` calls. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
 
 // TODO(author): the point to land here is that the repetition comes from the harness, not the model.
 
@@ -66,8 +90,28 @@ python agent.py --q m3
 ----
 . In the trace, confirm the turn count is well under the cap and the run ended on the model's own stop condition. *This is the module's success signal.*
 . Confirm `find_part` and `check_stock` were each called once, with different arguments, and that both results are in the message list.
+// TODO(author): the real model calls check_stock twice in one turn (pump and seal kit),
+// because find_part returns both parts. Adjust this step (finding F4).
 
-NOTE: PLACEHOLDER (gpu): expected turn count and final answer from the real model. Against the mock the fixed loop ends in 3 turns.
+[NOTE]
+.CAPTURED (gpu): fixed loop on `m3`, run `m3-fixed`
+====
+3 model calls, ended on `finish_reason = stop`:
+
+. `find_part(query="coolant pump", product="K-400")`
+. `check_stock(part_number="KI-CP-40817", depot="Denver")` and `check_stock(part_number="KI-SK-40233", depot="Denver")`, in the same turn
+. final answer
+
+[source,text]
+----
+The replacement coolant pump (part number **KI-CP-40817**) and its mechanical seal kit (part number **KI-SK-40233**) are both available at the Denver depot.
+
+- **KI-CP-40817** (Coolant circulation pump assembly): 3 units in stock, 1-day lead time.
+- **KI-SK-40233** (Coolant pump mechanical seal kit): 12 units in stock, 1-day lead time.
+
+Both can be delivered to Denver this week if ordered today. Would you like to proceed with ordering?
+----
+====
 
 == Key takeaways
 

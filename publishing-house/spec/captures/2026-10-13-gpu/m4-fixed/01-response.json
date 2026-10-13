@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-92821b1107a25f8c",
+  "object": "chat.completion",
+  "created": 1791924767,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-a746b88ddbc3c0a9",
+            "type": "function",
+            "function": {
+              "name": "find_part",
+              "arguments": "{\"query\": \"high-pressure sensor\", \"product\": \"K-600\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking if the high-pressure sensor for the K-600 is available at the Portland depot. Let me break this down.\n\nFirst, I need to find the part number for the high-pressure sensor on a K-600 model. The user mentioned \"high-pressure sensor,\" so the query parameter would be that. The product is K-600. I should call the find_part function with these parameters to get the part number.\n\nOnce I have the part number, I can then check the stock at the Portland depot using the check_stock function. But I can't do that until I know the part number. So the first step is definitely find_part. Let me make sure I use the correct parameters. The query is \"high-pressure sensor\" and product is K-600. \n\nWait, the function requires \"query\" as a required parameter, and \"product\" is optional but in this case, the user specified K-600, so I should include that. So the tool call for find_part would be with those arguments. \n\nAfter getting the part number from find_part, I can then use check_stock with the part number and depot as Portland. But I need to wait for the first function's response before making the second call. So the user's question requires two steps: first finding the part, then checking stock. I'll start with the first function.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 401,
+    "total_tokens": 725,
+    "completion_tokens": 324,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

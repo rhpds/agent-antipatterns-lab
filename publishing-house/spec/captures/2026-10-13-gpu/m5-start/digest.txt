@@ -1,0 +1,5 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe functions available to me are for finding part numbers and checking stock/lead times. I don't have access to service interval recommendations or maintenance schedules. For service intervals, please consult the Kestrel maintenance manual or contact Kestrel Technical Support directly."

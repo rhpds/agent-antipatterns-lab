@@ -4,7 +4,9 @@
 // DRAFT STRUCTURE ONLY. Headers, steps and commands come from
 // publishing-house/spec/modules/module-05-knowledge-search.md and the starter agent.
 // TODO(author): write the participant-facing prose for every section.
-// TODO(gpu): every PLACEHOLDER block needs real Qwen3 output from a GPU cluster.
+// CAPTURED blocks hold real Qwen3 output from 2026-10-13 (OpenShift AI 3.5.1, one L4,
+// endpoint B). Source runs and findings: publishing-house/spec/captures/2026-10-13-gpu/.
+// Replace each CAPTURED block with prose and listings when writing the module.
 
 == Learning objectives
 
@@ -22,7 +24,19 @@ python agent.py --q m5
 . Note the specific, plausible, wrong answer. Module 4 does not catch it, because no tool failed.
 . Confirm in the trace that no retrieval happened.
 
-NOTE: PLACEHOLDER (gpu): the real invented service interval. Verify during authoring that the model invents rather than refuses.
+[NOTE]
+.CAPTURED (gpu): `m5` with `solutions/module-04` (no retrieval tool), run `m5-start`
+====
+1 model call, ended on `stop`, no tool called. *The model refused rather than invented:*
+
+[source,text]
+----
+The functions available to me are for finding part numbers and checking stock/lead times. I don't have access to service interval recommendations or maintenance schedules. For service intervals, please consult the Kestrel maintenance manual or contact Kestrel Technical Support directly.
+----
+====
+// TODO(author): the section's premise ("specific, plausible, wrong answer") does not hold
+// for this question and prompt at temperature 0 (finding F6). Decide whether to change the
+// question, the system prompt, or the framing of this opening run.
 
 == Register the retrieval tool (5 min)
 
@@ -53,7 +67,24 @@ python agent.py --q m5
 ----
 . Confirm in the trace that `search_bulletins` was called, passages came back, and the answer matches SB-2024-117 rather than the model's prior. *This is the module's success signal.*
 
-NOTE: PLACEHOLDER (gpu): the real grounded answer and a trace screenshot showing the retrieved passage.
+[NOTE]
+.CAPTURED (gpu): `m5` with `solutions/module-05`, run `m5-fixed`
+====
+2 model calls, ended on `stop`. Tool call: `search_bulletins(query="service interval for coolant pump seal", product="K-400")`, returning `"category": "ok"` with three SB-2024-117 passages: "Service interval" (score 0.62), "Applies to" (0.614), "Inspection" (0.515).
+
+[source,text]
+----
+The recommended service interval for the K-400 coolant pump seal is **every 6,500 operating hours or 14 months**, whichever comes first. However, units in **dusty environments** or those running coolant glycol above **35%** should be serviced at **4,500 hours** instead.
+
+**Key details from bulletin SB-2024-117**:
+- Replace seal kit **KI-SK-40233** with pump assembly **KI-CP-40817**.
+- **Inspect the weep port** during quarterly visits; a steady drip indicates seal failure requiring immediate replacement.
+
+Always reference the full bulletin for context.
+----
+====
+
+NOTE: PLACEHOLDER (screenshot): a trace showing the retrieved passage. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
 
 == Ask something outside the corpus (2 min)
 
@@ -66,7 +97,21 @@ python agent.py --q m5-miss
 . Confirm retrieval returns `no_results` and the agent reports the gap instead of inventing. Compare with the module's opening run.
 . Note the limit carried into module 7: grounding makes an answer checkable, not correct.
 
-NOTE: PLACEHOLDER (gpu): confirm the real model passes `product="K-900"` or that the score threshold catches the miss.
+[NOTE]
+.CAPTURED (gpu): `m5-miss` with `solutions/module-05`, run `m5-miss-fixed`
+====
+The model passed `product="K-900"`: `search_bulletins(query="service interval", product="K-900")`. The product filter caught the miss, not the score threshold:
+
+[source,json]
+----
+{"category": "no_results", "retryable": false, "detail": "no bulletin passage matched 'service interval' for product 'K-900'", "data": {"passages": []}}
+----
+
+[source,text]
+----
+The Kestrel K-900 model is not listed in the available tools (supported models: K-200, K-400, K-600). Could you confirm the correct model number? If the K-900 is a valid model, service intervals may be covered in technical documentation or contact Kestrel support directly for specifics.
+----
+====
 
 == Key takeaways
 
