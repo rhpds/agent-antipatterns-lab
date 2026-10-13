@@ -100,6 +100,9 @@ spec:
     - name: hf-cache
       emptyDir:
         sizeLimit: 40Gi
+{{- /* KServe RawDeployment runs at least one pod even at minReplicas 0, so
+       replicas: 0 leaves the InferenceService out instead. */}}
+{{- if gt (int .replicas) 0 }}
 ---
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
@@ -129,5 +132,6 @@ spec:
       {{- toYaml $m.nodeSelector | nindent 6 }}
     tolerations:
       {{- toYaml $m.tolerations | nindent 6 }}
+{{- end }}
 {{- end }}
 {{- end }}
