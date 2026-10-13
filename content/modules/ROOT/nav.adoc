@@ -1,1 +1,4 @@
 * xref:index.adoc[Lab Overview]
+* xref:module-03-agent-loop.adoc[Module 3: The agent loop]
+* xref:module-04-tool-returns.adoc[Module 4: Tool returns that tell the truth]
+* xref:module-05-knowledge-search.adoc[Module 5: Knowledge it can search]
