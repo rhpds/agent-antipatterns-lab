@@ -70,6 +70,10 @@ spec:
       env:
         - name: HF_HOME
           value: /hf-cache
+        # The Red Hat vLLM image defaults to offline mode; --model is a
+        # Hugging Face id, so the first start must download it.
+        - name: HF_HUB_OFFLINE
+          value: "0"
         - name: HOME
           value: /tmp
       ports:
