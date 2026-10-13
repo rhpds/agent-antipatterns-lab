@@ -1,7 +1,7 @@
 ---
 site:
-  title: My Project
-  url: https://github.com/rhpds/my-project
+  title: Four Ways Your Agent can Break
+  url: https://github.com/rhpds/agent-antipatterns-lab
   start_page: modules::index.adoc
 
 content:
