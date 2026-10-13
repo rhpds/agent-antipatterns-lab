@@ -27,7 +27,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "-20"
 rules:
   - apiGroups: ["operators.coreos.com"]
-    resources: ["clusterserviceversions"]
+    resources: ["clusterserviceversions", "subscriptions"]
     verbs: ["get", "list"]
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
@@ -82,7 +82,9 @@ spec:
             - |
               set -u
               deadline=$(( $(date +%s) + {{ $wo.timeoutSeconds }} ))
-              # "namespace package" pairs; CSV names start with the package name.
+              # "namespace package" pairs; each Subscription is named after its package.
+              # Follow the Subscription to its installed CSV rather than guessing the CSV
+              # name (cert-manager's package and CSV prefixes differ).
               pairs=(
               {{- if .Values.operators.certManager.enabled }}
                 "{{ .Values.operators.certManager.namespace }} {{ .Values.operators.certManager.name }}"
@@ -103,11 +105,13 @@ spec:
               for pair in "${pairs[@]}"; do
                 set -- $pair
                 ns=$1; pkg=$2
-                until oc get csv -n "$ns" --no-headers -o custom-columns=N:.metadata.name,P:.status.phase 2>/dev/null | grep -E "^${pkg}\." | grep -q Succeeded; do
+                until csv=$(oc get subscriptions.operators.coreos.com "$pkg" -n "$ns" -o jsonpath='{.status.installedCSV}' 2>/dev/null) \
+                    && [ -n "$csv" ] \
+                    && [ "$(oc get csv "$csv" -n "$ns" -o jsonpath='{.status.phase}' 2>/dev/null)" = Succeeded ]; do
                   if [ "$(date +%s)" -gt "$deadline" ]; then echo "TIMEOUT waiting for CSV $pkg in $ns"; exit 1; fi
                   echo "waiting for CSV $pkg in $ns ..."; sleep 10
                 done
-                echo "CSV $pkg ready"
+                echo "CSV $csv ($pkg) ready"
               done
 {{- end }}
 {{- if $wp.enabled }}

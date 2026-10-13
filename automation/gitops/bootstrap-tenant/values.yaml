@@ -23,7 +23,7 @@ pgvector:
   image: docker.io/pgvector/pgvector:pg16
   database: kestrel
   user: kestrel
-  # Lab-only credential for invented data, reachable only inside the user's namespace.
+  # Lab-only credential for invented data; a NetworkPolicy limits access to the user's namespace.
   password: kestrel-lab
   storageSize: 2Gi
   # UID of the postgres user in the image; run under nonroot-v2 SCC.

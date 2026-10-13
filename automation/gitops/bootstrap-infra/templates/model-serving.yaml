@@ -57,7 +57,7 @@ spec:
       args:
         - --port=8080
         - --model={{ $m.model }}
-        - --served-model-name={{ $m.servedModelName }}
+        - --served-model-name={{ $m.servedModelName | default $m.model }}
         - --dtype=auto
         - --max-model-len={{ $m.maxModelLen }}
         - --gpu-memory-utilization={{ $m.gpuMemoryUtilization }}

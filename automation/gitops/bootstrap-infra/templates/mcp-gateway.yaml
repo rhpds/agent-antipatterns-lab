@@ -90,7 +90,12 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    - ports:
+    # Only the Gateway's Envoy calls ext_proc.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+      ports:
         - port: 50051
           protocol: TCP
 ---
