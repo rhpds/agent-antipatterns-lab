@@ -41,31 +41,31 @@ spec:
   - id: module-01
     title: What you are building, and how to see inside it
     duration_min: 12
-    status: not_started
+    status: in_progress
   - id: module-02
     title: 'The model interface: making tool calls fire at all'
     duration_min: 22
-    status: not_started
+    status: in_progress
   - id: module-03
     title: 'The agent loop: stop conditions and turn control'
     duration_min: 16
-    status: not_started
+    status: in_progress
   - id: module-04
     title: Tool returns that tell the truth
     duration_min: 14
-    status: not_started
+    status: in_progress
   - id: module-05
     title: Giving the agent knowledge it can search
     duration_min: 14
-    status: not_started
+    status: in_progress
   - id: module-06
     title: Connecting tools through the platform
     duration_min: 10
-    status: not_started
+    status: in_progress
   - id: module-07
     title: 'Running it for real: verification and field positioning'
     duration_min: 17
-    status: not_started
+    status: in_progress
   environment:
     platform: ocp
     topology: shared-cluster
@@ -141,7 +141,7 @@ spec:
 development:
   automation:
     gitops:
-      status: not_started
+      status: in_progress
   e2e:
     status: not_started
   healthCheck:
