@@ -52,8 +52,8 @@ If `--automation` was passed to `scaffold.py`, it also creates `automation/`
 
 - `automation/ansible/` — Starter Ansible collection (`ansible`/`both`) — a placeholder;
   build custom automation here (RHDPCD-110)
-- `automation/gitops/bootstrap-infra/` — Helm chart with a test namespace (`gitops`/`both`)
-- `automation/gitops/bootstrap-tenant/` — Per-user namespace + RBAC (`gitops`/`both`, only if
+- `automation/gitops/bootstrap-infra/` — Helm chart: operators, RHOAI, GPU, vLLM serving, MLflow, MCP Gateway (toggles in values.yaml) (`gitops`/`both`)
+- `automation/gitops/bootstrap-tenant/` — Per-user namespace, RBAC, pgvector Postgres (`gitops`/`both`, only if
   `--topology shared-cluster` was passed)
 
 ## Architecture

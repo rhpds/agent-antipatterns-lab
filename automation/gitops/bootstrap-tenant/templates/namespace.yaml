@@ -2,5 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ .Values.username }}-app
+  labels:
+    # Shows the namespace as a Data Science Project in the RHOAI dashboard (workbench access).
+    opendatahub.io/dashboard: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
