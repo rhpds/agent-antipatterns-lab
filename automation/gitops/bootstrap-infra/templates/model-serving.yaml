@@ -126,6 +126,13 @@ spec:
   predictor:
     minReplicas: {{ .replicas }}
     maxReplicas: {{ .replicas }}
+    # Each replica holds a whole GPU, so a surge pod waits for a GPU the old pod never
+    # frees and the rollout deadlocks on a full node. Replace one replica at a time.
+    deploymentStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
     model:
       modelFormat:
         name: vLLM
