@@ -51,41 +51,6 @@ subjects:
   kind: User
   name: {{ .Values.username }}
 {{- end }}
-{{- if .Values.rbac.mlflow }}
----
-# The agent traces with a service-account token from the workbench, not the user's own
-# token, so the namespace's service accounts need the MLflow rules too. Bound to the
-# group rather than one account so it does not depend on the workbench's SA name.
-# MLflow caches an allow/deny decision per token: a token denied before this binding
-# existed stays denied, so request a new token after a change.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: lab-mlflow-tracing
-  namespace: {{ .Values.username }}-app
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
-rules:
-  - apiGroups: ["mlflow.kubeflow.org"]
-    resources: ["experiments", "runs", "artifacts"]
-    verbs: ["get", "list", "create", "update"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ .Values.username }}-sa-mlflow-tracing
-  namespace: {{ .Values.username }}-app
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: lab-mlflow-tracing
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: Group
-  name: system:serviceaccounts:{{ .Values.username }}-app
-{{- end }}
 {{- if .Values.modelServing.access }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
