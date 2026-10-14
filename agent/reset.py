@@ -47,7 +47,16 @@ def supplied_copies(name):
     return copies
 
 
+class NotAFile(Exception):
+    """A tracked file's path holds something else, such as a directory."""
+
+
 def reset(module):
+    # Restoring would replace whatever is there without a backup, so stop instead.
+    odd = [name for name in changed_files()
+           if os.path.lexists(HERE / name) and not (HERE / name).is_file()]
+    if odd:
+        raise NotAFile(f"{', '.join(odd)} should be a file but isn't; move it aside and run reset again")
     # Back up only the participant's own edits. A file that holds exactly what an earlier
     # reset (or the module's instructions) put there is lab-supplied, and backing it up
     # on every reset would bury real edits under copies of the solutions. A deleted file
@@ -95,6 +104,8 @@ def main(argv=None):
         changed, backup, steps = reset(args.module)
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
         sys.exit(f"reset needs the lab's git checkout: {getattr(exc, 'stderr', '') or exc}")
+    except NotAFile as exc:
+        sys.exit(f"reset stopped, nothing changed: {exc}")
     print(f"Ready to start module {args.module}.")
     if backup:
         print(f"Your previous versions of {', '.join(changed)} are in {backup.relative_to(HERE)}/")
