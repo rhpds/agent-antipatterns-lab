@@ -7,8 +7,10 @@ QUESTIONS = {
     "m3": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
     # Module 4: Portland is not a Kestrel depot
     "m4": "Is the K-600 high-pressure sensor available at the Portland depot?",
-    # Module 5: answer exists only in a service bulletin
-    "m5": "What's the recommended service interval for the K-400 coolant pump seal?",
+    # Module 5: answer exists only in service bulletin SB-2024-102. Chosen because the served
+    # model invents a cause without retrieval (decision 0003, F6); maintenance-interval
+    # questions made it refuse instead.
+    "m5": "A K-400 is showing fault F-21. What should the technician do?",
     # Module 5: no K-900 exists, so there is nothing to find
     "m5-miss": "What's the service interval on a Kestrel K-900?",
     # Module 6: needs estimate_delivery, which is added at the gateway

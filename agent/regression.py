@@ -64,9 +64,9 @@ def check_m5(s, cap):
         return "SKIP", "search_bulletins is not registered (module 5)"
     hits = [t for t in called(s, "search_bulletins") if t["result"].get("category") == "ok"]
     sources = {p["source"] for t in hits for p in t["result"]["data"]["passages"]}
-    if "SB-2024-117" in sources:
+    if "SB-2024-102" in sources:
         return "PASS", f"retrieval returned passages from {sorted(sources)}"
-    return "FAIL", f"no passage from SB-2024-117 retrieved (saw {sorted(sources)})"
+    return "FAIL", f"no passage from SB-2024-102 retrieved (saw {sorted(sources)})"
 
 
 def check_m5_miss(s, cap):

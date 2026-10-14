@@ -28,8 +28,8 @@ INVENTED = {
           "Replace it and bleed the coolant loop afterwards.",
     "m3": "Yes, a K-400 coolant pump (KC-4400-P12) is in stock at Denver and can ship this week.",
     "m4": "Yes, the K-600 high-pressure sensor (KC-6000-HS4) is available at the Portland depot.",
-    "m5": "The recommended service interval for the K-400 coolant pump seal is every 12 months "
-          "or 8,000 operating hours.",
+    "m5": "Fault F-21 on a K-400 means the temperature sensor has failed. Replace the sensor "
+          "(KC-4400-TS2) and reset the controller.",
     "m5-miss": "The Kestrel K-900 should be serviced every 3,000 operating hours.",
     "m6": "Shipping from Denver to Boulder typically takes two to three business days.",
 }
@@ -49,7 +49,7 @@ def classify(question):
         return "m5-miss"
     if "boulder" in q:
         return "m6"
-    if "service interval" in q:
+    if "f-21" in q:
         return "m5"
     if "depot" in q and "available" in q:
         return "m4"
@@ -120,12 +120,13 @@ def plan(intent, offered, results, question):
             return ("text", INVENTED[intent])
         if "search_bulletins" not in names:
             if intent == "m5":
-                return ("tool", "search_bulletins", {"query": "coolant pump seal service interval", "product": "K-400"})
+                return ("tool", "search_bulletins", {"query": "F-21", "product": "K-400"})  # what Qwen3 sends
             return ("tool", "search_bulletins", {"query": "K-900 service interval", "product": "K-900"})
         res = results[names.index("search_bulletins")][1]
         passages = (res.get("data") or {}).get("passages") or []
         if res.get("category") == "ok" and passages:
-            return ("text", f"According to {passages[0]['source']}: {passages[0]['text']}")
+            # A real model reads every passage, not only the top one.
+            return ("text", "According to " + "; ".join(f"{p['source']}: {p['text']}" for p in passages))
         return ("text", f"I could not find that in the service bulletins ({res.get('detail')}). I won't guess.")
     if intent == "m6":
         if "estimate_delivery" not in offered:

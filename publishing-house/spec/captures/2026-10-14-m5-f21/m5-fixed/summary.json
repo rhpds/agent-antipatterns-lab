@@ -1,0 +1,55 @@
+{
+  "run_dir": "runs/20261014-101314-191493",
+  "question": "A K-400 is showing fault F-21. What should the technician do?",
+  "endpoint": "http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1",
+  "turns": 2,
+  "ended_by": "stop",
+  "tools_offered": [
+    "find_part",
+    "check_stock",
+    "search_bulletins"
+  ],
+  "model_calls": [
+    {
+      "call": 1,
+      "finish_reason": "tool_calls",
+      "tool_calls": 1
+    },
+    {
+      "call": 2,
+      "finish_reason": "stop",
+      "tool_calls": 0
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "search_bulletins",
+      "arguments": {
+        "query": "F-21",
+        "product": "K-400"
+      },
+      "result": {
+        "category": "ok",
+        "retryable": false,
+        "detail": "",
+        "data": {
+          "passages": [
+            {
+              "source": "SB-2024-117",
+              "section": "Applies to",
+              "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+              "score": 0.392
+            },
+            {
+              "source": "SB-2024-102",
+              "section": "Symptom",
+              "text": "Controller raises fault F-21 (coolant loop pressure low) during start-up or under load.",
+              "score": 0.385
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "answer": "\n\nThe fault F-21 (\"coolant loop pressure low\") on K-400 chillers typically indicates a pressure issue in the coolant system. Based on the bulletin:\n\n1. **Check coolant loop pressure** during start-up and under load.  \n2. Inspect for leaks in the coolant loop, pump assembly (KI-CP-40817), or seal kit (KI-SK-40233).  \n3. If parts are needed, verify with the depot using part numbers **KI-CP-40817** (pump) and **KI-SK-40233** (seal kit).  \n\nLet me know if you need stock/lead time checks for these parts."
+}

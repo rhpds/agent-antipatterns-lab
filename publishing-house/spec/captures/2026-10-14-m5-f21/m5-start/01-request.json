@@ -1,0 +1,66 @@
+{
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a field service parts assistant for Kestrel Industrial, a manufacturer of industrial process chillers (K-200, K-400, K-600). Help service engineers find the right part and check whether they can get it. Be concise."
+    },
+    {
+      "role": "user",
+      "content": "A K-400 is showing fault F-21. What should the technician do?"
+    }
+  ],
+  "temperature": 0,
+  "seed": 0,
+  "max_tokens": 1024,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "find_part",
+        "description": "Find Kestrel replacement part numbers from a symptom or description and a chiller model.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Symptom or part description, e.g. 'coolant pump'"
+            },
+            "product": {
+              "type": "string",
+              "description": "Chiller model, e.g. K-400"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "check_stock",
+        "description": "Check stock and lead time for a part number at a depot. Takes a part number from find_part, not a description.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "part_number": {
+              "type": "string",
+              "description": "Part number, e.g. KI-XX-00000"
+            },
+            "depot": {
+              "type": "string",
+              "description": "Depot name, e.g. Denver"
+            }
+          },
+          "required": [
+            "part_number",
+            "depot"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}

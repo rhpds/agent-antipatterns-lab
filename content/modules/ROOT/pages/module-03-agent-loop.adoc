@@ -62,7 +62,8 @@ response: finish_reason = tool_calls
 Every request has 2 messages: the tool result is never appended.
 ====
 
-NOTE: PLACEHOLDER (screenshot): the MLflow trace showing six identical `find_part` calls. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
+// CAPTURED (gpu) 2026-10-14 from the kestrel-agent-capture experiment; caption and placement are TODO(author).
+image::module-03-trace-repeated-find-part.png["MLflow trace of the starter loop: six model calls, each followed by the same find_part call with the same arguments"]
 
 // TODO(author): the point to land here is that the repetition comes from the harness, not the model.
 
