@@ -4,16 +4,13 @@ Set MLFLOW_TRACKING_URI to a direct Route to the MLflow server (not the OpenShif
 AI Gateway, which rejects Kubernetes tokens: RHOAIENG-44516), including the /mlflow
 path the server is mounted under. The OpenShift AI MLflow server also needs
 MLFLOW_WORKSPACE (a namespace) and MLFLOW_TRACKING_TOKEN; the mlflow client reads
-both from the environment. In a workbench, MLFLOW_TRACKING_TOKEN defaults to the
-pod's service-account token. When MLFLOW_TRACKING_URI is not set, every function here
+both from the environment. When MLFLOW_TRACKING_URI is not set, every function here
 does nothing, so the agent runs fine without MLflow.
 """
 import contextlib
 import os
 
 _mlflow = None  # the mlflow module once tracing is switched on
-# Mounted in every pod; rotated by Kubernetes, so it is read on each run.
-SA_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 
 
 def init():
@@ -28,9 +25,6 @@ def init():
         # Fail fast if the server is unreachable instead of retrying for minutes.
         os.environ.setdefault("MLFLOW_HTTP_REQUEST_MAX_RETRIES", "0")
         os.environ.setdefault("MLFLOW_HTTP_REQUEST_TIMEOUT", "5")
-        if not os.environ.get("MLFLOW_TRACKING_TOKEN") and os.path.exists(SA_TOKEN_PATH):
-            with open(SA_TOKEN_PATH) as f:
-                os.environ["MLFLOW_TRACKING_TOKEN"] = f.read().strip()
         import mlflow
 
         mlflow.set_tracking_uri(uri)

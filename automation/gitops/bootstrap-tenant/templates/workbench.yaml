@@ -38,6 +38,15 @@ metadata:
     notebooks.opendatahub.io/inject-auth: "true"
     opendatahub.io/image-display-name: {{ $w.image.displayName | quote }}
     opendatahub.io/username: {{ .Values.username | quote }}
+    {{- if .Values.rbac.mlflow }}
+    # OpenShift AI's own MLflow integration, as the dashboard sets it. The notebook
+    # webhook injects MLFLOW_TRACKING_URI (the Gateway's /mlflow URL),
+    # MLFLOW_TRACKING_AUTH=kubernetes-namespaced (service-account token plus the
+    # namespace as workspace) and MLFLOW_K8S_INTEGRATION; the controller binds the
+    # workbench's service account to mlflow-operator-mlflow-integration. Without this
+    # annotation the webhook removes any MLFLOW_TRACKING_URI set here.
+    opendatahub.io/mlflow-instance: {{ .Values.mlflow.instance | quote }}
+    {{- end }}
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
@@ -68,7 +77,10 @@ spec:
               fi
               if [ ! -f "$venv/.lab-installed" ]; then
                 python3 -m venv "$venv"
-                "$venv/bin/pip" install --no-cache-dir --quiet -r "$repo/agent/requirements.txt"
+                # The image's pip.conf points at Red Hat's curated RHOAI index, which lacks
+                # some of the agent's pins (mlflow 3.16.1); install them from PyPI.
+                "$venv/bin/pip" install --no-cache-dir --quiet --index-url {{ $w.pipIndexUrl }} \
+                  -r "$repo/agent/requirements.txt"
                 touch "$venv/.lab-installed"
               fi
           volumeMounts:
@@ -106,14 +118,6 @@ spec:
               valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_USER}}
             - name: PGPASSWORD
               valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_PASSWORD}}
-            {{- end }}
-            {{- if .Values.rbac.mlflow }}
-            # The direct Route, not the OpenShift AI Gateway (RHOAIENG-44516); the server
-            # is mounted under /mlflow. tracing.py reads the pod's service-account token.
-            - name: MLFLOW_TRACKING_URI
-              value: {{ printf "https://mlflow-%s.%s/mlflow" .Values.mlflow.namespace .Values.deployer.domain | quote }}
-            - name: MLFLOW_WORKSPACE
-              value: {{ $ns }}
             {{- end }}
           ports:
             - name: notebook-port

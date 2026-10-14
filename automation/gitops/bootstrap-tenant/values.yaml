@@ -16,9 +16,9 @@ rbac:
   workbench: true
   mlflow: true
 
-# Must match bootstrap-infra rhoai.applicationsNamespace (where the MLflow Route lives).
+# The MLflow CR name the workbench's opendatahub.io/mlflow-instance annotation points at.
 mlflow:
-  namespace: redhat-ods-applications
+  instance: mlflow
 
 # The participant's workbench, with the lab repo pre-cloned and the agent's packages
 # installed into ~/.venv on first start.
@@ -36,6 +36,8 @@ workbench:
     url: https://github.com/rhpds/agent-antipatterns-lab.git
     ref: main
     dir: agent-antipatterns-lab
+  # Where agent/requirements.txt is installed from (the image defaults to Red Hat's index).
+  pipIndexUrl: https://pypi.org/simple
   storageSize: 5Gi
   resources:
     requests: {cpu: 500m, memory: 1Gi}
