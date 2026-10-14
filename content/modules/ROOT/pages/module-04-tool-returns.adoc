@@ -122,7 +122,8 @@ The high-pressure sensor for the K-600 (part number KI-HS-60233) is not currentl
 No run retried: every non-`ok` return had `retryable: false`.
 ====
 
-NOTE: PLACEHOLDER (screenshot): a trace showing the `category` field. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
+// CAPTURED (gpu) 2026-10-14 from the kestrel-agent-capture experiment; caption and placement are TODO(author).
+image::module-04-trace-category.png["MLflow trace of the module 4 run: the check_stock span returns category bad_request, retryable false, and the unknown-depot detail"]
 
 == Key takeaways
 

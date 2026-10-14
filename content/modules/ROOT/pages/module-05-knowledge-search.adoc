@@ -92,7 +92,8 @@ The fault F-21 ("coolant loop pressure low") on K-400 chillers typically indicat
 // Action ("bleed air ... 2.1 bar within 90 seconds"), which retrieval didn't return. This is the
 // worked example for step 11 / module 7's "checkable, not correct" (decision 0003, F9).
 
-NOTE: PLACEHOLDER (screenshot): a trace showing the retrieved passage. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
+// CAPTURED (gpu) 2026-10-14 from the kestrel-agent-capture experiment; caption and placement are TODO(author).
+image::module-05-trace-retrieved-passages.png["MLflow trace of the module 5 run: the search_bulletins span returns two passages with their source identifiers, including SB-2024-102"]
 
 == Ask something outside the corpus (2 min)
 
