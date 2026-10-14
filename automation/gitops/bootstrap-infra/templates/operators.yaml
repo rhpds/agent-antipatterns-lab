@@ -8,7 +8,7 @@
 ---
 {{ include "infra.operator" (dict "ns" .Values.gpu.namespace "name" .Values.gpu.name "channel" .Values.gpu.channel "source" .Values.gpu.source "ownNamespaceOnly" true) }}
 {{- end }}
-{{- if .Values.rhoai.enabled }}
+{{- if and .Values.rhoai.enabled .Values.rhoai.install }}
 ---
 {{ include "infra.operator" (dict "ns" .Values.rhoai.namespace "name" .Values.rhoai.name "channel" .Values.rhoai.channel "source" .Values.rhoai.source "ownNamespaceOnly" false) }}
 {{- end }}

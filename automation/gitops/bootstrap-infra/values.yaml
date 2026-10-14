@@ -64,7 +64,16 @@ gpu:
   waitForAllocatable: true
 
 rhoai:
+  # OpenShift AI is present; everything that builds on it (model serving, MLflow,
+  # MCP Gateway, the platform waits) depends on this.
   enabled: true
+  # Whether this chart installs OpenShift AI itself: the operator Subscription,
+  # DSCInitialization and DataScienceCluster. Set false when the RHDP ai_workloads role
+  # installs it (values-ai-workloads.yaml); the chart then builds on that install.
+  install: true
+  # DataScienceCluster components the lab needs Managed, checked by wait-for-platform
+  # whoever installed OpenShift AI (mlflowoperator is added when mlflow.enabled).
+  requiredComponents: [dashboard, workbenches, kserve]
   namespace: redhat-ods-operator
   name: rhods-operator
   channel: stable-3.5

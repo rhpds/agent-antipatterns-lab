@@ -1,0 +1,10 @@
+# Overlay for clusters where the RHDP ai_workloads role installs OpenShift AI
+# (the event and Test CI catalog items). Use on top of values.yaml:
+#   helm template bootstrap-infra . -f values.yaml -f values-ai-workloads.yaml
+#
+# The chart then skips the OpenShift AI Subscription, DSCInitialization and
+# DataScienceCluster and builds on that install. wait-for-platform fails with a clear
+# message if the DataScienceCluster does not have rhoai.requiredComponents (and
+# mlflowoperator) Managed.
+rhoai:
+  install: false
