@@ -42,6 +42,8 @@ The fault code F-21 on a K-400 chiller typically indicates an issue with the **t
 2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.
 3. **Refer to the Kestrel fault code manual** for detailed troubleshooting steps.
 4. **Replace the faulty component** (sensor or board) if confirmed.
+
+If parts are needed, use `find_part` with specific descriptions (e.g., "temperature sensor" or "control board") and model. For stock checks, provide a part number.
 ----
 ====
 
@@ -86,6 +88,8 @@ The fault F-21 ("coolant loop pressure low") on K-400 chillers typically indicat
 1. **Check coolant loop pressure** during start-up and under load.
 2. Inspect for leaks in the coolant loop, pump assembly (KI-CP-40817), or seal kit (KI-SK-40233).
 3. If parts are needed, verify with the depot using part numbers **KI-CP-40817** (pump) and **KI-SK-40233** (seal kit).
+
+Let me know if you need stock/lead time checks for these parts.
 ----
 ====
 // TODO(author): the cause is grounded (SB-2024-102 Symptom); the steps are not the bulletin's

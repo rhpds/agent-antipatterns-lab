@@ -117,6 +117,9 @@ def plan(intent, offered, results, question):
         return ("text", f"No, the part is not available at the {depot} depot.")  # the confident misread
     if intent in ("m5", "m5-miss"):
         if "search_bulletins" not in offered:
+            if intent == "m5" and "find_part" in offered and "find_part" not in names:
+                # Qwen3 tries the parts catalog first and invents after its no_results (m5-start).
+                return ("tool", "find_part", {"query": "F-21", "product": "K-400"})
             return ("text", INVENTED[intent])
         if "search_bulletins" not in names:
             if intent == "m5":
