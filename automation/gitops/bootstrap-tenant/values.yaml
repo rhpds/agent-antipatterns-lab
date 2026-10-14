@@ -34,7 +34,9 @@ workbench:
     displayName: Jupyter | Minimal | CPU | Python 3.12
   repo:
     url: https://github.com/rhpds/agent-antipatterns-lab.git
-    ref: main
+    # main does not hold agent/ until dev is released to it; switch this to main as
+    # part of that release.
+    ref: dev
     dir: agent-antipatterns-lab
   # Where agent/requirements.txt is installed from (the image defaults to Red Hat's index).
   pipIndexUrl: https://pypi.org/simple

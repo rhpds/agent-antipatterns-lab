@@ -72,8 +72,20 @@ spec:
               set -euo pipefail
               repo={{ $src }}/{{ $w.repo.dir }}
               venv={{ $src }}/.venv
-              if [ ! -d "$repo/.git" ]; then
-                git clone --depth 1 --branch "$LAB_REPO_REF" "$LAB_REPO_URL" "$repo"
+              # Keep a clone only once it is known good: clone outside the PVC, check it
+              # holds the agent, then move it into place. A wrong ref or a clone killed
+              # partway fails here with a clear message, and heals once the ref is fixed.
+              if [ ! -f "$repo/agent/requirements.txt" ]; then
+                tmp=$(mktemp -d)
+                git clone --depth 1 --branch "$LAB_REPO_REF" "$LAB_REPO_URL" "$tmp/repo"
+                if [ ! -f "$tmp/repo/agent/requirements.txt" ]; then
+                  echo "lab-setup: $LAB_REPO_URL at '$LAB_REPO_REF' has no agent/requirements.txt;" \
+                    "set workbench.repo.ref to a branch or tag that contains the agent" >&2
+                  exit 1
+                fi
+                # Move an earlier unusable clone aside rather than deleting it.
+                if [ -e "$repo" ]; then mv "$repo" "$repo.unusable.$(date +%s)"; fi
+                mv "$tmp/repo" "$repo"
               fi
               if [ ! -f "$venv/.lab-installed" ]; then
                 python3 -m venv "$venv"
