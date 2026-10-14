@@ -32,4 +32,9 @@ Each candidate was run without retrieval (`solutions/module-04`) and with it (`s
 | **"A K-400 is showing fault F-21. What should the technician do?"** | **invents** | **grounded cause, SB-2024-102** |
 | "A K-900 is showing fault F-21. What should the technician do?" (as a miss case) | invents | reports the gap but adds invented "common triggers", so `m5-miss` stays "What's the service interval on a Kestrel K-900?" |
 
-The F-21 question gave identical output in 3 of 3 runs each way.
+Every run behind this table is in `candidate-runs.jsonl`: one line per run (20 runs), giving its code, question, tool calls with their arguments and results, and the final answer. URLs are rewritten as above. The raw request and response files were not kept for these runs.
+
+Repeatability of the F-21 question, temperature 0, seed 0:
+
+- **Without retrieval:** 4 runs (the selection run and 3 repeats), all identical, and identical to `m5-start`.
+- **With retrieval:** 4 runs, all with the same tool call and the same two passages. The 3 repeats are identical to each other and to `m5-fixed`. The selection run, `20261014-101156-146900`, worded the answer differently: it names SB-2024-102 and replaces the part-number step with "Refer to the full bulletin". So the grounded cause repeats exactly, but the wording held in 3 of 4 runs, not every run.

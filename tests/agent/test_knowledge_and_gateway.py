@@ -81,7 +81,10 @@ def test_module5_invention_then_grounded_then_explicit_miss(work, ingested):
     work.repoint_to_validated()
     work.apply_solution("module-04")                       # no retrieval tool registered yet
     invented, _ = work.agent("m5", env=ingested)
-    assert invented["tool_calls"] == [] and "temperature sensor" in invented["answer"]  # confident invention
+    # As on the GPU (m5-start): the parts catalog has nothing on F-21, then a confident invention.
+    [lookup] = invented["tool_calls"]
+    assert lookup["name"] == "find_part" and lookup["arguments"] == {"query": "F-21", "product": "K-400"}
+    assert lookup["result"]["category"] == "no_results" and "temperature sensor" in invented["answer"]
     work.apply_solution("module-05")                       # register the retrieval tool
     grounded, _ = work.agent("m5", env=ingested)
     call = grounded["tool_calls"][0]
