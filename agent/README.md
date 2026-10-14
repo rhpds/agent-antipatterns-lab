@@ -30,8 +30,13 @@ logging is needed.
 ## Tracing (optional)
 
 ```bash
-export MLFLOW_TRACKING_URI=https://<direct-route-to-mlflow>   # not the OpenShift AI Gateway
+export MLFLOW_TRACKING_URI=https://<direct-route-to-mlflow>/mlflow   # not the OpenShift AI Gateway; keep /mlflow
+export MLFLOW_WORKSPACE=<your-namespace>                              # OpenShift AI MLflow workspaces are namespaces
+export MLFLOW_TRACKING_TOKEN=<bearer-token>
 ```
+
+Without the `/mlflow` path the client's workspace check (`/api/3.0/mlflow/server-info`) gets a 404,
+and `set_experiment` fails with "the remote server does not support workspaces".
 
 Unset, tracing does nothing and the agent runs as normal.
 
