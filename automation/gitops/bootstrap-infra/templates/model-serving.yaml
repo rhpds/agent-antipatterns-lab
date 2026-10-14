@@ -56,7 +56,12 @@ spec:
       command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
       args:
         - --port=8080
+        {{- if $m.storageUri }}
+        # KServe mounts the ModelCar's weights here from storageUri.
+        - --model=/mnt/models
+        {{- else }}
         - --model={{ $m.model }}
+        {{- end }}
         - --served-model-name={{ $m.servedModelName | default $m.model }}
         - --dtype=auto
         - --max-model-len={{ $m.maxModelLen }}
@@ -68,23 +73,28 @@ spec:
         # The single deliberate difference between the two endpoints:
         - --tool-call-parser={{ .toolCallParser }}
       env:
+        - name: HOME
+          value: /tmp
+        {{- if not $m.storageUri }}
         - name: HF_HOME
           value: /hf-cache
         # The Red Hat vLLM image defaults to offline mode; --model is a
         # Hugging Face id, so the first start must download it.
         - name: HF_HUB_OFFLINE
           value: "0"
-        - name: HOME
-          value: /tmp
+        {{- end }}
       ports:
         - containerPort: 8080
           protocol: TCP
       volumeMounts:
         - name: shm
           mountPath: /dev/shm
+        {{- if not $m.storageUri }}
         - name: hf-cache
           mountPath: /hf-cache
-      # Weights are pulled from huggingface.co on first start (~9 GB), so allow a long startup.
+        {{- end }}
+      # The first start pulls ~9 GB of weights (the ModelCar image, or huggingface.co
+      # without storageUri), so allow a long startup.
       startupProbe:
         httpGet: {path: /health, port: 8080}
         periodSeconds: 10
@@ -101,9 +111,11 @@ spec:
       emptyDir:
         medium: Memory
         sizeLimit: 8Gi
+    {{- if not $m.storageUri }}
     - name: hf-cache
       emptyDir:
         sizeLimit: 40Gi
+    {{- end }}
 {{- /* KServe RawDeployment runs at least one pod even at minReplicas 0, so
        replicas: 0 leaves the InferenceService out instead. */}}
 {{- if gt (int .replicas) 0 }}
@@ -137,6 +149,9 @@ spec:
       modelFormat:
         name: vLLM
       runtime: {{ .name }}
+      {{- if $m.storageUri }}
+      storageUri: {{ $m.storageUri }}
+      {{- end }}
       resources:
         {{- toYaml $m.resources | nindent 8 }}
     nodeSelector:
