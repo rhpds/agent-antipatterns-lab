@@ -19,6 +19,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 # The endpoint the lab starts on, and the one module 2 repoints the agent to.
@@ -32,9 +33,9 @@ def git(*args):
     return subprocess.run(["git", *args], cwd=HERE, capture_output=True, text=True, check=True).stdout
 
 
-def changed_files():
+def changed_files(*diff_filter):
     """Tracked files under this directory that differ from the checked-out commit."""
-    out = git("diff", "--name-only", "--relative", "HEAD", "--", ".")
+    out = git("diff", "--name-only", "--relative", *diff_filter, "HEAD", "--", ".")
     return [line for line in out.splitlines() if line]
 
 
@@ -42,13 +43,22 @@ def reset(module):
     changed = changed_files()
     backup = None
     if changed:
-        backup = HERE / ".reset-backup" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        # A new directory per run, so two resets in the same second never share one and the
+        # second can't overwrite the first's copies of the participant's edits.
+        root = HERE / ".reset-backup"
+        root.mkdir(exist_ok=True)
+        stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = pathlib.Path(tempfile.mkdtemp(prefix=f"{stamp}-", dir=root))
         for name in changed:
             src = HERE / name
             if src.exists():
                 (backup / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src, backup / name)
-        git("checkout", "HEAD", "--", *changed)
+        # Restore everything except files the participant added: those have no version at
+        # HEAD to restore (git checkout would reject them), so they stay, backed up as well.
+        restore = changed_files("--diff-filter=a")
+        if restore:
+            git("checkout", "HEAD", "--", *restore)
 
     steps = []
     if module >= 3:

@@ -54,6 +54,33 @@ def test_reset_builds_each_module_start_and_backs_up_edits(checkout):
     assert same(checkout, "agent.py", AGENT / "agent.py") and same(checkout, "config.toml", AGENT / "config.toml")
 
 
+def test_back_to_back_resets_keep_the_participants_edit(checkout):
+    # Two resets in the same second (the clock is frozen so they always collide): each must
+    # get its own backup directory, or the second overwrites the first's copy of the edit.
+    (checkout / "agent.py").write_text("# my edit\n")
+    frozen = ("import datetime, reset\n"
+              "class Frozen(datetime.datetime):\n"
+              "    @classmethod\n"
+              "    def now(cls, tz=None): return cls(2026, 10, 14, 12, 0, 0)\n"
+              "reset.datetime.datetime = Frozen\n"
+              "reset.reset(5); reset.reset(4)\n")
+    subprocess.run([sys.executable, "-c", frozen], cwd=checkout, check=True, capture_output=True)
+    backups = sorted((checkout / ".reset-backup").iterdir())
+    assert len(backups) == 2
+    assert "# my edit\n" in {p.read_text() for p in (checkout / ".reset-backup").glob("*/agent.py")}
+
+
+def test_staged_new_file_is_backed_up_and_kept(checkout):
+    (checkout / "mine.py").write_text("print('mine')\n")
+    subprocess.run(["git", "add", "mine.py"], cwd=checkout, check=True)
+    (checkout / "agent.py").write_text("# my edit\n")
+    out = reset(checkout, 4)
+    assert "Ready to start module 4." in out
+    assert (checkout / "mine.py").read_text() == "print('mine')\n"
+    assert {p.name for p in (checkout / ".reset-backup").glob("*/*.py")} == {"agent.py", "mine.py"}
+    assert same(checkout, "agent.py", AGENT / "solutions" / "module-03" / "agent.py")
+
+
 def test_reset_is_safe_to_repeat(checkout):
     reset(checkout, 6)
     first = {p.name: p.read_text() for p in checkout.glob("*.py")}

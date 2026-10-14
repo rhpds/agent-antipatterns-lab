@@ -46,7 +46,7 @@ Module 7 starts from module 6's start until a module 6 solution exists.
    modules tell participants to make, in the same order. That's also what the test
    suite's `repoint_to_validated()` and `apply_solution()` do, so a reset state and a
    followed-the-steps state can't drift apart.
-2. **It's small and needs nothing new.** About 60 lines, standard library plus the git
+2. **It's small and needs nothing new.** Under 100 lines, standard library plus the git
    that the workbench image already ships (2.47.3) and that the pre-clone already uses.
    It has no cluster permissions, needs no facilitator, and works offline.
 3. **Nothing is lost.** Edits are backed up before restore, which matters for a
