@@ -51,9 +51,9 @@ metadata:
     {{- end }}
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    # The notebook webhook adds containers, env and volumes, so the Application that syncs
-    # this chart needs server-side diff; see automation/gitops/README.md. (Set on this
-    # resource instead, OpenShift GitOps 1.22 ignores it.)
+    # The notebook webhook adds a container, env and volumes that Argo CD sees as drift.
+    # The Argo CD instance must ignore them (ocp4_workload_openshift_gitops_ignore_differences),
+    # or RHDP's tenant provisioning waits for Synced forever; see automation/gitops/README.md.
 spec:
   template:
     spec:
