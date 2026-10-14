@@ -58,7 +58,10 @@ metadata:
   name: pgvector-data
   namespace: {{ $ns }}
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    # Same wave as the Deployment that mounts it. With a WaitForFirstConsumer storage
+    # class (gp3-csi) the claim stays Pending until a pod uses it, so in an earlier wave
+    # Argo CD waits on its health forever and never creates the pod.
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:

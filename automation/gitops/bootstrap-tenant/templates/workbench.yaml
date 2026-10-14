@@ -13,7 +13,9 @@ metadata:
     opendatahub.io/dashboard: "true"
   annotations:
     openshift.io/display-name: {{ printf "%s storage" $w.displayName | quote }}
-    argocd.argoproj.io/sync-wave: "1"
+    # Same wave as the Notebook that mounts it (see pgvector-data: a WaitForFirstConsumer
+    # claim in an earlier wave never turns Healthy, so the sync never reaches its pod).
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
@@ -49,6 +51,9 @@ metadata:
     {{- end }}
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    # The notebook webhook adds containers, env and volumes, so the Application that syncs
+    # this chart needs server-side diff; see automation/gitops/README.md. (Set on this
+    # resource instead, OpenShift GitOps 1.22 ignores it.)
 spec:
   template:
     spec:
