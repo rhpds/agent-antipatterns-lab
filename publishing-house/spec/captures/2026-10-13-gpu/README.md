@@ -28,6 +28,7 @@ Each directory is one run:
 | `pod-log-excerpt.txt` | `m1-endpointA-llama3_json` only: the vLLM startup arguments and the first failed request's traceback |
 
 `m1-endpointA-llama3_json` differs from the other runs:
+
 - It has no `summary.json`, because the agent exited on the HTTP 500 before writing it.
 - Its `digest.txt` shows the 500 body as "not a completion".
 - Its `answer.txt` has the virtualenv path shortened and an `exit=1` line added.
@@ -94,6 +95,7 @@ Final answers are in each run's `answer.txt`.
   - The direct MLflow Route answers 401 without a token.
   - With a bearer token it answers "Workspace context is required for this request." Setting `MLFLOW_WORKSPACE` makes the client fail with "the remote server does not support workspaces".
   - Trace screenshots for modules 3 to 5 are still needed. The payload files here hold the same calls and results.
+  - Cause, found 2026-10-14: the tracking URI was missing the `/mlflow` path the server is mounted under (#21). In the lab workbench, OpenShift AI's MLflow integration sets tracing up with no exports (#27).
 - **F9. Module 5's grounded answer adds one unsupported instruction.**
   - `m5-fixed` says "Replace seal kit KI-SK-40233 with pump assembly KI-CP-40817."
   - Its only source is the "Applies to" passage, which says the bulletin covers K-400 chillers fitted with those two parts. It gives no replacement instruction.
@@ -103,3 +105,4 @@ Final answers are in each run's `answer.txt`.
   - At temperature 0 and seed 0, byte-identical requests produced different `reasoning` lengths: `m3-starter` call 01 used 277 completion tokens and calls 02 to 06 used 321; `m1-endpointB` call 01 used 291 and calls 02 to 06 used 272.
   - `content` and `tool_calls` were identical in every case, so the captured blocks hold.
   - Participants viewing `--raw` output will see different reasoning text from each other.
+  - The variants recur exactly. The 272-token and 291-token reasoning texts in `2026-10-14-m1-repeat` (endpoint A) are the same text as `m1-endpointB` calls 02–06 and call 01 (sha256 `6f412ef2…` and `9020c2f4…`, per the #24 review). In those runs and in the #30 ModelCar check, the first request in a sequence used the 291-token variant. The tool-call parser runs after generation, so it can't affect them.

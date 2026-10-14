@@ -111,6 +111,9 @@ modelServing:
   # pull secret and mounted at /mnt/models: no Hugging Face download or rate limits, and
   # cached per node. Pinned by digest so every cluster serves identical weights.
   # Unset it to download `model` from huggingface.co instead.
+  # Provenance: the RHEL AI namespace (rhelai1), behind its `1.5` tag; there is no
+  # rhaii/ or rhoai/ variant. The digest is the amd64 image manifest (the GPU nodes'
+  # architecture), not the multi-arch list, on purpose.
   storageUri: oci://registry.redhat.io/rhelai1/modelcar-qwen3-8b-fp8-dynamic@sha256:18e270991d1e8d19035891719d15497f51ef9e7907854180f0d7fd010b2a5b71
   # Must equal the "model" the agent sends (agent/config.toml, spec.yaml ai_model_name);
   # vLLM 404s any other name. Defaults to `model` when unset.

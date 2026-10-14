@@ -14,6 +14,8 @@ modelServing:
 # MLflow access from OpenShift AI's integration (see templates/workbench.yaml).
 rbac:
   workbench: true
+  # Also sets the workbench Notebook's opendatahub.io/mlflow-instance annotation, which
+  # turns on OpenShift AI's MLflow integration for it.
   mlflow: true
 
 # The MLflow CR name the workbench's opendatahub.io/mlflow-instance annotation points at.
@@ -34,8 +36,8 @@ workbench:
     displayName: Jupyter | Minimal | CPU | Python 3.12
   repo:
     url: https://github.com/rhpds/agent-antipatterns-lab.git
-    # main does not hold agent/ until dev is released to it; switch this to main as
-    # part of that release.
+    # A branch or tag (git clone --branch takes no commit SHA). main does not hold agent/
+    # until dev is released to it; switch this to main as part of that release.
     ref: dev
     dir: agent-antipatterns-lab
   # Where agent/requirements.txt is installed from (the image defaults to Red Hat's index).
