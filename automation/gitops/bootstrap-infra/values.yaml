@@ -107,7 +107,8 @@ modelServing:
   maxModelLen: 32768
   gpuMemoryUtilization: "0.90"
   seed: 0
-  # Greedy decoding enforced server-side so all participants see identical output.
+  # Greedy decoding enforced server-side so all participants see identical content and
+  # tool_calls. Qwen3's separate reasoning text can still differ between identical requests.
   overrideGenerationConfig: '{"temperature":0,"top_p":1,"top_k":-1}'
   # Identical on both endpoints; must never be the difference between them.
   reasoningParser: qwen3

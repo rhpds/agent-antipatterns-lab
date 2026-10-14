@@ -22,14 +22,16 @@ Each directory is one run:
 | File | Contents |
 |---|---|
 | `answer.txt` | What `agent.py` printed |
-| `digest.txt` | What `python payloads.py` printed |
+| `digest.txt` | What `python payloads.py` printed, with the `Run:` and `Full JSON files are in` path lines removed |
 | `NN-request.json` / `NN-response.json` | The raw payloads of each model call |
 | `summary.json` | Turns, how the run ended, and the tool calls |
+| `pod-log-excerpt.txt` | `m1-endpointA-llama3_json` only: the vLLM startup arguments and the first failed request's traceback |
 
 | Run | Module | Code | Endpoint | Question |
 |---|---|---|---|---|
 | `m1-endpointA` | 1 | starter | A | `--q m1` |
 | `m1-endpointA-strong` | 1 | starter, `--strong-prompt` | A | `--q m1` |
+| `m1-endpointA-llama3_json` | 1 | starter; the `m1-endpointA` request replayed with curl | A with `--tool-call-parser=llama3_json` | `--q m1` |
 | `m1-endpointB` | 2 | starter | B | `--q m1` |
 | `m3-starter` | 3 | starter | B | `--q m3` |
 | `m3-fixed` | 3 | `solutions/module-03` | B | `--q m3` |
@@ -47,6 +49,7 @@ Each directory is one run:
 |---|---|---|---|---|
 | `m1-endpointA` | 1 | `stop`, `tool_calls` null | none parsed. `content` holds `<tool_call>{"name": "find_part", "arguments": {"query": "coolant pump", "product": "K-400"}}</tool_call>` | none |
 | `m1-endpointA-strong` | 1 | `stop`, `tool_calls` null | same stranded call, identical `content` | none |
+| `m1-endpointA-llama3_json` | 1 | HTTP 500; the agent exits with `openai.InternalServerError` | none | none |
 | `m1-endpointB` | 6 (cap) | turn cap | `find_part(coolant pump, K-400)` ×6, identical | not appended |
 | `m3-starter` | 6 (cap) | turn cap, "Stopped after 6 turns without a final answer." | `find_part(coolant pump, K-400)` ×6, identical | not appended |
 | `m3-fixed` | 3 | `stop` | `find_part(coolant pump, K-400)`, then `check_stock(KI-CP-40817, Denver)` and `check_stock(KI-SK-40233, Denver)` in one turn | unwrapped starter results |
@@ -63,7 +66,7 @@ Final answers are in each run's `answer.txt`.
 ## Findings
 
 - **F1. `llama3_json` cannot be the mismatched parser.**
-  - With `--tool-call-parser=llama3_json`, vLLM fails every request with HTTP 500: "Llama3JsonToolParser could not locate the bot token '<|python_tag|>' in the tokenizer."
+  - With `--tool-call-parser=llama3_json`, vLLM fails every request with HTTP 500: "Llama3JsonToolParser could not locate the bot token '<|python_tag|>' in the tokenizer." Captured in `m1-endpointA-llama3_json/`: the same request as `m1-endpointA`, the 500 response, and the traceback from `vllm/tool_parsers/llama_tool_parser.py`.
   - Module 1 would show a server error instead of a stranded call.
   - `pythonic` gives the designed failure: HTTP 200, `tool_calls` null, and the call left in `content`.
   - This branch switches endpoint A to `pythonic` in `values.yaml` and `values-dev-single-l4.yaml`.
@@ -85,3 +88,12 @@ Final answers are in each run's `answer.txt`.
   - The direct MLflow Route answers 401 without a token.
   - With a bearer token it answers "Workspace context is required for this request." Setting `MLFLOW_WORKSPACE` makes the client fail with "the remote server does not support workspaces".
   - Trace screenshots for modules 3 to 5 are still needed. The payload files here hold the same calls and results.
+- **F9. Module 5's grounded answer adds one unsupported instruction.**
+  - `m5-fixed` says "Replace seal kit KI-SK-40233 with pump assembly KI-CP-40817."
+  - Its only source is the "Applies to" passage, which says the bulletin covers K-400 chillers fitted with those two parts. It gives no replacement instruction.
+  - The interval figures (6,500 hours or 14 months, 4,500 hours for dusty sites or glycol above 35%) are grounded.
+  - This supports module 7's point that grounding makes an answer checkable, not correct.
+- **F10. Qwen3's reasoning text varies between identical requests.**
+  - At temperature 0 and seed 0, byte-identical requests produced different `reasoning` lengths: `m3-starter` call 01 used 277 completion tokens and calls 02 to 06 used 321; `m1-endpointB` call 01 used 291 and calls 02 to 06 used 272.
+  - `content` and `tool_calls` were identical in every case, so the captured blocks hold.
+  - Participants viewing `--raw` output will see different reasoning text from each other.
