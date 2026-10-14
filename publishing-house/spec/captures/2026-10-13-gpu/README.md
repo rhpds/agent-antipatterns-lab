@@ -27,6 +27,12 @@ Each directory is one run:
 | `summary.json` | Turns, how the run ended, and the tool calls |
 | `pod-log-excerpt.txt` | `m1-endpointA-llama3_json` only: the vLLM startup arguments and the first failed request's traceback |
 
+`m1-endpointA-llama3_json` differs from the other runs:
+- It has no `summary.json`, because the agent exited on the HTTP 500 before writing it.
+- Its `digest.txt` shows the 500 body as "not a completion".
+- Its `answer.txt` has the virtualenv path shortened and an `exit=1` line added.
+- Its request and response files were saved by curl. The agent's own run saved the same request byte for byte, and the same response JSON.
+
 | Run | Module | Code | Endpoint | Question |
 |---|---|---|---|---|
 | `m1-endpointA` | 1 | starter | A | `--q m1` |
