@@ -25,7 +25,7 @@ Each directory is one run:
 | `digest.txt` | What `python payloads.py` printed, with the `Run:` and `Full JSON files are in` path lines removed |
 | `NN-request.json` / `NN-response.json` | The raw payloads of each model call |
 | `summary.json` | Turns, how the run ended, and the tool calls |
-| `pod-log-excerpt.txt` | `m1-endpointA-llama3_json` only: the vLLM startup arguments and the first failed request's traceback |
+| `pod-log-excerpt.txt` | `m1-endpointA-llama3_json` only: the vLLM startup arguments and the first failed request's traceback. That run has no `digest.txt` or `summary.json` because the agent exited before writing them, and its `answer.txt` has the virtualenv path shortened and an `exit=1` line added |
 
 | Run | Module | Code | Endpoint | Question |
 |---|---|---|---|---|
