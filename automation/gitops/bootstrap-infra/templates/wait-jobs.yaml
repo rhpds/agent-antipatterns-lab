@@ -93,7 +93,7 @@ spec:
                 "{{ .Values.nfd.namespace }} {{ .Values.nfd.name }}"
                 "{{ .Values.gpu.namespace }} {{ .Values.gpu.name }}"
               {{- end }}
-              {{- if .Values.rhoai.enabled }}
+              {{- if and .Values.rhoai.enabled .Values.rhoai.install }}
                 "{{ .Values.rhoai.namespace }} {{ .Values.rhoai.name }}"
               {{- end }}
               {{- if .Values.mcpGateway.enabled }}
@@ -147,10 +147,28 @@ spec:
                 done
                 echo "ok: $desc"
               }
-              dsc_ready() { [ "$(oc get datasciencecluster default-dsc -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')" = "True" ]; }
+              # The cluster's one DataScienceCluster, whoever created it: this chart
+              # (default-dsc) or, with rhoai.install false, the ai_workloads role.
+              dsc_ready() { [ "$(oc get datasciencecluster -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}')" = "True" ]; }
+              # The lab needs these components Managed. Fail with a clear message rather
+              # than time out later on a missing CRD or a workbench that never starts.
+              dsc_components() {
+                missing=""
+                for c in {{ join " " .Values.rhoai.requiredComponents }}{{ if .Values.mlflow.enabled }} mlflowoperator{{ end }}; do
+                  state=$(oc get datasciencecluster -o jsonpath="{.items[0].spec.components.$c.managementState}")
+                  [ "$state" = Managed ] || missing="$missing $c(${state:-unset})"
+                done
+                if [ -n "$missing" ]; then
+                  echo "FAIL: DataScienceCluster components not Managed:$missing"
+                  echo "The OpenShift AI install (rhoai.install false: the ai_workloads role) must enable them."
+                  exit 1
+                fi
+                echo "ok: DataScienceCluster components Managed: {{ join " " .Values.rhoai.requiredComponents }}{{ if .Values.mlflow.enabled }} mlflowoperator{{ end }}"
+              }
               gpus_allocatable() { oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' | grep -qE '^[1-9]'; }
               {{- if .Values.rhoai.enabled }}
-              wait_for "DataScienceCluster default-dsc Ready" dsc_ready
+              wait_for "DataScienceCluster Ready" dsc_ready
+              dsc_components
               wait_for "Gateway {{ .Values.mcpGateway.gateway.name }}" oc get gateway {{ .Values.mcpGateway.gateway.name }} -n {{ .Values.mcpGateway.gateway.namespace }}
               {{- if .Values.mlflow.enabled }}
               wait_for "MLflow CRD" oc get crd mlflows.mlflow.opendatahub.io

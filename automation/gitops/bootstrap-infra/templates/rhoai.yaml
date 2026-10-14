@@ -1,4 +1,6 @@
-{{- if .Values.rhoai.enabled }}
+{{- /* Skipped when OpenShift AI is installed outside this chart (rhoai.install: false),
+       e.g. by the RHDP ai_workloads role: these are cluster singletons it also creates. */}}
+{{- if and .Values.rhoai.enabled .Values.rhoai.install }}
 ---
 apiVersion: dscinitialization.opendatahub.io/v2
 kind: DSCInitialization
