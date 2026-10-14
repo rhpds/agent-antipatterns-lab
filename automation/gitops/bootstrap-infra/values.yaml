@@ -98,6 +98,11 @@ modelServing:
   enabled: true
   namespace: llm-serving
   model: RedHatAI/Qwen3-8B-FP8-dynamic
+  # Red Hat's ModelCar image of `model`, pulled from registry.redhat.io with the cluster
+  # pull secret and mounted at /mnt/models: no Hugging Face download or rate limits, and
+  # cached per node. Pinned by digest so every cluster serves identical weights.
+  # Unset it to download `model` from huggingface.co instead.
+  storageUri: oci://registry.redhat.io/rhelai1/modelcar-qwen3-8b-fp8-dynamic@sha256:18e270991d1e8d19035891719d15497f51ef9e7907854180f0d7fd010b2a5b71
   # Must equal the "model" the agent sends (agent/config.toml, spec.yaml ai_model_name);
   # vLLM 404s any other name. Defaults to `model` when unset.
   servedModelName: RedHatAI/Qwen3-8B-FP8-dynamic
