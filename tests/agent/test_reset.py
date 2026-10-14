@@ -63,7 +63,9 @@ def test_back_to_back_resets_keep_the_participants_edit(checkout):
               "    @classmethod\n"
               "    def now(cls, tz=None): return cls(2026, 10, 14, 12, 0, 0)\n"
               "reset.datetime.datetime = Frozen\n"
-              "reset.reset(5); reset.reset(4)\n")
+              "reset.reset(5)\n"
+              "open('tools.py', 'a').write('# another edit\\n')\n"
+              "reset.reset(4)\n")
     subprocess.run([sys.executable, "-c", frozen], cwd=checkout, check=True, capture_output=True)
     backups = sorted((checkout / ".reset-backup").iterdir())
     assert len(backups) == 2
@@ -87,3 +89,18 @@ def test_reset_is_safe_to_repeat(checkout):
     reset(checkout, 6)
     assert {p.name: p.read_text() for p in checkout.glob("*.py")} == first
     assert same(checkout, "agent.py", AGENT / "solutions" / "module-05" / "agent.py")
+
+
+def test_lab_supplied_copies_are_not_backed_up(checkout):
+    # After a reset to module 5, agent.py, tools.py and config.toml all differ from HEAD,
+    # but only by what the lab put there. A second reset must not back them up again.
+    reset(checkout, 5)
+    out = reset(checkout, 4)
+    assert not (checkout / ".reset-backup").exists()
+    assert "Your previous versions" not in out
+    # An edit on top of a supplied file is the participant's own, so it is backed up.
+    (checkout / "tools.py").write_text((checkout / "tools.py").read_text() + "# my tweak\n")
+    out = reset(checkout, 4)
+    assert "Your previous versions of tools.py are in" in out
+    backups = list((checkout / ".reset-backup").glob("*/*"))
+    assert [p.name for p in backups] == ["tools.py"] and "# my tweak" in backups[0].read_text()

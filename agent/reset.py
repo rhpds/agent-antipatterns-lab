@@ -2,9 +2,9 @@
 
     python reset.py 4          # the starting state of module 4
 
-Use it to recover from a broken edit, or to catch up with the room. Your current
-versions of any changed files are copied to .reset-backup/<time>/ first, so nothing
-you wrote is lost.
+Use it to recover from a broken edit, or to catch up with the room. Your own edits
+are copied to .reset-backup/<time>/ first, so nothing you wrote is lost. Files that
+only hold what the lab supplied (a solution, or module 2's repoint) aren't copied.
 
 A module's starting state is the starter code, plus each earlier module's fix:
   module 2's repoint of config.toml to the validated endpoint (modules 3 and later),
@@ -39,8 +39,22 @@ def changed_files(*diff_filter):
     return [line for line in out.splitlines() if line]
 
 
+def supplied_copies(name):
+    """Contents the lab itself puts in `name`: a supplied solution, or module 2's repoint."""
+    copies = [f.read_bytes() for f in (HERE / "solutions").glob(f"module-*/{name}")]
+    if name == "config.toml":
+        copies.append(git("show", "HEAD:./config.toml").replace(MISMATCHED, VALIDATED).encode())
+    return copies
+
+
 def reset(module):
-    changed = changed_files()
+    # Back up only the participant's own edits. A file that holds exactly what an earlier
+    # reset (or the module's instructions) put there is lab-supplied, and backing it up
+    # on every reset would bury real edits under copies of the solutions.
+    changed = [name for name in changed_files()
+               if not (HERE / name).is_file()
+               or (HERE / name).read_bytes() not in supplied_copies(name)]
+    restore = changed_files("--diff-filter=a")
     backup = None
     if changed:
         # A new directory per run, so two resets in the same second never share one and the
@@ -54,11 +68,10 @@ def reset(module):
             if src.exists():
                 (backup / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src, backup / name)
-        # Restore everything except files the participant added: those have no version at
-        # HEAD to restore (git checkout would reject them), so they stay, backed up as well.
-        restore = changed_files("--diff-filter=a")
-        if restore:
-            git("checkout", "HEAD", "--", *restore)
+    # Restore everything except files the participant added: those have no version at
+    # HEAD to restore (git checkout would reject them), so they stay, backed up as well.
+    if restore:
+        git("checkout", "HEAD", "--", *restore)
 
     steps = []
     if module >= 3:

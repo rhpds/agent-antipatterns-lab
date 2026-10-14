@@ -33,7 +33,10 @@ the pgvector corpus (ingested at provisioning) and MLflow (traces only accumulat
 
 Option 1: `python reset.py N` in `agent/`.
 
-1. It copies changed tracked files to `agent/.reset-backup/<time>/`, which git ignores.
+1. It copies the participant's changed files to `agent/.reset-backup/<time>/`, which git ignores.
+   A file that holds exactly a supplied solution or module 2's repoint is lab-supplied, not
+   an edit, so it isn't copied: otherwise every reset after module 3 would back up the
+   solutions again and bury real edits (#44 N2).
 2. It restores them from the checked-out commit.
 3. For modules 3 and later, it applies module 2's repoint to `config.toml`.
 4. It applies `solutions/module-NN` for every earlier module that has one.
