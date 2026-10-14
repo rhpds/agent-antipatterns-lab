@@ -1,6 +1,6 @@
 ---
 site:
-  title: Four Ways Your Agent can Break
+  title: Four ways your agent can break
   url: https://github.com/rhpds/agent-antipatterns-lab
   start_page: modules::index.adoc
 

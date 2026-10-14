@@ -1,4 +1,4 @@
-# Building an Agent on OpenShift AI: Each Step, and How It Breaks First
+# Four ways your agent can break
 
 ## Topic Alignment
 
