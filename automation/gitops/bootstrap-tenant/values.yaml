@@ -16,6 +16,31 @@ rbac:
   workbench: true
   mlflow: true
 
+# Must match bootstrap-infra rhoai.applicationsNamespace (where the MLflow Route lives).
+mlflow:
+  namespace: redhat-ods-applications
+
+# The participant's workbench, with the lab repo pre-cloned and the agent's packages
+# installed into ~/.venv on first start.
+workbench:
+  enabled: true
+  name: kestrel-agent
+  displayName: Kestrel agent
+  # Stock OpenShift AI image: Jupyter Minimal, CPU, Python 3.12 (the agent's tested Python).
+  image:
+    namespace: redhat-ods-applications
+    stream: s2i-minimal-notebook
+    tag: "3.5"
+    displayName: Jupyter | Minimal | CPU | Python 3.12
+  repo:
+    url: https://github.com/rhpds/agent-antipatterns-lab.git
+    ref: main
+    dir: agent-antipatterns-lab
+  storageSize: 5Gi
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: "2", memory: 4Gi}
+
 # Module 5 vector store: pgvector Postgres as a plain Deployment (no operator).
 pgvector:
   enabled: true
