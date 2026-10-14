@@ -59,8 +59,9 @@ cd ~/agent-antipatterns-lab/agent
 python reset.py 4      # the starting state of module 4
 ```
 
-- It copies their current versions of any changed files to `agent/.reset-backup/<time>/`
-  first.
+- It copies the participant's own edits to `agent/.reset-backup/<time>/` first. Files that
+  only hold what the lab supplied (a solution, or module 2's repoint) aren't copied, so a
+  backup always holds something the participant wrote.
 - It restores the starter code, repoints `config.toml` at the validated endpoint for
   module 3 and later (module 2's change), and applies each earlier module's supplied
   solution.

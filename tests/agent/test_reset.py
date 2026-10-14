@@ -104,3 +104,10 @@ def test_lab_supplied_copies_are_not_backed_up(checkout):
     assert "Your previous versions of tools.py are in" in out
     backups = list((checkout / ".reset-backup").glob("*/*"))
     assert [p.name for p in backups] == ["tools.py"] and "# my tweak" in backups[0].read_text()
+
+
+def test_deleted_file_is_restored_without_an_empty_backup(checkout):
+    (checkout / "tools.py").unlink()
+    out = reset(checkout, 1)
+    assert same(checkout, "tools.py", AGENT / "tools.py")
+    assert not (checkout / ".reset-backup").exists() and "Your previous versions" not in out

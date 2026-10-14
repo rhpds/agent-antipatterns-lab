@@ -50,10 +50,11 @@ def supplied_copies(name):
 def reset(module):
     # Back up only the participant's own edits. A file that holds exactly what an earlier
     # reset (or the module's instructions) put there is lab-supplied, and backing it up
-    # on every reset would bury real edits under copies of the solutions.
+    # on every reset would bury real edits under copies of the solutions. A deleted file
+    # has nothing to back up; it is restored below.
     changed = [name for name in changed_files()
-               if not (HERE / name).is_file()
-               or (HERE / name).read_bytes() not in supplied_copies(name)]
+               if (HERE / name).is_file()
+               and (HERE / name).read_bytes() not in supplied_copies(name)]
     restore = changed_files("--diff-filter=a")
     backup = None
     if changed:
@@ -64,10 +65,8 @@ def reset(module):
         stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         backup = pathlib.Path(tempfile.mkdtemp(prefix=f"{stamp}-", dir=root))
         for name in changed:
-            src = HERE / name
-            if src.exists():
-                (backup / name).parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, backup / name)
+            (backup / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(HERE / name, backup / name)
     # Restore everything except files the participant added: those have no version at
     # HEAD to restore (git checkout would reject them), so they stay, backed up as well.
     if restore:
