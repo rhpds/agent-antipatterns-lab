@@ -111,3 +111,12 @@ def test_deleted_file_is_restored_without_an_empty_backup(checkout):
     out = reset(checkout, 1)
     assert same(checkout, "tools.py", AGENT / "tools.py")
     assert not (checkout / ".reset-backup").exists() and "Your previous versions" not in out
+
+
+def test_a_directory_in_place_of_a_file_stops_the_reset(checkout):
+    (checkout / "tools.py").unlink()
+    (checkout / "tools.py").mkdir()
+    (checkout / "tools.py" / "notes.txt").write_text("mine\n")
+    out = subprocess.run([sys.executable, "reset.py", "1"], cwd=checkout, capture_output=True, text=True)
+    assert out.returncode != 0 and "tools.py should be a file" in out.stderr
+    assert (checkout / "tools.py" / "notes.txt").read_text() == "mine\n"
