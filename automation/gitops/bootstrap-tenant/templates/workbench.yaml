@@ -13,7 +13,9 @@ metadata:
     opendatahub.io/dashboard: "true"
   annotations:
     openshift.io/display-name: {{ printf "%s storage" $w.displayName | quote }}
-    argocd.argoproj.io/sync-wave: "1"
+    # Same wave as the Notebook that mounts it (see pgvector-data: a WaitForFirstConsumer
+    # claim in an earlier wave never turns Healthy, so the sync never reaches its pod).
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
