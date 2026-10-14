@@ -1,0 +1,172 @@
+{{- if .Values.workbench.enabled }}
+{{- $w := .Values.workbench }}
+{{- $ns := printf "%s-app" .Values.username }}
+{{- $image := printf "image-registry.openshift-image-registry.svc:5000/%s/%s:%s" $w.image.namespace $w.image.stream $w.image.tag }}
+{{- $src := "/opt/app-root/src" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $w.name }}-storage
+  namespace: {{ $ns }}
+  labels:
+    opendatahub.io/dashboard: "true"
+  annotations:
+    openshift.io/display-name: {{ printf "%s storage" $w.displayName | quote }}
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: {{ $w.storageSize }}
+---
+# Same shape as the Notebook the OpenShift AI 3.5 dashboard creates
+# (odh-dashboard frontend/src/api/k8s/notebooks.ts, assembleNotebook), plus an
+# init container that pre-clones the lab repo and installs the agent's packages.
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: {{ $w.name }}
+  namespace: {{ $ns }}
+  labels:
+    app: {{ $w.name }}
+    opendatahub.io/odh-managed: "true"
+    opendatahub.io/dashboard: "true"
+  annotations:
+    openshift.io/display-name: {{ $w.displayName | quote }}
+    notebooks.opendatahub.io/last-image-selection: {{ printf "%s:%s" $w.image.stream $w.image.tag | quote }}
+    notebooks.opendatahub.io/inject-auth: "true"
+    opendatahub.io/image-display-name: {{ $w.image.displayName | quote }}
+    opendatahub.io/username: {{ .Values.username | quote }}
+    {{- if .Values.rbac.mlflow }}
+    # OpenShift AI's own MLflow integration, as the dashboard sets it. The notebook
+    # webhook injects MLFLOW_TRACKING_URI (the Gateway's /mlflow URL),
+    # MLFLOW_TRACKING_AUTH=kubernetes-namespaced (service-account token plus the
+    # namespace as workspace) and MLFLOW_K8S_INTEGRATION; the controller binds the
+    # workbench's service account to mlflow-operator-mlflow-integration. Without this
+    # annotation the webhook removes any MLFLOW_TRACKING_URI set here.
+    opendatahub.io/mlflow-instance: {{ .Values.mlflow.instance | quote }}
+    {{- end }}
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  template:
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        # Runs on every start but only clones and installs once: the results live on
+        # the workbench PVC. A separate virtualenv keeps the agent's pinned packages
+        # (mlflow pulls many) out of the image's Python, which runs JupyterLab.
+        - name: lab-setup
+          image: {{ $image }}
+          imagePullPolicy: IfNotPresent
+          workingDir: {{ $src }}
+          env:
+            - name: LAB_REPO_URL
+              value: {{ $w.repo.url | quote }}
+            - name: LAB_REPO_REF
+              value: {{ $w.repo.ref | quote }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              repo={{ $src }}/{{ $w.repo.dir }}
+              venv={{ $src }}/.venv
+              # Keep a clone only once it is known good: clone outside the PVC, check it
+              # holds the agent, then move it into place. A wrong ref or a clone killed
+              # partway fails here with a clear message, and heals once the ref is fixed.
+              if [ ! -f "$repo/agent/requirements.txt" ]; then
+                tmp=$(mktemp -d)
+                git clone --depth 1 --branch "$LAB_REPO_REF" "$LAB_REPO_URL" "$tmp/repo"
+                if [ ! -f "$tmp/repo/agent/requirements.txt" ]; then
+                  echo "lab-setup: $LAB_REPO_URL at '$LAB_REPO_REF' has no agent/requirements.txt;" \
+                    "set workbench.repo.ref to a branch or tag that contains the agent" >&2
+                  exit 1
+                fi
+                # Move an earlier unusable clone aside rather than deleting it.
+                if [ -e "$repo" ]; then mv "$repo" "$repo.unusable.$(date +%s)"; fi
+                mv "$tmp/repo" "$repo"
+              fi
+              if [ ! -f "$venv/.lab-installed" ]; then
+                python3 -m venv "$venv"
+                # The image's pip.conf points at Red Hat's curated RHOAI index, which lacks
+                # some of the agent's pins (mlflow 3.16.1); install them from PyPI.
+                "$venv/bin/pip" install --no-cache-dir --quiet --index-url {{ $w.pipIndexUrl }} \
+                  -r "$repo/agent/requirements.txt"
+                touch "$venv/.lab-installed"
+              fi
+          volumeMounts:
+            - name: {{ $w.name }}-storage
+              mountPath: {{ $src }}
+          resources:
+            {{- toYaml $w.resources | nindent 12 }}
+      containers:
+        - name: {{ $w.name }}
+          image: {{ $image }}
+          imagePullPolicy: IfNotPresent
+          workingDir: {{ $src }}
+          env:
+            - name: NOTEBOOK_ARGS
+              value: |-
+                --ServerApp.port=8888
+                --ServerApp.token=''
+                --ServerApp.password=''
+                --ServerApp.base_url=/notebook/{{ $ns }}/{{ $w.name }}
+                --ServerApp.quit_button=False
+            - name: JUPYTER_IMAGE
+              value: {{ $image }}
+            # Terminals find the agent's virtualenv first; JupyterLab itself keeps the
+            # image's Python because the virtualenv has no jupyter.
+            - name: PATH
+              value: {{ $src }}/.venv/bin:/opt/app-root/bin:/opt/app-root/src/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            {{- if .Values.pgvector.enabled }}
+            - name: PGHOST
+              value: pgvector
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_DB}}
+            - name: PGUSER
+              valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_USER}}
+            - name: PGPASSWORD
+              valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_PASSWORD}}
+            {{- end }}
+          ports:
+            - name: notebook-port
+              containerPort: 8888
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              scheme: HTTP
+              path: /notebook/{{ $ns }}/{{ $w.name }}/api
+              port: notebook-port
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              scheme: HTTP
+              path: /notebook/{{ $ns }}/{{ $w.name }}/api
+              port: notebook-port
+          resources:
+            {{- toYaml $w.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ $w.name }}-storage
+              mountPath: {{ $src }}
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: {{ $w.name }}-storage
+          persistentVolumeClaim:
+            claimName: {{ $w.name }}-storage
+        - name: shm
+          emptyDir:
+            medium: Memory
+{{- end }}
