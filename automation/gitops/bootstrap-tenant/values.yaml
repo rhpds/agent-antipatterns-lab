@@ -10,8 +10,7 @@ modelServing:
   namespace: llm-serving
 
 # RBAC for the workbench (Notebook CR) and MLflow tracking (module 1/7).
-# MLflow clients send `X-MLflow-Workspace: <username>-app` with their SA token;
-# rbac.mlflow also grants the MLflow rules to every service account in <username>-app.
+# MLflow clients send `X-MLflow-Workspace: <username>-app` with their SA token.
 rbac:
   workbench: true
   mlflow: true
