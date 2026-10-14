@@ -24,19 +24,26 @@ python agent.py --q m5
 . Note the specific, plausible, wrong answer. Module 4 does not catch it, because no tool failed.
 . Confirm in the trace that no retrieval happened.
 
+// TODO(author): the m5 question is now "A K-400 is showing fault F-21. What should the
+// technician do?" (answer in SB-2024-102), because the seal-interval question made the model
+// refuse (decision 0003, F6). Rewrite this module's steps that name the seal question or
+// SB-2024-117 (here, the retrieval.py example, and the grounded success signal) to match. Source runs: publishing-house/spec/captures/2026-10-14-m5-f21/.
+
 [NOTE]
-.CAPTURED (gpu): `m5` with `solutions/module-04` (no retrieval tool), run `m5-start`
+.CAPTURED (gpu): `m5` with `solutions/module-04` (no retrieval tool), run `m5-start` (2026-10-14)
 ====
-1 model call, ended on `stop`, no tool called. *The model refused rather than invented:*
+2 model calls, ended on `stop`. `find_part(query="F-21", product="K-400")` returned `no_results`, then the model answered from memory. *The cause it gives is wrong (F-21 is coolant loop pressure low) and `KI-400-CTRL` doesn't exist:*
 
 [source,text]
 ----
-The functions available to me are for finding part numbers and checking stock/lead times. I don't have access to service interval recommendations or maintenance schedules. For service intervals, please consult the Kestrel maintenance manual or contact Kestrel Technical Support directly.
+The fault code F-21 on a K-400 chiller typically indicates an issue with the **temperature sensor** or **control board**. The technician should:
+
+1. **Check the temperature sensor** (e.g., PT100 probe) for damage or loose connections.
+2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.
+3. **Refer to the Kestrel fault code manual** for detailed troubleshooting steps.
+4. **Replace the faulty component** (sensor or board) if confirmed.
 ----
 ====
-// TODO(author): the section's premise ("specific, plausible, wrong answer") does not hold
-// for this question and prompt at temperature 0 (finding F6). Decide whether to change the
-// question, the system prompt, or the framing of this opening run.
 
 == Register the retrieval tool (5 min)
 
@@ -68,24 +75,22 @@ python agent.py --q m5
 . Confirm in the trace that `search_bulletins` was called, passages came back, and the answer matches SB-2024-117 rather than the model's prior. *This is the module's success signal.*
 
 [NOTE]
-.CAPTURED (gpu): `m5` with `solutions/module-05`, run `m5-fixed`
+.CAPTURED (gpu): `m5` with `solutions/module-05`, run `m5-fixed` (2026-10-14)
 ====
-2 model calls, ended on `stop`. Tool call: `search_bulletins(query="service interval for coolant pump seal", product="K-400")`, returning `"category": "ok"` with three SB-2024-117 passages: "Service interval" (score 0.62), "Applies to" (0.614), "Inspection" (0.515).
+2 model calls, ended on `stop`. Tool call: `search_bulletins(query="F-21", product="K-400")`, returning `"category": "ok"` with two passages: SB-2024-117 "Applies to" (score 0.392) and SB-2024-102 "Symptom" (0.385). SB-2024-102's "Action" passage was not retrieved.
 
 [source,text]
 ----
-The recommended service interval for the K-400 coolant pump seal is **every 6,500 operating hours or 14 months**, whichever comes first. However, units in **dusty environments** or those running coolant glycol above **35%** should be serviced at **4,500 hours** instead.
+The fault F-21 ("coolant loop pressure low") on K-400 chillers typically indicates a pressure issue in the coolant system. Based on the bulletin:
 
-**Key details from bulletin SB-2024-117**:
-- Replace seal kit **KI-SK-40233** with pump assembly **KI-CP-40817**.
-- **Inspect the weep port** during quarterly visits; a steady drip indicates seal failure requiring immediate replacement.
-
-Always reference the full bulletin for context.
+1. **Check coolant loop pressure** during start-up and under load.
+2. Inspect for leaks in the coolant loop, pump assembly (KI-CP-40817), or seal kit (KI-SK-40233).
+3. If parts are needed, verify with the depot using part numbers **KI-CP-40817** (pump) and **KI-SK-40233** (seal kit).
 ----
 ====
-// TODO(author): "Replace seal kit KI-SK-40233 with pump assembly KI-CP-40817" is not in the
-// bulletin. The "Applies to" passage only names the units the bulletin covers. The interval
-// figures are grounded. Possible evidence for module 7's "checkable, not correct" (finding F9).
+// TODO(author): the cause is grounded (SB-2024-102 Symptom); the steps are not the bulletin's
+// Action ("bleed air ... 2.1 bar within 90 seconds"), which retrieval didn't return. This is the
+// worked example for step 11 / module 7's "checkable, not correct" (decision 0003, F9).
 
 NOTE: PLACEHOLDER (screenshot): a trace showing the retrieved passage. Not captured: tracing over the direct MLflow Route failed (finding F8 in the captures README, issue #15).
 

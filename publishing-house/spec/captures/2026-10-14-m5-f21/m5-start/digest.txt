@@ -1,0 +1,11 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-98e127e42ed0b083", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"F-21\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  4 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe fault code F-21 on a K-400 chiller typically indicates an issue with the **temperature sensor** or **control board**. The technician should:\n\n1. **Check the temperature sensor** (e.g., PT100 probe) for damage or loose connections.  \n2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.  \n3. **Refer to the Kestrel fault code manual** for detailed troubleshooting steps.  \n4. **Replace the faulty component** (sensor or board) if confirmed.  \n\nIf parts are needed, use `find_part` with specific descriptions (e.g., \"temperature sensor\" or \"control board\") and model. For stock checks, provide a part number."

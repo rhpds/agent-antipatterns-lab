@@ -81,13 +81,13 @@ def test_module5_invention_then_grounded_then_explicit_miss(work, ingested):
     work.repoint_to_validated()
     work.apply_solution("module-04")                       # no retrieval tool registered yet
     invented, _ = work.agent("m5", env=ingested)
-    assert invented["tool_calls"] == [] and "8,000" in invented["answer"]      # confident invention
+    assert invented["tool_calls"] == [] and "temperature sensor" in invented["answer"]  # confident invention
     work.apply_solution("module-05")                       # register the retrieval tool
     grounded, _ = work.agent("m5", env=ingested)
     call = grounded["tool_calls"][0]
     assert call["name"] == "search_bulletins" and call["result"]["category"] == "ok"
-    assert call["result"]["data"]["passages"][0]["source"] == "SB-2024-117"
-    assert "SB-2024-117" in grounded["answer"] and "6,500" in grounded["answer"]
+    assert "SB-2024-102" in {p["source"] for p in call["result"]["data"]["passages"]}
+    assert "SB-2024-102" in grounded["answer"] and "coolant loop pressure low" in grounded["answer"]
     miss, _ = work.agent("m5-miss", env=ingested)
     assert miss["tool_calls"][0]["result"]["category"] == "no_results"
     assert "won't guess" in miss["answer"] and "3,000" not in miss["answer"]
