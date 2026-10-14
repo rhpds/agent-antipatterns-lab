@@ -24,7 +24,12 @@ The tenant Application template:
 - has no field for extra annotations, so its compare options can't be set per lab;
 - injects `deployer.domain`, `deployer.apiUrl` and `deployer.guid` into the Helm values.
 
-The role then waits for the Application to be Healthy **and Synced**: `ocp4_workload_gitops_bootstrap_application_sync_required` defaults to `true`.
+After creating it, the role's `tasks/workload.yml` runs two waits:
+
+1. **"Wait until bootstrap ArgoCD application is healthy and synced".** It polls the Application every 10 s, up to `ocp4_workload_gitops_bootstrap_health_retries` times (default 60, so about 10 minutes), for Healthy **and** Synced. It runs with `ignore_errors: ocp4_workload_gitops_bootstrap_health_ignore`, default `true`, so when it runs out of retries the role logs the error and **carries on**.
+2. After a 60 s pause, it checks only *child* Applications labelled `app.kubernetes.io/instance=<bootstrap name>`. This chart creates none, so the check passes at once.
+
+`ocp4_workload_gitops_bootstrap_application_sync_required` and `..._health_required` appear in the role's defaults, but no task reads them.
 
 ## What the RHDP Argo CD instance needs: ignore the notebook webhook's additions
 
@@ -35,7 +40,12 @@ The role then waits for the Application to be Healthy **and Synced**: `ocp4_work
 - the volume mounts and volumes `trusted-ca`, `runtime-images`, `kube-rbac-proxy-config` and `kube-rbac-proxy-tls-certificates`;
 - `serviceAccountName`.
 
-Argo CD counts them as drift. On a tenant Application built from RHDP's template, the Notebook stays `OutOfSync` forever, so the role's Synced wait never succeeds and **tenant provisioning times out**. With `selfHeal: false` there is no re-apply loop; the loop only appears with self-heal on.
+Argo CD counts them as drift. On a tenant Application built from RHDP's template, the Notebook stays `OutOfSync` forever, so the role's first wait never succeeds:
+
+- **With the role's defaults,** every participant's provisioning **stalls for about 10 minutes** on that wait, logs an ignored error, and then continues. The environment works, but slower, and the Application shows `OutOfSync` permanently, which hides any real drift.
+- **If the catalog sets `ocp4_workload_gitops_bootstrap_health_ignore: false`,** that wait fails and so does provisioning.
+
+With `selfHeal: false` there is no re-apply loop; the loop only appears with self-heal on.
 
 **The fix: one AgnosticV variable for the RHDP GitOps role** (`ocp4_workload_openshift_gitops`). It becomes the instance's `resourceIgnoreDifferences` and ignores only those named items, so the workbench container's own settings are still compared:
 
@@ -63,7 +73,8 @@ ocp4_workload_openshift_gitops_ignore_differences: |
 
 **Alternatives:**
 
-- Setting `ocp4_workload_gitops_bootstrap_application_sync_required: false` also stops the provisioning failure, but hides genuine sync errors.
+- Lowering `ocp4_workload_gitops_bootstrap_health_retries` shortens the stall, but it also shortens the wait for a tenant that is still genuinely starting, and the Application still shows `OutOfSync`.
+- `ocp4_workload_gitops_bootstrap_application_sync_required: false` does nothing: no task reads it.
 - `argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true` on the Application also works (verified). RHDP's Application template can't carry it, though. Argo CD reads compare options from the Application, not from the resource.
 
 **Side effect of `RespectIgnoreDifferences=true`:** after the first sync, a later Git change to the ignored fields won't be applied. None of them is set by this chart.
