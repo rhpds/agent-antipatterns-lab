@@ -128,6 +128,8 @@ spec:
       as of 3.5 and is deliberately not used, because querying Postgres directly needs
       nothing pre-GA and remains forward-compatible with that integration.'
     external_services:
+    # Model weights come from Red Hat's ModelCar image on registry.redhat.io;
+    # huggingface.co is only the fallback when modelServing.storageUri is unset.
     - registry.redhat.io
     - quay.io
     - huggingface.co
