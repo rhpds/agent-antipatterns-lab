@@ -51,10 +51,9 @@ metadata:
     {{- end }}
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    # The notebook webhook adds containers, env and volumes (auth proxy, MLflow, CA
-    # bundles), so a client-side diff never matches and self-heal re-applies the Notebook
-    # every minute. Diff against a server-side dry run that includes the webhook instead.
-    argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
+    # The notebook webhook adds containers, env and volumes, so the Application that syncs
+    # this chart needs server-side diff; see automation/gitops/README.md. (Set on this
+    # resource instead, OpenShift GitOps 1.22 ignores it.)
 spec:
   template:
     spec:
