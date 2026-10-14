@@ -35,6 +35,9 @@ rules:
   - apiGroups: ["datasciencecluster.opendatahub.io"]
     resources: ["datascienceclusters"]
     verbs: ["get", "list"]
+  - apiGroups: ["dscinitialization.opendatahub.io"]
+    resources: ["dscinitializations"]
+    verbs: ["get", "list"]
   - apiGroups: ["gateway.networking.k8s.io"]
     resources: ["gateways"]
     verbs: ["get", "list"]
@@ -149,7 +152,9 @@ spec:
               }
               # The cluster's one DataScienceCluster, whoever created it: this chart
               # (default-dsc) or, with rhoai.install false, the ai_workloads role.
-              dsc_ready() { [ "$(oc get datasciencecluster -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}')" = "True" ]; }
+              # .items[0]: the operator allows only one DataScienceCluster. stderr is dropped
+              # because oc reports "array index out of bounds" until the DSC exists.
+              dsc_ready() { [ "$(oc get datasciencecluster -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" = "True" ]; }
               # The lab needs these components Managed. Fail with a clear message rather
               # than time out later on a missing CRD or a workbench that never starts.
               dsc_components() {
@@ -165,10 +170,27 @@ spec:
                 fi
                 echo "ok: DataScienceCluster components Managed: {{ join " " .Values.rhoai.requiredComponents }}{{ if .Values.mlflow.enabled }} mlflowoperator{{ end }}"
               }
+              # Settings the lab depends on that rhoai.install false leaves to the other
+              # install. Headless: the agent calls <endpoint>-predictor...svc:8080, which only
+              # reaches vLLM through a headless Service. applicationsNamespace: the MLflow CR
+              # and Route are created there.
+              dsc_settings() {
+                bad=""
+                raw=$(oc get datasciencecluster -o jsonpath='{.items[0].spec.components.kserve.rawDeploymentServiceConfig}')
+                [ "$raw" = {{ .Values.rhoai.kserveRawServiceConfig }} ] || bad="$bad kserve.rawDeploymentServiceConfig=${raw:-unset}(want {{ .Values.rhoai.kserveRawServiceConfig }})"
+                appns=$(oc get dscinitialization -o jsonpath='{.items[0].spec.applicationsNamespace}')
+                [ "$appns" = {{ .Values.rhoai.applicationsNamespace }} ] || bad="$bad applicationsNamespace=${appns:-unset}(want {{ .Values.rhoai.applicationsNamespace }})"
+                if [ -n "$bad" ]; then
+                  echo "FAIL: OpenShift AI settings differ from what the lab needs:$bad"
+                  exit 1
+                fi
+                echo "ok: kserve.rawDeploymentServiceConfig={{ .Values.rhoai.kserveRawServiceConfig }}, applicationsNamespace={{ .Values.rhoai.applicationsNamespace }}"
+              }
               gpus_allocatable() { oc get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' | grep -qE '^[1-9]'; }
               {{- if .Values.rhoai.enabled }}
               wait_for "DataScienceCluster Ready" dsc_ready
               dsc_components
+              dsc_settings
               wait_for "Gateway {{ .Values.mcpGateway.gateway.name }}" oc get gateway {{ .Values.mcpGateway.gateway.name }} -n {{ .Values.mcpGateway.gateway.namespace }}
               {{- if .Values.mlflow.enabled }}
               wait_for "MLflow CRD" oc get crd mlflows.mlflow.opendatahub.io

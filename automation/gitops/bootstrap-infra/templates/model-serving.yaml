@@ -73,8 +73,6 @@ spec:
         # The single deliberate difference between the two endpoints:
         - --tool-call-parser={{ .toolCallParser }}
       env:
-        - name: HOME
-          value: /tmp
         {{- if not $m.storageUri }}
         - name: HF_HOME
           value: /hf-cache
@@ -83,6 +81,8 @@ spec:
         - name: HF_HUB_OFFLINE
           value: "0"
         {{- end }}
+        - name: HOME
+          value: /tmp
       ports:
         - containerPort: 8080
           protocol: TCP

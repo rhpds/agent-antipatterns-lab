@@ -37,9 +37,9 @@ in `requirements.txt` provides that auth mode. Nothing to export.
 Outside a workbench, set it by hand:
 
 ```bash
-export MLFLOW_TRACKING_URI=https://<direct-route-to-mlflow>/mlflow   # keep /mlflow
-export MLFLOW_WORKSPACE=<your-namespace>                              # OpenShift AI MLflow workspaces are namespaces
-export MLFLOW_TRACKING_TOKEN=<bearer-token>
+export MLFLOW_TRACKING_URI=https://<route-to-mlflow>/mlflow   # keep /mlflow
+export MLFLOW_WORKSPACE=<your-namespace>                       # OpenShift AI MLflow workspaces are namespaces
+export MLFLOW_TRACKING_TOKEN=$(oc whoami -t)                   # your own token; a service account needs MLflow RBAC
 ```
 
 Without the `/mlflow` path the client's workspace check (`/api/3.0/mlflow/server-info`) gets a 404,

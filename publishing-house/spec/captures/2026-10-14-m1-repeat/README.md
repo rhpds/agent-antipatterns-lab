@@ -8,7 +8,7 @@
 - Endpoint A with `--tool-call-parser=pythonic`, from the chart on `dev`.
 - The starter agent from `dev`, `python agent.py --q m1`, default system prompt.
 - 10 runs one after another (`seq-01` to `seq-10`), then 10 runs started at the same time (`par-01` to `par-10`). The concurrent runs share vLLM batches, which is the case `design.md` worries about for a full room.
-- Every run sent the same request, byte for byte: `request.json`. Each run's response is in `responses/<run>.json`.
+- Every run sent the same request, byte for byte: `request.json`. The 20 per-run copies were compared with it (`cmp`, all identical) and not committed. Each run's response is in `responses/<run>.json`.
 
 ## Results
 

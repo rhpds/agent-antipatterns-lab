@@ -72,11 +72,14 @@ spec:
               set -euo pipefail
               repo={{ $src }}/{{ $w.repo.dir }}
               venv={{ $src }}/.venv
-              # Keep a clone only once it is known good: clone outside the PVC, check it
-              # holds the agent, then move it into place. A wrong ref or a clone killed
-              # partway fails here with a clear message, and heals once the ref is fixed.
+              # Keep a clone only once it is known good: clone into a temporary directory
+              # on the PVC, check it holds the agent, then rename it into place. The rename
+              # is on the same filesystem, so a pod killed at any point leaves either no
+              # clone or a whole one. A wrong ref fails here with a clear message, and heals
+              # once the ref is fixed.
               if [ ! -f "$repo/agent/requirements.txt" ]; then
-                tmp=$(mktemp -d)
+                tmp=$(mktemp -d -p {{ $src }} .lab-clone.XXXXXX)
+                trap 'rm -rf "$tmp"' EXIT
                 git clone --depth 1 --branch "$LAB_REPO_REF" "$LAB_REPO_URL" "$tmp/repo"
                 if [ ! -f "$tmp/repo/agent/requirements.txt" ]; then
                   echo "lab-setup: $LAB_REPO_URL at '$LAB_REPO_REF' has no agent/requirements.txt;" \
