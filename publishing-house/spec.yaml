@@ -19,7 +19,7 @@ project:
   jira_ticket: RHDPCD-1073
   workflow_id: ae352eec-d9fb-4849-b96e-cf7a6a4cf4dc
 spec:
-  title: 'Building an Agent on OpenShift AI: Each Step, and How It Breaks First'
+  title: 'Four ways your agent can break'
   learning_objectives:
   - Deploy a vLLM serving runtime on OpenShift AI configured so that a model's tool
     calls are emitted and parsed rather than stranded as text in the response body.
