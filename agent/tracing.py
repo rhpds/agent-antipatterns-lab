@@ -1,11 +1,11 @@
 """Optional MLflow tracing.
 
-Set MLFLOW_TRACKING_URI to a direct Route to the MLflow server (not the OpenShift
-AI Gateway, which rejects Kubernetes tokens: RHOAIENG-44516), including the /mlflow
-path the server is mounted under. The OpenShift AI MLflow server also needs
-MLFLOW_WORKSPACE (a namespace) and MLFLOW_TRACKING_TOKEN; the mlflow client reads
-both from the environment. When MLFLOW_TRACKING_URI is not set, every function here
-does nothing, so the agent runs fine without MLflow.
+In the lab workbench, OpenShift AI's MLflow integration sets MLFLOW_TRACKING_URI and
+MLFLOW_TRACKING_AUTH=kubernetes-namespaced, so this works with no setup. Elsewhere, set
+MLFLOW_TRACKING_URI to a Route to the MLflow server including the /mlflow path it is
+mounted under, plus MLFLOW_WORKSPACE (a namespace) and MLFLOW_TRACKING_TOKEN; the
+mlflow client reads all of them from the environment. When MLFLOW_TRACKING_URI is not
+set, every function here does nothing, so the agent runs fine without MLflow.
 """
 import contextlib
 import os

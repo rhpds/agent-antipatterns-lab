@@ -29,8 +29,15 @@ logging is needed.
 
 ## Tracing (optional)
 
+In the lab workbench, OpenShift AI sets this up: the workbench's MLflow integration sets
+`MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_AUTH=kubernetes-namespaced` (the pod's service-account
+token, with its namespace as the workspace) and `MLFLOW_K8S_INTEGRATION`, and `mlflow[kubernetes]`
+in `requirements.txt` provides that auth mode. Nothing to export.
+
+Outside a workbench, set it by hand:
+
 ```bash
-export MLFLOW_TRACKING_URI=https://<direct-route-to-mlflow>/mlflow   # not the OpenShift AI Gateway; keep /mlflow
+export MLFLOW_TRACKING_URI=https://<direct-route-to-mlflow>/mlflow   # keep /mlflow
 export MLFLOW_WORKSPACE=<your-namespace>                              # OpenShift AI MLflow workspaces are namespaces
 export MLFLOW_TRACKING_TOKEN=<bearer-token>
 ```

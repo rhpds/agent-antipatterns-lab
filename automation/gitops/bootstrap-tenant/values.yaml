@@ -10,7 +10,8 @@ modelServing:
   namespace: llm-serving
 
 # RBAC for the workbench (Notebook CR) and MLflow tracking (module 1/7).
-# MLflow clients send `X-MLflow-Workspace: <username>-app` with their SA token.
+# lab-user covers the participant's own identity; the workbench's service account gets
+# MLflow access from OpenShift AI's integration (see templates/workbench.yaml).
 rbac:
   workbench: true
   mlflow: true
