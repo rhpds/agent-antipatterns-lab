@@ -22,6 +22,7 @@ pip install -r requirements.txt
 python agent.py --q m1            # the module 1 question; see questions.py for the others
 python agent.py "your own question"
 python payloads.py                # the raw request and response of the last run
+python reset.py 4                 # back to the state module 4 starts from (edits backed up first)
 ```
 
 Every run saves the raw request and response of each model call under `runs/`. No debug
