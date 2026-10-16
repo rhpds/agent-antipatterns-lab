@@ -1,5 +1,5 @@
 name: modules
-title: "Four Ways Your Agent can Break"
+title: "LB8000: Four Ways Your Agent can Break"
 version: ~
 nav:
   - modules/ROOT/nav.adoc
@@ -8,3 +8,8 @@ asciidoc:
   attributes:
     experimental: true
     page-pagination: true
+    guid: '%GUID%'
+    user: 'user-%GUID%@'
+    openshift_cluster_ingress_domain: 'apps.cluster-example.dyn.redhatworkshops.io@'
+    openshift_console_url: 'https://console-openshift-console.apps.cluster-example.dyn.redhatworkshops.io@'
+    openshift_api_url: 'https://api.cluster-example.dyn.redhatworkshops.io:6443@'
