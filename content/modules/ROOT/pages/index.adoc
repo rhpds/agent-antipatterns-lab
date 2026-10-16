@@ -1,0 +1,8 @@
+= Four Ways Your Agent can Break
+:page-layout: home
+
+== Lab Overview
+
+Four Ways Your Agent Fails in Production -- and the Red Hat AI Feature That Fixes Each.
+
+TBD

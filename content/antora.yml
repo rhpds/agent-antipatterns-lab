@@ -1,0 +1,10 @@
+name: modules
+title: "Four Ways Your Agent can Break"
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    experimental: true
+    page-pagination: true
