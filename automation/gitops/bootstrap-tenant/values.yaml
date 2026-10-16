@@ -1,0 +1,5 @@
+tenant:
+  name: user1
+  user:
+    name: user-example
+    password: changeme
