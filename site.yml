@@ -1,6 +1,6 @@
 ---
 site:
-  title: Four Ways the Agents can Break
+  title: "LB8000: Four Ways Your Agent can Break"
   url: https://github.com/rhpds/agent-antipatterns-lab
   start_page: modules::index.adoc
 
