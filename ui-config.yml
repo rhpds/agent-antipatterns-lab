@@ -9,12 +9,11 @@ view_switcher:
   default_mode: split
 
 tabs:
-  - name: ">_ Terminal"
+tabs:
+  - name: ">_ terminal"
     path: /wetty
     port: 443
   - name: OpenShift Console
-    path: /openshift
-    port: 443
+    url: 'https://console-openshift-console.${DOMAIN}'
   - name: OpenShift AI
-    path: /rhoai
-    port: 443
+    url: 'https://rhods-dashboard-redhat-ods-applications.${DOMAIN}'
