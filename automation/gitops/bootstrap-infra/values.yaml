@@ -1,2 +1,25 @@
 deployer:
   domain: apps.example.com
+
+# ---------------------------------------------------------------------------
+# RHOAI DataScienceCluster
+# ---------------------------------------------------------------------------
+datascience:
+  enabled: true
+  applicationsNamespace: redhat-ods-applications
+  # Component names are the DataScienceCluster **v2** set, read from the CRD
+  # schema on this cluster. v2 is the storage version in RHOAI 3.5 and its
+  # component list differs from v1 — `datasciencepipelines` and `codeflare` no
+  # longer exist, and several capabilities this lab needs appear as first-class
+  # components for the first time.
+  components:
+    # --- The lab's core dependencies ---
+    aigateway: Managed             # Model Gateway — the governed inference endpoint (D2)
+    # MCP server lifecycle: runs the MCPServer resources in tenant-platform. It
+    # is NOT the MCP Gateway — its CRD has no routing or authorization surface.
+    # The gateway comes from the mcpGatewayOperator above.
+    mcplifecycleoperator: Managed
+    mlflowoperator: Managed        # MLflow tracing — the observability spine of the lab
+    trustyai: Managed              # Guardrails Orchestrator and Garak integration
+    kserve: Managed                # model serving, underpins aigateway
+    dashboard: Managed             # RHOAI console

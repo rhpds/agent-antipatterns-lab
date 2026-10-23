@@ -1,0 +1,37 @@
+{{- if .Values.datascience.enabled }}
+{{/*
+RHOAI DataScienceCluster.
+
+This lands in a late sync wave because it depends on two things ArgoCD cannot
+see when it first renders the chart: the DataScienceCluster CRD (created by the
+RHOAI operator) and the DSCInitialization the operator reconciles first. Both
+appear only after the operator's InstallPlan has been approved, which is a
+manual step by design.
+
+SkipDryRunOnMissingResource is therefore required — without it the first sync
+fails outright, because ArgoCD dry-runs against a CRD that does not exist yet.
+ServerSideApply keeps us from fighting the operator over defaulted fields it
+writes back into the spec.
+
+Expect this Application to sit Progressing until the InstallPlan is approved.
+That is the intended behaviour, not a fault.
+*/}}
+# v2 is the storage version in RHOAI 3.5. v1 is still served but its component
+# set is different, so pinning v2 keeps the values in this chart honest.
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  labels:
+    app.kubernetes.io/managed-by: argocd
+    rhdp.redhat.com/lab: agentops-in-action
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,ServerSideApply=true
+spec:
+  components:
+{{- range $component, $state := .Values.datascience.components }}
+    {{ $component }}:
+      managementState: {{ $state }}
+{{- end }}
+{{- end }}
