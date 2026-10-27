@@ -23,3 +23,20 @@ datascience:
     trustyai: Managed              # Guardrails Orchestrator and Garak integration
     kserve: Managed                # model serving, underpins aigateway
     dashboard: Managed             # RHOAI console
+
+# ---------------------------------------------------------------------------
+# MLflow instance (requires datascience.components.mlflowoperator: Managed)
+# ---------------------------------------------------------------------------
+mlflow:
+  enabled: true
+  backendStoreUri: "sqlite:////mlflow/data/mlflow.db"
+  artifactsDestination: "file:///mlflow/data/artifacts"
+  storageSize: 5Gi
+  replicas: 1
+  resources:
+    requests:
+      cpu: 150m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi

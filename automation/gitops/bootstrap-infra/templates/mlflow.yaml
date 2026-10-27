@@ -1,0 +1,54 @@
+{{- if .Values.mlflow.enabled }}
+{{/*
+MLflow instance CR, cluster-wide singleton (name must be "mlflow", namespace
+must be redhat-ods-applications).
+
+Same CRD race condition as the DataScienceCluster itself: this CRD is
+installed by the mlflowoperator component, which only reconciles after the
+DSC above has synced. SkipDryRunOnMissingResource + ServerSideApply + a later
+sync-wave are required for the same reason documented there.
+*/}}
+apiVersion: mlflow.opendatahub.io/v1
+kind: MLflow
+metadata:
+  name: mlflow
+  namespace: redhat-ods-applications
+  labels:
+    app.kubernetes.io/managed-by: argocd
+    rhdp.redhat.com/lab: agentops-in-action
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,ServerSideApply=true
+spec:
+  backendStoreUri: {{ .Values.mlflow.backendStoreUri | quote }}
+  serveArtifacts: true
+  artifactsDestination: {{ .Values.mlflow.artifactsDestination | quote }}
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ .Values.mlflow.storageSize }}
+  replicas: {{ .Values.mlflow.replicas }}
+  resources:
+    {{- toYaml .Values.mlflow.resources | nindent 4 }}
+---
+# Workaround for RHOAIENG-44516: routes directly to the mlflow Service so its
+# URL can be used as the tracking URI (auth via SA bearer token).
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mlflow
+  namespace: redhat-ods-applications
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  to:
+    kind: Service
+    name: mlflow
+  port:
+    targetPort: 8443
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
