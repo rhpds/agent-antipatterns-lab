@@ -226,8 +226,8 @@ approval_checklist:
     module_summaries:
     - title: What you are building, and how to see inside it
       overview: Participants meet the agent they will build and establish the habit
-        the lab depends on. They run it once, get a confident invented answer, and
-        learn to read the request and response payloads and the resulting trace rather
+        the lab depends on. They run it once, get back a tool call printed as
+        text in place of an answer, and learn to read the request and response payloads and the resulting trace rather
         than the answer. Nothing is built; the output is a habit and a baseline.
     - title: 'The model interface: making tool calls fire at all'
       overview: The agent declared tools and called none. Strengthening the prompt

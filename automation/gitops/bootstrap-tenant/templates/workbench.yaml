@@ -98,6 +98,10 @@ spec:
                 # Move an earlier unusable clone aside rather than deleting it.
                 if [ -e "$repo" ]; then mv "$repo" "$repo.unusable.$(date +%s)"; fi
                 mv "$tmp/repo" "$repo"
+                # Remove the now-empty temporary directory here, not only in the EXIT trap:
+                # a pod killed during the pip install below would otherwise leave it, and
+                # with $repo whole the cleanup above never runs again.
+                rmdir "$tmp"
               fi
               if [ ! -f "$venv/.lab-installed" ]; then
                 python3 -m venv "$venv"

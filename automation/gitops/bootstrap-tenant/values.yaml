@@ -50,8 +50,9 @@ workbench:
 # Module 5 vector store: pgvector Postgres as a plain Deployment (no operator).
 pgvector:
   enabled: true
-  # TODO: Docker Hub image; 30 simultaneous pulls risk rate limits and docker.io is not
-  # in spec external_services. Mirror to quay.io and point this at the mirror.
+  # TODO: Docker Hub image; 30 simultaneous pulls risk rate limits. Mirror it (for example
+  # to quay.io) and point this at the mirror, then swap docker.io for the mirror's registry
+  # in spec.yaml external_services and design.md.
   image: docker.io/pgvector/pgvector:pg16
   database: kestrel
   user: kestrel
