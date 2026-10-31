@@ -1,5 +1,5 @@
-= My Lab Title
+= Four ways your agent can break
 
-This project was created with the RHDP Publishing House template.
+== Lab overview
 
-Run `/rhdp-publishing-house` in Claude Code to begin.
+// TODO(author): lab overview.
