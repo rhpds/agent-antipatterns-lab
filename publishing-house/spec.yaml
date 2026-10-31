@@ -131,7 +131,8 @@ spec:
     # Model weights come from Red Hat's ModelCar image on registry.redhat.io;
     # huggingface.co is only the fallback when modelServing.storageUri is unset.
     - registry.redhat.io
-    - quay.io
+    - registry.access.redhat.com
+    - docker.io
     - huggingface.co
     - github.com
     - pypi.org

@@ -56,7 +56,7 @@ The agent is a field service parts assistant. A service engineer asks it what pa
 | 1, 2 | "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?" | Unanswerable without a tool, so a tool call is attempted every run |
 | 3 | "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?" | Needs `find_part` then `check_stock`, and the second call cannot be made without the first's output |
 | 4 | "Is the K-600 high-pressure sensor available at the Portland depot?" | Portland is not a depot in the fixture data. `check_stock` silently drops the unrecognised depot filter and returns an empty result identical to genuinely out of stock |
-| 5 | "What's the recommended service interval for the K-400 coolant pump seal?" | Answerable only from service bulletin SB-2024-117, so the model invents confidently until retrieval exists |
+| 5 | "A K-400 is showing fault F-21. What should the technician do?" | Answerable only from service bulletin SB-2024-102 ("coolant loop pressure low"). Without retrieval the model invents a cause and a part number (decision 0003) |
 | 5 (miss) | "What's the service interval on a Kestrel K-900?" | The K-900 does not exist, so retrieval returns nothing and the agent must say so rather than invent |
 | 6 | "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?" | Requires `estimate_delivery`, which the agent did not have two minutes earlier |
 | 7 | All of the above, as a regression set | One input per earlier module |
@@ -131,7 +131,7 @@ Guardrails Orchestrator, NeMo Guardrails, EvalHub and Garak were all in the reje
 
 | Module | Title | Duration | Opens with | Closes with |
 |---|---|---|---|---|
-| 1 | What you are building, and how to see inside it | 12 min | A confident answer built from nothing | Reading the payload and the first trace |
+| 1 | What you are building, and how to see inside it | 12 min | A tool call returned as text, with no error | Reading the payload and the first trace |
 | 2 | The model interface: making tool calls fire at all | 22 min | Tools declared, none ever called, no error | A serving runtime whose parser matches the model |
 | 3 | The agent loop: stop conditions and turn control | 16 min | The same tool called until the iteration cap | Termination on the model's reported stop condition |
 | 4 | Tool returns that tell the truth | 14 min | A well-formed empty result read as success | A structured error contract |
@@ -212,7 +212,7 @@ Automation must provision the workbench per participant with the agent repo pre-
   Chosen because Red Hat OpenShift AI is standardizing on pgvector as a remote vector store provider, so a participant meets the direction the platform is going rather than an arbitrary pick. No operator is required. There is no Milvus, Qdrant, Weaviate or Chroma operator in any catalog on the dev cluster, and the Milvus path runs through OGX, the renamed Llama Stack, which is being de-emphasized and is mid-rename.
 
   The RHOAI built-in pgvector provider integration is EA2 as of 3.5 and is deliberately **not** used. Module 5's retrieval tool queries Postgres directly, which requires nothing pre-GA, keeps the non-GA dependency count at one, and remains forward-compatible with that integration when it reaches GA.
-- **External services:** `registry.redhat.io` (RHOAI and operator images, and the model weights as Red Hat's ModelCar image `rhelai1/modelcar-qwen3-8b-fp8-dynamic`), `quay.io` (workbench and MCP server images), `huggingface.co` (model weights only as the fallback, when `modelServing.storageUri` is unset), `github.com` (the agent repo cloned into each workbench), `pypi.org` (Python dependencies). The environment is not air-gapped.
+- **External services:** `registry.redhat.io` (RHOAI and operator images, and the model weights as Red Hat's ModelCar image `rhelai1/modelcar-qwen3-8b-fp8-dynamic`), `registry.access.redhat.com` (the UBI Python image the MCP server runs on), `docker.io` (the pgvector image, `pgvector/pgvector:pg16`, until a mirror is decided), `huggingface.co` (model weights only as the fallback, when `modelServing.storageUri` is unset), `github.com` (the agent repo cloned into each workbench), `pypi.org` (Python dependencies). The environment is not air-gapped.
 - **AAP version:** Not applicable. Ansible Automation Platform is not in the product list.
 - **Non-GA products:** One. **MCP Gateway**, Tech Preview via Red Hat Connectivity Link. It ships inside RHOAI and the normal operator catalog, so no separate entitlement or non-standard registry is needed. It is no longer load-bearing: module 6 teaches governed tool access as a build step, and if the gateway regresses before the event the documented fallback is tool scoping at the MCP server or registry level plus RBAC, which demonstrates the same principle. No learning objective fails without it.
 
