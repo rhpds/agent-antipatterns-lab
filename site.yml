@@ -1,6 +1,6 @@
 ---
 site:
-  title: Four ways your agent can break
+  title: "LB8000: Four ways your agent can break"
   url: https://github.com/rhpds/agent-antipatterns-lab
   start_page: modules::index.adoc
 
@@ -13,6 +13,7 @@ ui:
   bundle:
     url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/v2.0.3/ui-bundle.zip
     snapshot: true
+  supplemental_files: ./content/supplemental-ui
 
 antora:
   extensions:
@@ -22,6 +23,9 @@ antora:
       mermaid_initialize_options:
         start_on_load: true
     - require: '@andrew-jones/antora-tabs-extension'
+
+runtime:
+  fetch: true
 
 output:
   dir: ./www

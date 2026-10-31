@@ -9,11 +9,11 @@ view_switcher:
   default_mode: split
 
 tabs:
-  - name: OCP Console
+  - name: ">_ terminal"
+    path: /wetty
+    port: 443
+  - name: OpenShift Console
     url: 'https://console-openshift-console.${DOMAIN}'
-  - name: ">_ OCP Terminal"
-    url: 'https://codeserver-codeserver.${DOMAIN}'
-  - name: Workbench
-    url: /placeholder
-  - name: MLflow
-    url: /placeholder
+  - name: OpenShift AI
+    url: 'https://rhods-dashboard-redhat-ods-applications.${DOMAIN}'
+  # Workbench and MLflow tabs go here once their routes exist on the CI cluster.

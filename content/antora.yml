@@ -1,5 +1,5 @@
 name: modules
-title: Four ways your agent can break
+title: "LB8000: Four ways your agent can break"
 version: ~
 nav:
   - modules/ROOT/nav.adoc
@@ -9,6 +9,7 @@ asciidoc:
     experimental: true
     page-pagination: true
     guid: '%GUID%'
-    ssh_user: lab-user
-    ssh_password: changeme
-    openshift_console_url: 'https://console-openshift-console.apps.cluster-%GUID%.example.com'
+    user: 'user-%GUID%@'
+    openshift_cluster_ingress_domain: 'apps.cluster-example.dyn.redhatworkshops.io@'
+    openshift_console_url: 'https://console-openshift-console.apps.cluster-example.dyn.redhatworkshops.io@'
+    openshift_api_url: 'https://api.cluster-example.dyn.redhatworkshops.io:6443@'
