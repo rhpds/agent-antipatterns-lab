@@ -66,6 +66,30 @@ def span(name, span_type="UNKNOWN", inputs=None):
         cm.__exit__(None, None, None)
 
 
+
+def record_model_call(span, response):
+    """Put what the model returned on its span, where the trace view shows it: the stop
+    reason, the tool calls it made (an empty list when it made none), and its text."""
+    try:
+        choice = response.choices[0]
+        calls = [{"name": c.function.name, "arguments": c.function.arguments}
+                 for c in (choice.message.tool_calls or [])]
+        span.set_attributes({"finish_reason": choice.finish_reason, "tool_call_count": len(calls)})
+        span.set_outputs({"finish_reason": choice.finish_reason, "tool_calls": calls,
+                          "content": choice.message.content})
+    except Exception as exc:
+        print(f"[tracing] model call not recorded: {exc}")
+
+
+def record_run(span, summary):
+    """Put the run's outcome on the root span: the answer, why the run ended, how many
+    turns it took, and how many tools it actually called."""
+    try:
+        span.set_outputs({"answer": summary["answer"], "ended_by": summary["ended_by"],
+                          "turns": summary["turns"], "tool_calls": len(summary["tool_calls"])})
+    except Exception as exc:
+        print(f"[tracing] run outcome not recorded: {exc}")
+
 def log_baseline(name, params, metrics):
     """Record a named run (module 7 baseline). No-op when tracing is off."""
     if _mlflow is None:
