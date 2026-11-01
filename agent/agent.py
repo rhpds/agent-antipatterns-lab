@@ -39,18 +39,15 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
 
     with tracing.span("agent_run", "AGENT", inputs={"question": question}) as root:
         for turn in range(1, agent_cfg["max_turns"] + 1):
-            with tracing.span(f"model_call_{turn}", "CHAT_MODEL", inputs={"messages": len(messages)}) as llm_span:
+            with tracing.span(f"model_call_{turn}", "CHAT_MODEL", inputs={"messages": len(messages), "tools_offered": runlog.tools_offered}) as llm_span:
                 response = call_model(config, messages, toolbox.definitions, runlog, turn)
                 message = response.choices[0].message
-                llm_span.set_attributes({
-                    "finish_reason": response.choices[0].finish_reason,
-                    "tool_call_count": len(message.tool_calls or []),
-                })
+                tracing.record_model_call(llm_span, response)
 
             if not message.tool_calls:
                 # The model answered in plain text.
                 summary = runlog.finish(message.content, "plain_answer")
-                root.set_outputs({"answer": message.content})
+                tracing.record_run(root, summary)
                 return summary
 
             for call in message.tool_calls:
@@ -62,12 +59,12 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
 
             if "final answer" in (message.content or "").lower():
                 summary = runlog.finish(message.content, "final_answer_text")
-                root.set_outputs({"answer": message.content})
+                tracing.record_run(root, summary)
                 return summary
 
         answer = f"Stopped after {agent_cfg['max_turns']} turns without a final answer."
         summary = runlog.finish(answer, "max_turns")
-        root.set_outputs({"answer": answer})
+        tracing.record_run(root, summary)
         return summary
 
 
