@@ -26,6 +26,11 @@ def test_tracing_records_spans_when_uri_set(work, tmp_path):
     assert spans["model_call_3"].outputs["finish_reason"] == "stop"
     root = spans["agent_run"].outputs
     assert root["turns"] == 3 and root["tool_call_count"] == len(summary["tool_calls"]) > 0
+    # The full messages, system prompt included, so two prompt variants differ in the trace.
+    assert spans["model_call_1"].inputs["messages"][0]["role"] == "system"
+    # Each trace is tagged with what varied, for MLflow's trace list.
+    tags = traces[0].info.tags
+    assert tags["prompt"] == "default" and tags["question"] == "m3" and tags["endpoint"]
 
 
 def test_unreachable_tracking_server_does_not_break_the_agent(work):

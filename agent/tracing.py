@@ -11,6 +11,7 @@ import contextlib
 import os
 
 _mlflow = None  # the mlflow module once tracing is switched on
+_run_tags = {}  # tags for the next run's trace (see set_run_tags)
 
 
 def init():
@@ -86,12 +87,21 @@ def record_model_call(span, response):
         print(f"[tracing] model call not recorded: {exc}")
 
 
+def set_run_tags(**tags):
+    """Tag the next run's trace with what varied, for example endpoint and prompt, so the
+    MLflow trace list can show and filter runs by them."""
+    _run_tags.clear()
+    _run_tags.update({k: str(v) for k, v in tags.items()})
+
+
 def record_run(span, summary):
     """Put the run's outcome on the root span: the answer, why the run ended, how many
     turns it took, and how many tools it actually called."""
     try:
         span.set_outputs({"answer": summary["answer"], "ended_by": summary["ended_by"],
                           "turns": summary["turns"], "tool_call_count": len(summary["tool_calls"])})
+        if _mlflow is not None and _run_tags:
+            _mlflow.update_current_trace(tags=dict(_run_tags))
     except Exception as exc:
         print(f"[tracing] run outcome not recorded: {exc}")
 
