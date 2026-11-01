@@ -50,7 +50,8 @@ Unset, tracing does nothing and the agent runs as normal.
 
 ## Knowledge search (module 5)
 
-The corpus is ingested at provisioning time with `python ingest_corpus.py`. Both scripts read
+The lab workbench loads the corpus when it starts, if it isn't loaded yet
+(`bootstrap-tenant`'s `lab-setup` runs `python ingest_corpus.py`). Run that yourself to reload it. Both scripts read
 `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` and `PGPASSWORD`. Query it directly with
 `python retrieval.py "your query"`.
 
