@@ -15,16 +15,21 @@ IMAGE = "docker.io/pgvector/pgvector:pg16"
 
 @pytest.fixture(scope="session")
 def pg():
-    """A throwaway pgvector Postgres on a random local port, removed afterwards."""
+    """A throwaway pgvector Postgres on a random local port, removed afterwards.
+
+    If it can't start, the module 5-7 checks fail rather than skip: a skipped check reads as
+    a pass, and these are the checks that exercise retrieval, the gateway and the full regression.
+    """
     if not shutil.which("podman"):
-        pytest.skip("podman not available")
+        pytest.fail("podman is not installed, so the bulletin database can't start: "
+                    "the module 5-7 checks can't run. Install podman (they never skip).")
     port = free_port()
     name = f"kestrel-pgvector-test-{port}"
     run = subprocess.run(["podman", "run", "-d", "--rm", "--name", name, "-p", f"127.0.0.1:{port}:5432",
                           "-e", "POSTGRES_PASSWORD=lab", "-e", "POSTGRES_DB=kestrel", IMAGE],
                          capture_output=True, text=True)
     if run.returncode:
-        pytest.skip(f"cannot start {IMAGE}: {run.stderr.strip()}")
+        pytest.fail(f"cannot start {IMAGE}, so the module 5-7 checks can't run: {run.stderr.strip()}")
     env = {"PGHOST": "127.0.0.1", "PGPORT": str(port), "PGUSER": "postgres",
            "PGPASSWORD": "lab", "PGDATABASE": "kestrel"}
     try:
@@ -78,6 +83,9 @@ def test_unreachable_store_is_upstream_unavailable(work):
 
 
 def test_module5_invention_then_grounded_then_explicit_miss(work, ingested):
+    """Scenario: Without knowledge search, the agent invents a cause for fault F-21
+    Scenario: With knowledge search, the F-21 answer follows the service bulletin
+    Scenario: The agent says so when the bulletins have nothing"""
     work.repoint_to_validated()
     work.apply_solution("module-04")                       # no retrieval tool registered yet
     invented, _ = work.agent("m5", env=ingested)
@@ -115,7 +123,13 @@ def register(port, tool):
                                                   data=json.dumps({"tool": tool}).encode()))
 
 
+def agent_files(work):
+    """What the participant's agent consists of: its code and its config."""
+    return {p.name: p.read_bytes() for p in sorted(work.path.iterdir()) if p.is_file()}
+
+
 def test_module6_gateway_is_behaviour_neutral_and_discovers_new_tool(work, ingested, gateway):
+    """Scenario: A tool added at the gateway is used without redeploying the agent"""
     port, url = gateway
     work.repoint_to_validated()
     local, _ = work.agent("m3", env=ingested)
@@ -129,14 +143,17 @@ def test_module6_gateway_is_behaviour_neutral_and_discovers_new_tool(work, inges
 
     before, _ = work.agent("m6", env=ingested)             # tool not registered: model has no tool to call
     assert before["tool_calls"] == []
+    files_before = agent_files(work)
     register(port, "estimate_delivery")                    # platform operation; agent files untouched
     after, _ = work.agent("m6", env=ingested)
+    assert agent_files(work) == files_before               # no agent files changed
     call = after["tool_calls"][0]
     assert call["name"] == "kestrel_estimate_delivery" and call["result"]["data"]["transit_days"] == 1
     assert "1 day" in after["answer"]
 
 
 def test_module7_full_regression_against_assembled_agent(work, ingested, gateway):
+    """Scenario: The regression run checks every earlier case against the assembled agent"""
     port, url = gateway
     work.repoint_to_validated()
     work.apply_solution("module-05")
