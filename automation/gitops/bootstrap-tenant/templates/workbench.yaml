@@ -128,27 +128,30 @@ spec:
               fi
               {{- if .Values.pgvector.enabled }}
               # Module 5's corpus: load it into this namespace's pgvector if it isn't there
-              # yet. pgvector may still be starting (the two come up together), so wait up
-              # to 3 minutes. Never block the workbench on it: on failure say how to load
-              # it by hand and carry on.
+              # yet. pgvector may still be starting (Argo CD syncs it one wave earlier, but a
+              # plain apply starts both together), so wait up to 3 minutes for it, and give
+              # the load itself 5. Never block the workbench on it: on failure say how to
+              # load it by hand and carry on.
               if ! LAB_AGENT_DIR="$repo/agent" "$venv/bin/python" - <<'PY'
               import os, subprocess, sys, time
               import psycopg
-              for attempt in range(36):
+              deadline = time.monotonic() + 180
+              while True:
                   try:
                       conn = psycopg.connect(connect_timeout=5)
                       break
                   except psycopg.OperationalError:
+                      if time.monotonic() > deadline:
+                          sys.exit("lab-setup: pgvector did not accept connections within 3 minutes")
                       time.sleep(5)
-              else:
-                  sys.exit("lab-setup: pgvector did not accept connections within 3 minutes")
               with conn:
                   loaded = (conn.execute("SELECT to_regclass('bulletins') IS NOT NULL").fetchone()[0]
                             and conn.execute("SELECT count(*) FROM bulletins").fetchone()[0] > 0)
               if loaded:
                   print("lab-setup: module 5 corpus already loaded")
               else:
-                  subprocess.run([sys.executable, "ingest_corpus.py"], cwd=os.environ["LAB_AGENT_DIR"], check=True)
+                  subprocess.run([sys.executable, "ingest_corpus.py"], cwd=os.environ["LAB_AGENT_DIR"],
+                                 check=True, timeout=300)
               PY
               then
                 echo "lab-setup: module 5's corpus is not loaded; load it from a terminal with:" \

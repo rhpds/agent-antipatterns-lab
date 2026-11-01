@@ -1,6 +1,7 @@
 """Load the service-bulletin corpus into PostgreSQL + pgvector.
 
-Run once at provisioning time (needs the `vector` extension available on the server).
+The lab workbench runs this when it starts, if the corpus isn't loaded yet (needs the
+`vector` extension available on the server).
 Connection comes from PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD.
 Safe to re-run: it replaces the table contents.
 
