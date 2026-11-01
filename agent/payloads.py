@@ -48,7 +48,21 @@ def show(run_dir, raw=False):
         print(f"response: finish_reason = {choice.get('finish_reason')}")
         print(f"          tool_calls    = {json.dumps(msg.get('tool_calls'))}")
         print(f"          content       = {json.dumps(msg.get('content'))}")
-    print(f"\nFull JSON files are in {run_dir}  (use --raw to print them)")
+    print(where_to_read(run_dir))
+
+
+def where_to_read(run_dir):
+    """Name the files to open, as the JupyterLab file browser shows them (from the home
+    folder), so participants can read the JSON as a tree instead of scrolling the terminal."""
+    folder = run_dir.resolve()
+    try:
+        folder = folder.relative_to(pathlib.Path.home().resolve())
+    except ValueError:
+        pass
+    return (f"\nTo read the full JSON, open this folder in the file browser:\n  {folder}/\n"
+            "  NN-request.json and NN-response.json: what was sent and what came back, per model call\n"
+            "  summary.json: the whole run, including every tool call and what the tool returned\n"
+            "Or print them here with: python payloads.py --raw")
 
 
 if __name__ == "__main__":
