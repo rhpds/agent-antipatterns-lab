@@ -1,3 +1,17 @@
+{{- define "workbench.pgEnv" }}
+{{- if .Values.pgvector.enabled }}
+- name: PGHOST
+  value: pgvector
+- name: PGPORT
+  value: "5432"
+- name: PGDATABASE
+  valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_DB}}
+- name: PGUSER
+  valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_USER}}
+- name: PGPASSWORD
+  valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_PASSWORD}}
+{{- end }}
+{{- end }}
 {{- if .Values.workbench.enabled }}
 {{- $w := .Values.workbench }}
 {{- $ns := printf "%s-app" .Values.username }}
@@ -72,6 +86,7 @@ spec:
               value: {{ $w.repo.url | quote }}
             - name: LAB_REPO_REF
               value: {{ $w.repo.ref | quote }}
+            {{- include "workbench.pgEnv" . | nindent 12 }}
           command: ["/bin/bash", "-c"]
           args:
             - |
@@ -111,6 +126,35 @@ spec:
                   -r "$repo/agent/requirements.txt"
                 touch "$venv/.lab-installed"
               fi
+              {{- if .Values.pgvector.enabled }}
+              # Module 5's corpus: load it into this namespace's pgvector if it isn't there
+              # yet. pgvector may still be starting (the two come up together), so wait up
+              # to 3 minutes. Never block the workbench on it: on failure say how to load
+              # it by hand and carry on.
+              if ! LAB_AGENT_DIR="$repo/agent" "$venv/bin/python" - <<'PY'
+              import os, subprocess, sys, time
+              import psycopg
+              for attempt in range(36):
+                  try:
+                      conn = psycopg.connect(connect_timeout=5)
+                      break
+                  except psycopg.OperationalError:
+                      time.sleep(5)
+              else:
+                  sys.exit("lab-setup: pgvector did not accept connections within 3 minutes")
+              with conn:
+                  loaded = (conn.execute("SELECT to_regclass('bulletins') IS NOT NULL").fetchone()[0]
+                            and conn.execute("SELECT count(*) FROM bulletins").fetchone()[0] > 0)
+              if loaded:
+                  print("lab-setup: module 5 corpus already loaded")
+              else:
+                  subprocess.run([sys.executable, "ingest_corpus.py"], cwd=os.environ["LAB_AGENT_DIR"], check=True)
+              PY
+              then
+                echo "lab-setup: module 5's corpus is not loaded; load it from a terminal with:" \
+                  "cd ~/{{ $w.repo.dir }}/agent && python ingest_corpus.py" >&2
+              fi
+              {{- end }}
           volumeMounts:
             - name: {{ $w.name }}-storage
               mountPath: {{ $src }}
@@ -135,18 +179,7 @@ spec:
             # image's Python because the virtualenv has no jupyter.
             - name: PATH
               value: {{ $src }}/.venv/bin:/opt/app-root/bin:/opt/app-root/src/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-            {{- if .Values.pgvector.enabled }}
-            - name: PGHOST
-              value: pgvector
-            - name: PGPORT
-              value: "5432"
-            - name: PGDATABASE
-              valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_DB}}
-            - name: PGUSER
-              valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_USER}}
-            - name: PGPASSWORD
-              valueFrom: {secretKeyRef: {name: pgvector, key: POSTGRES_PASSWORD}}
-            {{- end }}
+            {{- include "workbench.pgEnv" . | nindent 12 }}
           ports:
             - name: notebook-port
               containerPort: 8888
