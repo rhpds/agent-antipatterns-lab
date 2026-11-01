@@ -13,6 +13,7 @@ import json
 import pathlib
 import sys
 import tomllib
+from urllib.parse import urlparse
 
 import tracing
 from llm import call_model
@@ -51,7 +52,7 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
 
     with tracing.span("agent_run", "AGENT", inputs={"question": question}) as root:
         for turn in range(1, agent_cfg["max_turns"] + 1):
-            with tracing.span(f"model_call_{turn}", "CHAT_MODEL", inputs={"messages": len(messages), "tools_offered": runlog.tools_offered}) as llm_span:
+            with tracing.span(f"model_call_{turn}", "CHAT_MODEL", inputs={"messages": list(messages), "tools_offered": runlog.tools_offered}) as llm_span:
                 response = call_model(config, messages, toolbox.definitions, runlog, turn)
                 message = response.choices[0].message
                 tracing.record_model_call(llm_span, response)
@@ -97,6 +98,10 @@ def main(argv=None):
 
     tracing.init()
     config = load_config(args.config)
+    endpoint = urlparse(config["model"]["base_url"]).hostname or config["model"]["base_url"]
+    tracing.set_run_tags(endpoint=endpoint.split(".")[0].removesuffix("-predictor"),
+                         prompt="strong" if args.strong_prompt else "default",
+                         question=args.q or "your own")
     print(f"Question: {question}\nEndpoint: {config['model']['base_url']}\n")
     summary = run_agent(question, config, strong_prompt=args.strong_prompt)
     print(f"Answer:\n{summary['answer']}\n")
