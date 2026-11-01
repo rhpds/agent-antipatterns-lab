@@ -8,6 +8,7 @@ PUMP = fixture_part("circulation pump", "K-400")
 
 
 def test_module3_fix_terminates_on_stop_with_results_in_messages(work):
+    """Scenario: With the supplied loop fix, the agent stops when the model is done"""
     work.repoint_to_validated()
     work.apply_solution("module-03")
     summary, run_dir = work.agent("m3")
@@ -22,6 +23,8 @@ def test_module3_fix_terminates_on_stop_with_results_in_messages(work):
     ids = [c["id"] for m in assistant for c in m["tool_calls"]]
     assert [m["tool_call_id"] for m in tool_msgs] == ids                   # each result matches its call
     assert "in stock" in summary["answer"]
+    # the answer reports what check_stock returned for the part find_part found
+    assert f"{second['result']['results'][0]['qty']} in stock" in summary["answer"]
 
 
 def test_module3_defect1_alone_changes_behaviour(work):
@@ -45,6 +48,8 @@ def test_module3_defect1_alone_changes_behaviour(work):
 
 
 def test_module4_swallowed_failure_then_surfaced(work):
+    """Scenario: Module 4's unknown depot reads as out of stock
+    Scenario: With the error contract, a bad depot is no longer mistaken for out of stock"""
     work.repoint_to_validated()
     work.apply_solution("module-03")
     # fault: Portland (unknown depot) -> the filter is dropped, an empty 200-style envelope comes back
@@ -64,6 +69,8 @@ def test_module4_swallowed_failure_then_surfaced(work):
 
 
 def test_module4_no_results_and_ok_are_distinguishable(work):
+    """Scenario: With the error contract, a bad depot is no longer mistaken for out of stock
+    (the clause: a real out-of-stock result and a bad request are reported differently, in the tool's reply)"""
     work.repoint_to_validated()
     work.apply_solution("module-04")
     ok, _ = work.agent("m3")                                  # covered: pump at Denver
@@ -96,20 +103,26 @@ RETRY_SCRIPT = textwrap.dedent("""
         return orig(part_number, depot)
     tools.TOOL_FUNCTIONS["check_stock"] = flaky
     s = run_agent("Can we get a replacement coolant pump for a K-400 to the Denver depot this week?", load_config())
-    print(json.dumps({"calls": calls["n"], "result": s["tool_calls"][-1]["result"]}))
+    print(json.dumps({"calls": calls["n"], "result": s["tool_calls"][-1]["result"], "answer": s["answer"]}))
 """)
 
 
 def test_module4_only_upstream_unavailable_is_retried(work):
+    """Scenario: With the error contract, a bad depot is no longer mistaken for out of stock
+    (the clause: a real out-of-stock result is answered as out of stock, not as a failed check)"""
     work.repoint_to_validated()
     work.apply_solution("module-04")
     transient = json.loads(work.run("-c", RETRY_SCRIPT, "transient").stdout.splitlines()[-1])
     assert transient["calls"] == 2 and transient["result"]["category"] == "ok"       # retried once, recovered
     no_results = json.loads(work.run("-c", RETRY_SCRIPT, "no_results").stdout.splitlines()[-1])
     assert no_results["calls"] == 1 and no_results["result"]["category"] == "no_results"   # not retried
+    # as an answer, a real out-of-stock result reads differently from a bad request ("could not complete")
+    assert "no stock" in no_results["answer"] and "could not complete" not in no_results["answer"]
 
 
 def test_regression_reports_per_case_on_each_state(work):
+    """Scenario: The regression run checks every earlier case against the assembled agent
+    (the clause: on an earlier module's state it still reports each case without stopping)"""
     start = work.run("regression.py").stdout
     assert "0 passed, 3 failed, 3 skipped" in start        # mismatched endpoint, starter code
     work.repoint_to_validated()

@@ -32,6 +32,7 @@ def same(checkout, name, source):
 
 
 def test_reset_builds_each_module_start_and_backs_up_edits(checkout):
+    """Scenario: Resetting to a module's start keeps the participant's edits"""
     (checkout / "agent.py").write_text("# my broken edit\n")
     config = checkout / "config.toml"
     config.write_text(config.read_text() + "\n# my note\n")
@@ -52,6 +53,20 @@ def test_reset_builds_each_module_start_and_backs_up_edits(checkout):
     out = reset(checkout, 1)
     assert "starter code, unchanged" in out
     assert same(checkout, "agent.py", AGENT / "agent.py") and same(checkout, "config.toml", AGENT / "config.toml")
+
+
+def test_resetting_to_module_4_restores_its_start_and_keeps_the_edits(checkout):
+    """Scenario: Resetting to a module's start keeps the participant's edits
+    (the clause, for module 4 named in the scenario: every edited file is back to module 4's start)"""
+    for name in ("agent.py", "tools.py", "config.toml"):
+        (checkout / name).write_text(f"# my edit of {name}\n")
+    out = reset(checkout, 4)
+    assert "Ready to start module 4." in out
+    assert same(checkout, "agent.py", AGENT / "solutions" / "module-03" / "agent.py")
+    assert same(checkout, "tools.py", AGENT / "tools.py")
+    assert VALIDATED_URL in (checkout / "config.toml").read_text() and "my edit" not in (checkout / "config.toml").read_text()
+    backups = {p.name: p.read_text() for p in (checkout / ".reset-backup").glob("*/*")}
+    assert backups == {name: f"# my edit of {name}\n" for name in ("agent.py", "tools.py", "config.toml")}
 
 
 def test_back_to_back_resets_keep_the_participants_edit(checkout):
