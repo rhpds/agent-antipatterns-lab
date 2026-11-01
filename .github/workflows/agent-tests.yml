@@ -36,7 +36,7 @@ jobs:
       - name: Install test requirements
         run: python -m pip install -r tests/agent/requirements.txt
 
-      # The runner image ships podman (4.9.3 on Ubuntu 24.04); install it only if a
+      # The runner image ships podman; install it only if a
       # future image drops it, so the module 5-7 tests can start their database.
       - name: Make sure podman is available
         run: |
