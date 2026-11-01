@@ -1,4 +1,5 @@
 """Modules 1-3: the starter agent as shipped, and what repointing does to it."""
+import json
 from conftest import fixture_part, read_json
 
 PUMP = fixture_part("circulation pump", "K-400")
@@ -71,7 +72,7 @@ def test_compare_endpoints_shows_both_responses_side_by_side(work):
     rows = out.splitlines()
     # One row holds both endpoints' finish_reason: the mismatched one stops, the validated one calls a tool.
     assert any("finish_reason: stop" in r and "finish_reason: tool_calls" in r for r in rows)
-    assert "tool_calls: null" in out and "tool_calls: find_part" in out
+    assert "tool_calls: []" in out and "tool_calls: find_part" in out   # [] as sent, like payloads.py
     assert "<tool_call>" in out                   # the stranded call, left in content
     assert not (work.path / "runs").exists()      # nothing saved, nothing changed
     assert "qwen3-8b-b" not in work.config.read_text()
@@ -81,3 +82,13 @@ def test_compare_endpoints_reports_an_unreachable_endpoint_and_carries_on(work):
     env = {"LAB_MISMATCHED_URL": work.endpoints["mismatched"], "LAB_VALIDATED_URL": "http://127.0.0.1:9/v1"}
     out = work.run("compare_endpoints.py", env=env).stdout
     assert "error: APIConnectionError" in out
+    # The working endpoint's response is still shown beside the failing one.
+    assert "finish_reason: stop" in out and "<tool_call>" in out
+
+
+def test_compare_endpoints_sends_exactly_what_the_agent_sends(work):
+    _, run_dir = work.agent("m1")
+    code = ("import json, agent, questions, compare_endpoints as c; "
+            "print(json.dumps(c.build_body(agent.load_config(), questions.QUESTIONS['m1'])))")
+    body = json.loads(work.run("-c", code).stdout)
+    assert body == read_json(run_dir / "01-request.json")
