@@ -62,3 +62,22 @@ def test_module3_starter_loop_repeats_until_cap(work):
 def test_tracing_is_a_noop_without_mlflow_uri(work):
     summary, _ = work.agent("m1")                        # env has no MLFLOW_TRACKING_URI
     assert summary["turns"] == 1
+
+
+def test_compare_endpoints_shows_both_responses_side_by_side(work):
+    env = {"LAB_MISMATCHED_URL": work.endpoints["mismatched"], "LAB_VALIDATED_URL": work.endpoints["validated"],
+           "COLUMNS": "160"}
+    out = work.run("compare_endpoints.py", env=env).stdout
+    rows = out.splitlines()
+    # One row holds both endpoints' finish_reason: the mismatched one stops, the validated one calls a tool.
+    assert any("finish_reason: stop" in r and "finish_reason: tool_calls" in r for r in rows)
+    assert "tool_calls: null" in out and "tool_calls: find_part" in out
+    assert "<tool_call>" in out                   # the stranded call, left in content
+    assert not (work.path / "runs").exists()      # nothing saved, nothing changed
+    assert "qwen3-8b-b" not in work.config.read_text()
+
+
+def test_compare_endpoints_reports_an_unreachable_endpoint_and_carries_on(work):
+    env = {"LAB_MISMATCHED_URL": work.endpoints["mismatched"], "LAB_VALIDATED_URL": "http://127.0.0.1:9/v1"}
+    out = work.run("compare_endpoints.py", env=env).stdout
+    assert "error: APIConnectionError" in out
