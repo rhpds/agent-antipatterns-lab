@@ -22,7 +22,7 @@ Each directory is one run:
 | File | Contents |
 |---|---|
 | `answer.txt` | What `agent.py` printed |
-| `digest.txt` | What `python payloads.py` printed, with the `Run:` and `Full JSON files are in` path lines removed |
+| `digest.txt` | What `python payloads.py` printed, with the `Run:` and `Full JSON files are in` path lines removed. Since #59 the closing lines name the files to open instead; strip that block the same way in new captures |
 | `NN-request.json` / `NN-response.json` | The raw payloads of each model call |
 | `summary.json` | Turns, how the run ended, and the tool calls |
 | `pod-log-excerpt.txt` | `m1-endpointA-llama3_json` only: the vLLM startup arguments and the first failed request's traceback |
