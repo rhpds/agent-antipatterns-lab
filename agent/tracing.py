@@ -29,8 +29,10 @@ def init():
         import mlflow
 
         # MLflow's INFO lines ("Experiment ... does not exist. Creating a new experiment.")
-        # read like errors to a participant on the first run; keep only its warnings.
-        logging.getLogger("mlflow").setLevel(logging.WARNING)
+        # read like errors to a participant on the first run; keep only its warnings,
+        # unless MLFLOW_LOGGING_LEVEL asks for something else.
+        if not os.environ.get("MLFLOW_LOGGING_LEVEL"):
+            logging.getLogger("mlflow").setLevel(logging.WARNING)
         mlflow.set_tracking_uri(uri)
         mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "kestrel-agent"))
         _mlflow = mlflow
@@ -70,7 +72,6 @@ def span(name, span_type="UNKNOWN", inputs=None):
         cm.__exit__(None, None, None)
 
 
-
 def record_model_call(span, response):
     """Put what the model returned on its span, where the trace view shows it: the stop
     reason, the tool calls it made (an empty list when it made none), and its text."""
@@ -90,9 +91,10 @@ def record_run(span, summary):
     turns it took, and how many tools it actually called."""
     try:
         span.set_outputs({"answer": summary["answer"], "ended_by": summary["ended_by"],
-                          "turns": summary["turns"], "tool_calls": len(summary["tool_calls"])})
+                          "turns": summary["turns"], "tool_call_count": len(summary["tool_calls"])})
     except Exception as exc:
         print(f"[tracing] run outcome not recorded: {exc}")
+
 
 def log_baseline(name, params, metrics):
     """Record a named run (module 7 baseline). No-op when tracing is off."""

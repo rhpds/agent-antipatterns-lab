@@ -19,6 +19,13 @@ def test_tracing_records_spans_when_uri_set(work, tmp_path):
     assert {"agent_run", "model_call_1", "model_call_3", "find_part", "check_stock"} <= set(spans)
     assert spans["model_call_1"].attributes["finish_reason"] == "tool_calls"
     assert spans["model_call_3"].attributes["finish_reason"] == "stop"
+    # The evidence is in the spans' inputs and outputs, not only in attributes (#58).
+    assert spans["model_call_1"].inputs["tools_offered"] == ["find_part", "check_stock"]
+    assert [c["name"] for c in spans["model_call_1"].outputs["tool_calls"]] == ["find_part"]
+    assert spans["model_call_3"].outputs["tool_calls"] == []
+    assert spans["model_call_3"].outputs["finish_reason"] == "stop"
+    root = spans["agent_run"].outputs
+    assert root["turns"] == 3 and root["tool_call_count"] == len(summary["tool_calls"]) > 0
 
 
 def test_unreachable_tracking_server_does_not_break_the_agent(work):

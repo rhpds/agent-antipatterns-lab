@@ -57,7 +57,7 @@ def where_to_read(run_dir):
     folder = run_dir.resolve()
     try:
         folder = folder.relative_to(pathlib.Path.home().resolve())
-    except ValueError:
+    except (ValueError, RuntimeError):  # outside home, or no home folder at all
         pass
     return (f"\nTo read the full JSON, open this folder in the file browser:\n  {folder}/\n"
             "  NN-request.json and NN-response.json: what was sent and what came back, per model call\n"
