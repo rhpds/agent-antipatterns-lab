@@ -25,8 +25,12 @@ def init():
         # Fail fast if the server is unreachable instead of retrying for minutes.
         os.environ.setdefault("MLFLOW_HTTP_REQUEST_MAX_RETRIES", "0")
         os.environ.setdefault("MLFLOW_HTTP_REQUEST_TIMEOUT", "5")
+        import logging
         import mlflow
 
+        # MLflow's INFO lines ("Experiment ... does not exist. Creating a new experiment.")
+        # read like errors to a participant on the first run; keep only its warnings.
+        logging.getLogger("mlflow").setLevel(logging.WARNING)
         mlflow.set_tracking_uri(uri)
         mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "kestrel-agent"))
         _mlflow = mlflow

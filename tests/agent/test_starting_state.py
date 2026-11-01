@@ -25,6 +25,8 @@ def test_payload_viewer_shows_the_evidence(work):
     out = work.run("payloads.py").stdout
     assert "tools declared: ['find_part', 'check_stock']" in out
     assert "tool_calls    = []" in out and "finish_reason = stop" in out
+    # It names the files to open in the file browser rather than only pointing at --raw.
+    assert "NN-response.json" in out and "summary.json" in out and "--raw" in out
 
 
 def test_module2_stronger_prompt_changes_wording_not_tool_calls(work):
