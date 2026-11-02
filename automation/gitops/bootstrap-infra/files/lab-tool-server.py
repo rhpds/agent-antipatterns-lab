@@ -221,7 +221,15 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, {"jsonrpc": "2.0", "id": rid, "result": result})
 
     def do_GET(self):
-        self._send(200, {"status": "ok", "tools": sorted(CATALOG)} if self.path == "/healthz" else None)
+        if self.path == "/healthz":
+            return self._send(200, {"status": "ok", "tools": sorted(CATALOG)})
+        # MCP: a server that offers no server-to-client stream answers GET with 405. The broker
+        # opens one on every backend; a 200 with a JSON body makes it log "unexpected content
+        # type: application/json" and retry every second.
+        self.send_response(405)
+        self.send_header("Allow", "POST")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
     def log_message(self, fmt, *args):
         print("lab-tool-server:", fmt % args, flush=True)

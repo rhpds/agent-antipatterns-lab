@@ -45,7 +45,7 @@ spec:
 
 {{/* Public host of the shared RHOAI Gateway. */}}
 {{- define "infra.gatewayHost" -}}
-{{- default (printf "data-science-gateway.%s" .Values.deployer.domain) .Values.mcpGateway.publicHost -}}
+{{- default (printf "rh-ai.%s" .Values.deployer.domain) .Values.mcpGateway.publicHost -}}
 {{- end }}
 
 {{/* True when the GPU model-serving pieces should render. */}}

@@ -20,7 +20,7 @@ rbac:
 
 # Module 6: the lab's MCP Gateway (bootstrap-infra mcpGateway). The workbench gets its address in
 # LAB_GATEWAY_URL, and its service account may create the one ConfigMap that registers a tool
-# for this participant. url empty = https://data-science-gateway.<deployer.domain>/mcp, the
+# for this participant. url empty = https://rh-ai.<deployer.domain>/mcp, the
 # gateway's default public host and path.
 mcpGateway:
   enabled: true

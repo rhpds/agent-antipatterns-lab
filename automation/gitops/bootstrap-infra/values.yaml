@@ -184,7 +184,10 @@ mcpGateway:
     namespace: openshift-ingress
     sectionName: https
   # The Gateway listener has no hostname of its own, so publicHost is mandatory.
-  # Empty = derived as data-science-gateway.<deployer.domain> (ASSUMPTION).
+  # Empty = rh-ai.<deployer.domain>, the host the data-science Gateway's listener serves on
+  # OpenShift AI 3.5 (the workbench and MLflow use it too). data-science-gateway.<domain> is
+  # a plain Route to an nginx that 301-redirects to rh-ai, so MCP clients never reach the
+  # broker through it (seen on OpenShift AI 3.5.2, 2026-11-02).
   publicHost: ""
   toolPrefix: "kestrel_"
   # Redis session store: must be a real Redis (memory:// panics the broker) on a
