@@ -56,6 +56,30 @@ If `--automation` was passed to `scaffold.py`, it also creates `automation/`
 - `automation/gitops/bootstrap-tenant/` — Per-user namespace, RBAC, pgvector Postgres (`gitops`/`both`, only if
   `--topology shared-cluster` was passed)
 
+## Acceptance scenarios (agent, automation, agent tests)
+
+`.acceptance.yml` lists the paths covered: `agent/**`, `automation/**` and `tests/agent/**`.
+The scenarios in `acceptance/**/*.feature` describe, in plain English, what a participant
+sees in each module. David approved each one.
+
+- **Never edit, delete or rename a `.feature` file under `acceptance/`.** They're locked.
+  If a scenario looks wrong, or your change would make one untrue, stop and tell the user
+  to raise it with David before going further.
+- **Each scenario is named in a test.** A test docstring carries the line
+  `Scenario: <exact title>`. `tests/agent/test_scenarios_are_bound.py` fails if any scenario
+  isn't named. Don't remove or rename those lines, and don't weaken the tests that carry them.
+- **A failing scenario test is a signal, not an obstacle.** If your change breaks one, the
+  lab's promised behaviour has changed. Report it rather than adjusting the test to pass.
+- **Run the tests before a PR**: `python -m pytest -q -rs` from `tests/agent/` (install
+  `tests/agent/requirements.txt` first). The module 5–7 tests need podman and the
+  `docker.io/pgvector/pgvector:pg16` image, and fail if they're missing. CI runs the same
+  tests on every PR to `dev`.
+- **New behaviour in these paths starts with new scenarios.** David approves them before
+  any code is written. In David's own sessions the `acceptance-first` skill handles this.
+  In anyone else's, flag the change to David rather than writing scenarios yourself.
+
+The module pages (`content/`) and Publishing House files are not covered by this.
+
 ## Architecture
 
 - **project_id**: comes from `catalog-info.yaml` `metadata.name`
