@@ -181,14 +181,24 @@ mcpGateway:
       enabled: true
   gateway:
     name: data-science-gateway
+    className: data-science-gateway-class
     namespace: openshift-ingress
     sectionName: https
-  # The Gateway listener has no hostname of its own, so publicHost is mandatory.
-  # Empty = rh-ai.<deployer.domain>, the host the data-science Gateway's listener serves on
-  # OpenShift AI 3.5 (the workbench and MLflow use it too). data-science-gateway.<domain> is
-  # a plain Route to an nginx that 301-redirects to rh-ai, so MCP clients never reach the
-  # broker through it (seen on OpenShift AI 3.5.2, 2026-11-02).
+  # The MCP host, used both by participants' agents (LAB_GATEWAY_URL) and by the broker when
+  # it hair-pins backend calls back through the Gateway. Empty = the Gateway's in-cluster
+  # address, <gateway.name>-<gateway.className>.<gateway.namespace>.svc.cluster.local, which is
+  # what OpenShift AI's Gateway publishes in its status and the only name its listener
+  # certificate (data-science-gateway-service-tls) is valid for. Seen on OpenShift AI 3.5.2 with
+  # mcp-gateway v0.7.1, 2026-11-02:
+  #  - rh-ai.<domain> reaches the Gateway through OpenShift's router, but the broker's hair-pin
+  #    then fails TLS ("certificate is valid for ...svc, not rh-ai...") and every tools/call
+  #    returns HTTP 500;
+  #  - data-science-gateway.<domain> is a plain Route to an nginx that 301-redirects to rh-ai;
+  #  - the operator's default hair-pin address, <gateway>-istio.<ns>.svc, doesn't exist here.
+  # The agent runs in the workbench, inside the cluster, so the in-cluster address suits it.
   publicHost: ""
+  # The hair-pin address; empty = https://<publicHost>:443.
+  privateHost: ""
   toolPrefix: "kestrel_"
   # Redis session store: must be a real Redis (memory:// panics the broker) on a
   # port the namespace NetworkPolicy allows (8081, NOT 6379) with protected-mode off.

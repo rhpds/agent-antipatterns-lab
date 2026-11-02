@@ -334,6 +334,7 @@ metadata:
     {{- include "infra.crAnnotations" (dict "wave" 6) | nindent 4 }}
 spec:
   publicHost: {{ $host | quote }}
+  privateHost: {{ $g.privateHost | default (printf "https://%s:443" $host) | quote }}
   targetRef:
     group: gateway.networking.k8s.io
     kind: Gateway

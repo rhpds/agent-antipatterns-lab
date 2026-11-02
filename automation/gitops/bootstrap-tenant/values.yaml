@@ -20,11 +20,11 @@ rbac:
 
 # Module 6: the lab's MCP Gateway (bootstrap-infra mcpGateway). The workbench gets its address in
 # LAB_GATEWAY_URL, and its service account may create the one ConfigMap that registers a tool
-# for this participant. url empty = https://rh-ai.<deployer.domain>/mcp, the
-# gateway's default public host and path.
+# for this participant. The url is the OpenShift AI Gateway's in-cluster address, which
+# bootstrap-infra uses as the MCP host (see its mcpGateway.publicHost); keep the two in step.
 mcpGateway:
   enabled: true
-  url: ""
+  url: "https://data-science-gateway-data-science-gateway-class.openshift-ingress.svc.cluster.local/mcp"
   registrationConfigMap: kestrel-tool-registrations
 
 # The MLflow CR name the workbench's opendatahub.io/mlflow-instance annotation points at.
