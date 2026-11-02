@@ -85,7 +85,7 @@ spec:
             - name: LAB_REPO_URL
               value: {{ $w.repo.url | quote }}
             - name: LAB_REPO_REF
-              value: {{ $w.repo.ref | quote }}
+              value: {{ required "labRepoRef is required: the branch this environment clones (its catalog branch: test or main; dev for a dev environment)" .Values.labRepoRef | quote }}
             {{- include "workbench.pgEnv" . | nindent 12 }}
           command: ["/bin/bash", "-c"]
           args:
@@ -107,7 +107,7 @@ spec:
                 git clone --depth 1 --branch "$LAB_REPO_REF" "$LAB_REPO_URL" "$tmp/repo"
                 if [ ! -f "$tmp/repo/agent/requirements.txt" ]; then
                   echo "lab-setup: $LAB_REPO_URL at '$LAB_REPO_REF' has no agent/requirements.txt;" \
-                    "set workbench.repo.ref to a branch or tag that contains the agent" >&2
+                    "set labRepoRef to a branch or tag that contains the agent" >&2
                   exit 1
                 fi
                 # Move an earlier unusable clone aside rather than deleting it.
