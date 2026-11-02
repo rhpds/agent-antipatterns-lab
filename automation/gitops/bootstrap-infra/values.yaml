@@ -167,6 +167,7 @@ mcpGateway:
   # Tech Preview, supporting only. Set false to skip entirely.
   enabled: true
   namespace: lab-mcp                     # the broker, Redis and the tool server; the only namespace the Gateway admits
+  createNamespace: true                  # false if the namespace already exists and is managed elsewhere
   operatorNamespace: mcp-system          # Kuadrant CR namespace as verified on the SNO
   operators:
     - name: rhcl-operator                # Red Hat Connectivity Link; pulls in Authorino + Limitador

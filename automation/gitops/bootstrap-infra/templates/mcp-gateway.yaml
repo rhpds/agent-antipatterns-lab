@@ -11,6 +11,15 @@ metadata:
   namespace: {{ $g.operatorNamespace }}
   annotations:
     {{- include "infra.crAnnotations" (dict "wave" 1) | nindent 4 }}
+{{- if $g.createNamespace }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+{{- end }}
 {{- if $g.gateway.create }}
 ---
 # The lab's own Gateway, never OpenShift AI's. The MCPGatewayExtension inserts an ext_proc filter
@@ -19,13 +28,6 @@ metadata:
 # MLflow, the dashboard and workbench routes. Here the filter only ever sees MCP traffic.
 # ClusterIP only: the agent runs in the workbench, inside the cluster, and the gateway has no
 # public address. TLS uses a service-CA certificate, which workbenches already trust.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ $ns }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:

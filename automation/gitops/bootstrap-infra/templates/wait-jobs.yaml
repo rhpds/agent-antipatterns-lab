@@ -191,7 +191,9 @@ spec:
               wait_for "DataScienceCluster Ready" dsc_ready
               dsc_components
               dsc_settings
-              wait_for "Gateway {{ .Values.mcpGateway.gateway.name }}" oc get gateway {{ .Values.mcpGateway.gateway.name }} -n {{ .Values.mcpGateway.gateway.namespace }}
+              # OpenShift AI's own Gateway, which MLflow, the dashboard and workbenches sit behind.
+              # (Module 6's gateway is the chart's own and is created before this job runs.)
+              wait_for "Gateway data-science-gateway" oc get gateway data-science-gateway -n openshift-ingress
               {{- if .Values.mlflow.enabled }}
               wait_for "MLflow CRD" oc get crd mlflows.mlflow.opendatahub.io
               {{- end }}

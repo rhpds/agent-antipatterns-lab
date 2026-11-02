@@ -9,6 +9,7 @@ AI's Gateway.
 
 helm must be installed (CI's runner image has it). A check that can't run fails, not skips.
 """
+import json
 import os
 import shutil
 import subprocess
@@ -117,3 +118,13 @@ def test_the_lab_gateway_is_reached_from_inside_the_cluster_only(infra):
            for c in nb["spec"]["template"]["spec"]["containers"] for e in c.get("env", [])]
     urls = [e["value"] for e in env if e["name"] == "LAB_GATEWAY_URL"]
     assert urls == [f"https://{in_cluster}/mcp"]
+
+
+def test_without_module_6_nothing_waits_for_or_creates_the_lab_gateway():
+    """With the gateway turned off (the single-L4 dev values do this), the chart renders no lab
+    Gateway, and the platform wait job doesn't wait for one, so the sync can finish."""
+    docs = render("bootstrap-infra", "mcpGateway.enabled=false")
+    assert not of_kind(docs, "Gateway") and not of_kind(docs, "MCPGatewayExtension")
+    jobs = json.dumps(of_kind(docs, "Job"))
+    assert "lab-mcp-gateway" not in jobs
+    assert "oc get gateway data-science-gateway -n openshift-ingress" in jobs
