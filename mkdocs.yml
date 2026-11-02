@@ -1,4 +1,4 @@
-site_name: 'Building an Agent on OpenShift AI: Each Step, and How It Breaks First'
+site_name: 'Four ways your agent can break'
 docs_dir: publishing-house/spec
 nav:
 - Home: index.md

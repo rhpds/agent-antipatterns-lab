@@ -29,7 +29,7 @@ Requires module 3. Tool results must be reaching the model before the shape of t
 ### Detailed Steps
 
 1. Run the agent on the supplied question: *"Is the K-600 high-pressure sensor available at the Portland depot?"* Portland is not a Kestrel depot.
-2. Observe a fluent answer that reads as authoritative and reports no problem.
+2. Observe a fluent, plausible answer that treats Portland as a real depot that happens to be out of stock, and reports no problem with the request (decision 0003, F5: the served model says the sensor "is not currently available at the Portland depot" and offers to check another depot).
 3. Open the trace. The tool was called, returned quickly, and the run terminated cleanly on the model's stop condition. Every signal says success.
 4. Open the tool's actual return value. It is a valid object with an empty results array and no indication that anything went wrong.
 5. Identify the ambiguity: this exact response is what the tool returns both when the query legitimately matched nothing and when the query was malformed, the backend was unreachable, or the parameters were rejected. Those cases are indistinguishable to the model.
@@ -38,7 +38,7 @@ Requires module 3. Tool results must be reaching the model before the shape of t
 8. Update the tool wrapper so failures populate the contract instead of collapsing into an empty success.
 9. Update the loop so a non-`ok` category is passed back to the model as a distinct result rather than as data, and so a retryable failure is retried once before being surfaced.
 10. Re-run the same question.
-11. Confirm the run now surfaces a categorized failure rather than a confident answer. **This is the module's success signal.**
+11. Confirm the run now surfaces a categorized failure (`bad_request`, naming the real depots) rather than a plausible wrong answer. **This is the module's success signal.**
 12. Re-run a question the data does cover, and confirm `no_results` and `ok` are now distinguishable in the trace.
 
 ### Key Takeaways

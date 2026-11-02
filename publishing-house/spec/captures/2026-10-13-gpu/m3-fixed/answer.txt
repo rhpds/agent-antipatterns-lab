@@ -1,0 +1,12 @@
+Question: Can we get a replacement coolant pump for a K-400 to the Denver depot this week?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The replacement coolant pump (part number **KI-CP-40817**) and its mechanical seal kit (part number **KI-SK-40233**) are both available at the Denver depot. 
+
+- **KI-CP-40817** (Coolant circulation pump assembly): 3 units in stock, 1-day lead time.  
+- **KI-SK-40233** (Coolant pump mechanical seal kit): 12 units in stock, 1-day lead time.  
+
+Both can be delivered to Denver this week if ordered today. Would you like to proceed with ordering?

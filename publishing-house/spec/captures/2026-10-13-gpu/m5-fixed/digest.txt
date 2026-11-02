@@ -1,0 +1,11 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock', 'search_bulletins']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-88f7d9c51a061c36", "type": "function", "function": {"name": "search_bulletins", "arguments": "{\"query\": \"service interval for coolant pump seal\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  4 messages, tools declared: ['find_part', 'check_stock', 'search_bulletins']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe recommended service interval for the K-400 coolant pump seal is **every 6,500 operating hours or 14 months**, whichever comes first. However, units in **dusty environments** or those running coolant glycol above **35%** should be serviced at **4,500 hours** instead. \n\n**Key details from bulletin SB-2024-117**:\n- Replace seal kit **KI-SK-40233** with pump assembly **KI-CP-40817**.\n- **Inspect the weep port** during quarterly visits; a steady drip indicates seal failure requiring immediate replacement.\n\nAlways reference the full bulletin for context."

@@ -1,0 +1,277 @@
+{{- if and .Values.mcpGateway.enabled .Values.rhoai.enabled }}
+{{- $g := .Values.mcpGateway }}
+{{- $ns := $g.namespace }}
+{{- $host := include "infra.gatewayHost" . }}
+---
+# Fix 2: operators install Authorino/Limitador but nothing runs until a Kuadrant CR exists.
+apiVersion: kuadrant.io/v1beta1
+kind: Kuadrant
+metadata:
+  name: kuadrant
+  namespace: {{ $g.operatorNamespace }}
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 1) | nindent 4 }}
+---
+# Fix 6: Redis on 8081, not 6379. The operator-managed default NetworkPolicy in
+# {{ $ns }} only opens 8443/8080/8081/5432/8082/8099/8181/9443. --protected-mode no
+# is needed or non-loopback clients get a misleading "broken pipe".
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-redis
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-redis
+  template:
+    metadata:
+      labels:
+        app: mcp-redis
+    spec:
+      containers:
+        - name: redis
+          image: {{ $g.redis.image }}
+          command: ["redis-server", "--port", {{ $g.redis.port | quote }}, "--protected-mode", "no"]
+          ports:
+            - containerPort: {{ $g.redis.port }}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-redis
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  selector:
+    app: mcp-redis
+  ports:
+    - port: {{ $g.redis.port }}
+      targetPort: {{ $g.redis.port }}
+---
+# Fix 5: needs the mcp.kuadrant.io/secret=true label and a REAL Redis URL
+# (memory:// panics the broker with "invalid URL scheme: memory").
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-session-store
+  namespace: {{ $ns }}
+  labels:
+    mcp.kuadrant.io/secret: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+type: Opaque
+stringData:
+  CACHE_CONNECTION_STRING: "redis://mcp-redis.{{ $ns }}.svc.cluster.local:{{ $g.redis.port }}"
+  session-key: {{ default (sha256sum (printf "%s/mcp-session-key" .Values.deployer.domain)) $g.sessionKey | quote }}
+---
+# Fix 7: the same default NetworkPolicy blocks the broker's gRPC ext_proc port
+# (50051). Symptom without it: every CR reports Ready but requests 504 with
+# ext_proc_error_per-message_timeout_exceeded (look in the Gateway's Envoy log in
+# openshift-ingress, not the broker log). Additive policy; the operator-managed one is untouched.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-gateway-extproc
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    # Only the Gateway's Envoy calls ext_proc.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+      ports:
+        - port: 50051
+          protocol: TCP
+---
+# Fix 3: MCPGatewayExtension -> Gateway is cross-namespace and needs a ReferenceGrant
+# in the Gateway's namespace. (MCPServerRegistration stays in the same namespace as its
+# HTTPRoute so no second grant is needed; the cross-namespace failure mode is a bare
+# "HTTPRoute not found".)
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-mcp-gateway-ext
+  namespace: {{ $g.gateway.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  from:
+    - group: mcp.kuadrant.io
+      kind: MCPGatewayExtension
+      namespace: {{ $ns }}
+  to:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $g.gateway.name }}
+{{- if $g.server.enabled }}
+---
+# Fix 1: backends must live in {{ $ns }} or {{ $g.gateway.namespace }}, the Gateway listener's
+# namespace allow-list. Fix 8/9 (ping method, tool "id" field) are in files/mcp-server.py.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-server-script
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+data:
+  mcp-server.py: |
+    {{- .Files.Get "files/mcp-server.py" | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-server
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-server
+  template:
+    metadata:
+      labels:
+        app: mcp-server
+    spec:
+      containers:
+        - name: mcp-server
+          image: {{ $g.server.image }}
+          command: ["python3", "/app/mcp-server.py"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8080}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          volumeMounts:
+            - name: script
+              mountPath: /app
+      volumes:
+        - name: script
+          configMap:
+            name: mcp-server-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-server
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  selector:
+    app: mcp-server
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# sectionName must match the MCPGatewayExtension targetRef.sectionName exactly or the
+# registration fails validation with no detail.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-server
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $g.gateway.name }}
+      namespace: {{ $g.gateway.namespace }}
+      sectionName: {{ $g.gateway.sectionName }}
+  hostnames:
+    - {{ $host | quote }}
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: mcp-server
+          port: 8080
+      matches:
+        - path:
+            type: PathPrefix
+            value: {{ $g.server.path }}
+{{- end }}
+---
+# Fix 4: spec.publicHost is mandatory; the Gateway listener has no hostname of its own
+# ("listener has no hostname and spec.publicHost is not set" otherwise).
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPGatewayExtension
+metadata:
+  name: mcp-gateway
+  namespace: {{ $ns }}
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 6) | nindent 4 }}
+spec:
+  publicHost: {{ $host | quote }}
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $g.gateway.name }}
+    namespace: {{ $g.gateway.namespace }}
+    sectionName: {{ $g.gateway.sectionName }}
+  sessionStore:
+    secretName: mcp-session-store
+  trustedHeadersKey:
+    secretName: mcp-trusted-headers
+    generate: Enabled
+{{- if $g.server.enabled }}
+---
+# Identity-based filtering (userSpecificList) is deliberately NOT enabled: module 6
+# teaches connection only. Fix 9 (prefix) is kept so it can be switched on later.
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: mcp-server
+  namespace: {{ $ns }}
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 7) | nindent 4 }}
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: mcp-server
+  path: {{ $g.server.path }}
+  hint: "Lab placeholder tool server."
+  category:
+    - lab
+  tags:
+    - agent-antipatterns-lab
+  prefix: {{ $g.toolPrefix | quote }}
+---
+# Tool names are the UNPREFIXED upstream names; the prefix is applied by the broker.
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPVirtualServer
+metadata:
+  name: lab-catalog
+  namespace: {{ $ns }}
+  annotations:
+    {{- include "infra.crAnnotations" (dict "wave" 8) | nindent 4 }}
+spec:
+  description: "Lab aggregated tool catalog"
+  tools:
+    {{- toYaml $g.server.tools | nindent 4 }}
+{{- end }}
+{{- end }}

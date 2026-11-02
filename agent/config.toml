@@ -1,0 +1,43 @@
+# Agent configuration. This file is read on every run, so a change here
+# persists across workbench restarts (an exported shell variable does not).
+
+[model]
+# The model endpoint this lab starts on. Do not change it until the lab tells you to.
+base_url = "http://qwen3-8b-a-predictor.llm-serving.svc:8080/v1"
+name = "RedHatAI/Qwen3-8B-FP8-dynamic"
+# Name of the environment variable holding the API key. vLLM does not check it.
+api_key_env = "OPENAI_API_KEY"
+temperature = 0
+seed = 0
+max_tokens = 1024
+timeout_seconds = 120
+
+[agent]
+# Safety net for the agent loop: the most model calls one run may make.
+max_turns = 6
+system_prompt = """\
+You are a field service parts assistant for Kestrel Industrial, a manufacturer of \
+industrial process chillers (K-200, K-400, K-600). Help service engineers find \
+the right part and check whether they can get it. Be concise."""
+# Used with: python agent.py --strong-prompt "..."
+system_prompt_strong = """\
+You are a field service parts assistant for Kestrel Industrial, a manufacturer of \
+industrial process chillers (K-200, K-400, K-600). Help service engineers find \
+the right part and check whether they can get it. Be concise. \
+You MUST use the available tools to look up part numbers, stock and other facts. \
+Never answer from memory. Always call a tool first."""
+
+[tools]
+# Module 6 replaces the per-tool entries below with one gateway endpoint:
+#   gateway_url = "https://<mcp-gateway-route>/mcp"
+gateway_url = ""
+
+# Today every tool carries its own address and credential, written into the agent.
+# For this lab the addresses are local fixture files and no credential is checked.
+[tools.find_part]
+address = "fixtures/parts.json"
+credential_env = "KESTREL_PARTS_TOKEN"
+
+[tools.check_stock]
+address = "fixtures/stock.json"
+credential_env = "KESTREL_STOCK_TOKEN"

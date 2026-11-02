@@ -2,7 +2,7 @@
 
 ### Brief Overview
 
-Participants meet the agent they will spend the next hundred minutes building, and establish the one habit the whole lab depends on. They run it once against a realistic question. It answers confidently and the answer is invented, because at this point the agent has tool definitions but nothing that makes tool calls happen. Rather than fixing anything, they learn to look at the request and response payloads on the inference endpoint and at the resulting trace, and to treat the agent's answer as a claim rather than as evidence.
+Participants meet the agent they will spend the next hundred minutes building, and establish the one habit the whole lab depends on. They run it once against a realistic question. What comes back is not an answer: the model tried to call a tool, but the call came back as text in the response body, so nothing ran, and the agent reports that text as its answer without complaint. Rather than fixing anything, they learn to look at the request and response payloads on the inference endpoint and at the resulting trace, and to treat the agent's answer as a claim rather than as evidence.
 
 Nothing is built in this module. Its output is a working habit and a baseline everyone can return to.
 
@@ -15,7 +15,7 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 ### Learning Objectives
 
 - Analyze the request and response payloads on an inference endpoint to determine what the model was asked and what it actually returned.
-- Verify that an agent's confident answer is unsupported by locating the absence of any tool invocation in the trace.
+- Verify that an agent's output is unsupported by locating the absence of any tool invocation in the trace.
 
 ### Lab Structure
 
@@ -32,10 +32,10 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 2. Open the agent project. Identify the three files that matter: the tool definitions, the loop, and the configuration that names the model endpoint.
 3. Note that the endpoint currently configured is the one the lab starts on. Do not change it yet.
 4. Open the supplied test question: *"A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?"* Kestrel Industrial is fictional, so the model cannot know the answer, and `find_part` obviously owns it.
-5. Run the agent. It returns a fluent, specific, confident answer in a few seconds.
-6. Note the answer. It is wrong, and nothing about its presentation says so.
+5. Run the agent. It finishes in a few seconds with no error, and prints as its answer a `<tool_call>` block naming `find_part` with sensible arguments.
+6. Note the answer. The agent treats the text of a tool call as the answer, nothing about the run reports a problem, and the part number was never looked up.
 7. Open the request payload that the agent sent. Confirm the tools were declared: the `tools` array is populated.
-8. Open the response payload. Observe that `tool_calls` is empty and `content` holds the entire answer.
+8. Open the response payload. Observe that `tool_calls` is empty, `finish_reason` is `stop`, and `content` holds the call the model meant to make.
 9. Open the MLflow trace for the run. Confirm what the payloads already showed: one model turn, zero tool invocations, and a stop reason that indicates the model simply finished talking.
 10. State the rule that the rest of the lab runs on: the answer is a claim, and the evidence is somewhere else. Every module from here ends by checking evidence rather than by reading the answer. Say which evidence: payloads in this module and the next, because their failure is visible nowhere else, and the trace from module 3 onward, which is the better instrument once turn counts, tool sequences and error categories are what matter.
 11. Do not diagnose the cause yet. Module 2 opens on exactly this failure.
@@ -50,8 +50,8 @@ No prerequisites beyond the lab's own: OpenShift console familiarity and the abi
 ### Infrastructure Notes
 
 - **The starting endpoint is the deliberately mismatched one.** The failure in this module is the same one module 2 diagnoses, seen without explanation. Do not reveal the cause here.
-- **The test question must be unanswerable without a tool.** Kestrel part numbers exist nowhere outside the lab's fixture data, so the model cannot answer from memory and attempts a `find_part` call every time. Verify during authoring that it invents a plausible part number rather than refusing, since a refusal gives the participant nothing in the payload to point at.
-- **MLflow authentication needs the documented workaround.** Known issue RHOAIENG-44516: Kubernetes tokens are not accepted through the OpenShift AI Gateway, so `MLFLOW_TRACKING_URI` must point at a direct Route. Known issue RHOAIENG-45969: artifact serving backed by S3 is not configured by the automatic workbench integration, so parameters, metrics and tags log correctly but `log_artifact()` needs manual setup. This module only needs the former.
+- **The test question must be unanswerable without a tool.** Kestrel part numbers exist nowhere outside the lab's fixture data, so the model cannot answer from memory and attempts a `find_part` call every time. Verified on the served model (decision 0003): on the mismatched endpoint it strands a `find_part` call in `content` in 20 of 20 runs, sequential and concurrent (`captures/2026-10-14-m1-repeat/`). It doesn't invent a part number or refuse.
+- **MLflow tracing needs no participant setup and no workaround (decision 0002).** The workbench uses OpenShift AI's MLflow integration, which injects the tracking URI and service-account authentication (#27). Known issue RHOAIENG-44516 didn't reproduce on OpenShift AI 3.5.1: a workbench service-account token traced through the Gateway. RHOAIENG-45969 (S3 artifact serving) doesn't apply, because the agent logs no artifacts. Re-check both on the event release. The documented fallback is in `agent/README.md`.
 - **The payload view must be first-class, not an afterthought.** Participants need a reliable way to see the raw request and response, whether that is a logging wrapper in the supplied agent code or a saved file per run. The trace supplements it. Reading the wire is the lab's differentiator and it cannot depend on a participant knowing how to enable debug logging.
 - **Login and workbench startup are a pre-lab step, not part of this module's 12 minutes.** Budgeting four minutes for thirty conference logins plus thirty workbench pods pulling images and binding PVCs was not realistic; workbench spawn alone routinely takes several minutes at that concurrency. Participants must arrive with the console open and the workbench running. The lab guide's front matter carries the login instructions, and the room needs them done before the clock starts. If this is not enforced, module 1 consumes the entire 15-minute reserve and every later module runs at zero margin.
 - **This module must survive 30 simultaneous first runs.** Every participant hits the same broken endpoint within the same two minutes, and it is a single vLLM instance on GPU 0 rather than one of the three validated replicas. This is the lab's peak synchronized load and it lands on its least redundant component.

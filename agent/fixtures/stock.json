@@ -1,0 +1,13 @@
+{
+  "_comment": "Depots and per-depot stock. Portland is deliberately NOT a Kestrel depot (module 4).",
+  "depots": ["Denver", "Phoenix", "Chicago"],
+  "stock": [
+    {"part_number": "KI-CP-40817", "depot": "Denver",  "qty": 3, "lead_days": 1},
+    {"part_number": "KI-CP-40817", "depot": "Chicago", "qty": 1, "lead_days": 3},
+    {"part_number": "KI-SK-40233", "depot": "Denver",  "qty": 12, "lead_days": 1},
+    {"part_number": "KI-SK-40233", "depot": "Phoenix", "qty": 6, "lead_days": 2},
+    {"part_number": "KI-CP-20412", "depot": "Phoenix", "qty": 2, "lead_days": 2},
+    {"part_number": "KI-FM-60105", "depot": "Chicago", "qty": 4, "lead_days": 2},
+    {"part_number": "KI-CT-40990", "depot": "Phoenix", "qty": 1, "lead_days": 2}
+  ]
+}

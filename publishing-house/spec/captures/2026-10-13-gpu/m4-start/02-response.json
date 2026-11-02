@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-929c3673baa345cc",
+  "object": "chat.completion",
+  "created": 1791924747,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-94bc8e95be453739",
+            "type": "function",
+            "function": {
+              "name": "check_stock",
+              "arguments": "{\"part_number\": \"KI-HS-60233\", \"depot\": \"Portland\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user asked if the K-600 high-pressure sensor is available at the Portland depot. First, I needed to find the part number for the high-pressure sensor on a K-600. I called the find_part function with the query \"high-pressure sensor\" and product \"K-600\". The response gave me the part number KI-HS-60233.\n\nNow, I need to check the stock status of this part at the Portland depot. The next step is to use the check_stock function. The required parameters are the part_number and depot. I have both: KI-HS-60233 and Portland. I should make sure to input these correctly. Let me verify the function parameters again. Yes, part_number is a string, and depot is also a string. \n\nI should structure the tool call with these arguments. No other functions are needed here. The user just wants to know availability, so checking stock at Portland is sufficient. I'll format the tool call accordingly.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 487,
+    "total_tokens": 741,
+    "completion_tokens": 254,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

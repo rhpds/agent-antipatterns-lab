@@ -1,0 +1,106 @@
+"""Modules 1-3: the starter agent as shipped, and what repointing does to it."""
+import json
+from conftest import fixture_part, read_json
+
+PUMP = fixture_part("circulation pump", "K-400")
+
+
+def test_module1_confident_answer_no_tool_calls_and_payloads_saved(work):
+    """Scenario: Module 1's agent answers confidently without calling a tool"""
+    summary, run_dir = work.agent("m1")
+    # one model turn, plain answer, no tool invoked
+    assert summary["turns"] == 1 and summary["ended_by"] == "plain_answer" and summary["tool_calls"] == []
+    assert summary["answer"].strip()
+    assert PUMP not in summary["answer"]               # the confident answer is invented
+    # payloads saved without any debug switch
+    request, response = read_json(run_dir / "01-request.json"), read_json(run_dir / "01-response.json")
+    assert [t["function"]["name"] for t in request["tools"]] == ["find_part", "check_stock"]
+    assert "stream" not in request                      # non-streaming (vLLM #31871)
+    choice = response["choices"][0]
+    assert choice["message"]["tool_calls"] == [] and choice["finish_reason"] == "stop"
+    assert "<tool_call>" in choice["message"]["content"]   # the stranded hermes-format call
+    assert "error" not in response                      # the endpoint reported no error (the run itself exited 0)
+    assert work.endpoints["mismatched"] in summary["endpoint"]
+
+
+def test_payload_viewer_shows_the_evidence(work):
+    """Scenario: The payload viewer shows the module 1 evidence"""
+    work.agent("m1")
+    out = work.run("payloads.py").stdout
+    assert "tools declared: ['find_part', 'check_stock']" in out
+    assert "tool_calls    = []" in out and "finish_reason = stop" in out
+    # It names the files to open in the file browser rather than only pointing at --raw.
+    assert "NN-response.json" in out and "summary.json" in out and "--raw" in out
+
+
+def test_module2_stronger_prompt_changes_wording_not_tool_calls(work):
+    """Scenario: A stronger prompt doesn't make the tools fire"""
+    plain, _ = work.agent("m1")
+    strong, run_dir = work.agent("m1", "--strong-prompt")
+    assert strong["tool_calls"] == [] and strong["answer"] != plain["answer"]
+    assert read_json(run_dir / "01-response.json")["choices"][0]["message"]["tool_calls"] == []
+
+
+def test_module2_repoint_populates_tool_calls_and_tool_executes(work):
+    """Scenario: The endpoint whose parser matches the model makes the tool fire"""
+    work.repoint_to_validated()                          # edit config.toml, as the lab says
+    summary, run_dir = work.agent("m1")
+    message = read_json(run_dir / "01-response.json")["choices"][0]["message"]
+    assert message["tool_calls"] and message["tool_calls"][0]["function"]["name"] == "find_part"
+    assert message["content"] is None                    # call no longer stranded in content
+    first = summary["tool_calls"][0]
+    assert first["name"] == "find_part"
+    assert first["result"]["results"][0]["part_number"] == PUMP   # executed against fixtures
+
+
+def test_module3_starter_loop_repeats_until_cap(work):
+    """Scenario: Module 3's starting loop calls the same tool until the turn cap"""
+    work.repoint_to_validated()
+    summary, run_dir = work.agent("m3")
+    assert summary["ended_by"] == "max_turns" and summary["turns"] == 6
+    calls = summary["tool_calls"]
+    assert len(calls) == 6 and {c["name"] for c in calls} == {"find_part"}      # check_stock never reached
+    assert len({str(c["arguments"]) for c in calls}) == 1                       # same arguments every turn
+    # the harness re-sends an identical message list: no tool message ever appended
+    last = read_json(run_dir / "06-request.json")
+    assert [m["role"] for m in last["messages"]] == ["system", "user"]
+    assert "error" not in read_json(run_dir / "06-response.json")     # no error: it just never stops
+
+
+def test_tracing_is_a_noop_without_mlflow_uri(work):
+    summary, _ = work.agent("m1")                        # env has no MLFLOW_TRACKING_URI
+    assert summary["turns"] == 1
+
+
+def test_compare_endpoints_shows_both_responses_side_by_side(work):
+    """Scenario: Comparing endpoints shows both responses side by side"""
+    env = {"LAB_MISMATCHED_URL": work.endpoints["mismatched"], "LAB_VALIDATED_URL": work.endpoints["validated"],
+           "COLUMNS": "160"}
+    out = work.run("compare_endpoints.py", env=env).stdout
+    rows = out.splitlines()
+    # One row holds both endpoints' finish_reason: the mismatched one stops, the validated one calls a tool.
+    assert any("finish_reason: stop" in r and "finish_reason: tool_calls" in r for r in rows)
+    assert "tool_calls: []" in out and "tool_calls: find_part" in out   # [] as sent, like payloads.py
+    assert "<tool_call>" in out                   # the stranded call, left in content
+    assert not (work.path / "runs").exists()      # nothing saved, nothing changed
+    assert "qwen3-8b-b" not in work.config.read_text()
+
+
+def test_compare_endpoints_reports_an_unreachable_endpoint_and_carries_on(work):
+    """Scenario: Comparing endpoints shows both responses side by side
+    (the clause: an endpoint that can't be reached is reported without stopping the comparison)"""
+    env = {"LAB_MISMATCHED_URL": work.endpoints["mismatched"], "LAB_VALIDATED_URL": "http://127.0.0.1:9/v1"}
+    out = work.run("compare_endpoints.py", env=env).stdout
+    assert "error: APIConnectionError" in out
+    # The working endpoint's response is still shown beside the failing one.
+    assert "finish_reason: stop" in out and "<tool_call>" in out
+
+
+def test_compare_endpoints_sends_exactly_what_the_agent_sends(work):
+    """Scenario: Comparing endpoints shows both responses side by side
+    (the clause: they are the same request's responses, the one the agent sends)"""
+    _, run_dir = work.agent("m1")
+    code = ("import json, agent, questions, compare_endpoints as c; "
+            "print(json.dumps(c.build_body(agent.load_config(), questions.QUESTIONS['m1'])))")
+    body = json.loads(work.run("-c", code).stdout)
+    assert body == read_json(run_dir / "01-request.json")

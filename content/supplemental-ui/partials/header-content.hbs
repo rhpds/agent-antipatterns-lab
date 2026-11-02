@@ -1,0 +1,37 @@
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://rh-aiservices-bu.github.io/cai/" target="_blank" style="margin-left: 2.5%; display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+        <svg width="32" height="32" viewBox="0 0 190 152" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+          <path d="M127 90.2c12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 00-.3-3.4L149.8 37c-1.7-7.1-3.2-10.3-15.7-16.6-9.7-5-30.8-13.1-37.1-13.1-5.8 0-7.5 7.5-14.4 7.5-6.7 0-11.6-5.6-17.9-5.6-6 0-9.9 4.1-12.9 12.5 0 0-8.4 23.7-9.5 27.2a4.216 4.216 0 00-.3 1.9c0 9.2 36.3 39.4 85 39.4zm32.5-11.4c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 011.5-7.3C21.8 58.8 0 61.8 0 81c0 31.5 74.6 70.3 133.7 70.3 45.3 0 56.7-20.5 56.7-36.6-.1-12.8-11-27.3-30.9-35.9z" fill="#e00"/>
+          <path d="M159.5 78.8c1.7 8.2 1.7 9.1 1.7 10.1 0 14-15.7 21.8-36.4 21.8-46.8 0-87.7-27.4-87.7-45.5a17.535 17.535 0 011.5-7.3l3.7-9.1a4.877 4.877 0 00-.3 2c0 9.2 36.3 39.4 85 39.4 12.5 0 30.6-2.6 30.6-17.5a12.678 12.678 0 00-.3-3.4z"/>
+        </svg>
+        <span style="font-family: 'Red Hat Display', 'RedHatDisplay', 'Overpass', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 800; color: #ffffff; letter-spacing: 0.3px;">Red Hat</span>
+      </a>
+      <a class="navbar-item site-title" target="__blank" style="color: #fff !important;" href="{{{or site.url (or siteRootUrl siteRootPath)}}}">{{site.title}}</a>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        {{#if env.SITE_SEARCH_PROVIDER}}
+        <div class="navbar-item search hide-for-print">
+          <div id="search-field" class="field">
+            <input id="search-input" type="text" placeholder="Search the docs">
+          </div>
+        </div>
+        {{/if}}
+        {{#if page.attributes.links}}
+        <div class="navbar-item navbar-item-right-dropdown has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Links</a>
+          <div class="navbar-dropdown navbar-dropdown-right">
+            <a class="navbar-item navbar-item-right-content" href="{{page.attributes.rhoai_dashboard_url}}" target="_blank">OpenShift AI Dashboard</a>
+            <a class="navbar-item navbar-item-right-content" href="{{page.attributes.openshift_cluster_console_url}}" target="_blank">OpenShift Console</a>
+          </div>
+        </div>
+        {{/if}}
+        {{#if page.attributes.user}}
+        <div class="navbar-item">You are {{page.attributes.user}}</div>
+        {{/if}}
+      </div>
+    </div>
+  </nav>
+</header>

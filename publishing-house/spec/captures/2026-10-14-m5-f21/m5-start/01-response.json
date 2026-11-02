@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-a1928de6fc5105cf",
+  "object": "chat.completion",
+  "created": 1791994364,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-98e127e42ed0b083",
+            "type": "function",
+            "function": {
+              "name": "find_part",
+              "arguments": "{\"query\": \"F-21\", \"product\": \"K-400\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking about a K-400 chiller showing fault F-21. I need to figure out what the technician should do. Let me start by recalling what fault codes mean. Kestrel chillers have specific fault codes, so F-21 might relate to a particular issue.\n\nFirst, I should check if there's a standard response for F-21 on the K-400. Since I don't have access to the internal database, I need to use the provided functions. The user mentioned the model K-400 and the fault code, so maybe the part number related to this fault can be found using the find_part function. Wait, but the find_part function takes a query and product. The query here would be the fault code F-21, and the product is K-400. \n\nSo I'll call find_part with query \"F-21\" and product \"K-400\". That should return any relevant part numbers associated with that fault. Once I have the part number, the next step would be to check stock and lead time using check_stock. But the user is asking what the technician should do, which might involve replacing a part. So the answer would involve finding the part and then checking availability. \n\nAlternatively, maybe the fault F-21 is a known issue that requires a specific part. Let me make sure to use the functions correctly. The first step is to find the part number for the fault, then check stock. So the initial tool call should be find_part with the given parameters.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 405,
+    "total_tokens": 769,
+    "completion_tokens": 364,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

@@ -1,0 +1,9 @@
+Question: A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?
+Endpoint: http://qwen3-8b-a-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+<tool_call>
+{"name": "find_part", "arguments": {"query": "coolant pump", "product": "K-400"}}
+</tool_call>

@@ -1,0 +1,35 @@
+Question: A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?
+Endpoint: http://qwen3-8b-a-predictor.llm-serving.svc:8080/v1
+
+Traceback (most recent call last):
+  File "agent.py", line 96, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "agent.py", line 88, in main
+    summary = run_agent(question, config, strong_prompt=args.strong_prompt)
+  File "agent.py", line 43, in run_agent
+    response = call_model(config, messages, toolbox.definitions, runlog, turn)
+  File "llm.py", line 36, in call_model
+    raw = client.chat.completions.with_raw_response.create(**body)
+  File ".venv/.../site-packages/openai/_legacy_response.py", line 369, in wrapped
+    return cast(LegacyAPIResponse[R], func(*args, **kwargs))
+                                      ~~~~^^^^^^^^^^^^^^^^^
+  File ".venv/.../site-packages/openai/_utils/_utils.py", line 298, in wrapper
+    return func(*args, **kwargs)
+  File ".venv/.../site-packages/openai/resources/chat/completions/completions.py", line 1318, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<53 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File ".venv/.../site-packages/openai/_base_client.py", line 1440, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/.../site-packages/openai/_base_client.py", line 1213, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.InternalServerError: Error code: 500 - {'error': {'message': "Llama3JsonToolParser could not locate the bot token '<|python_tag|>' in the tokenizer.", 'type': 'InternalServerError', 'param': None, 'code': 500}}
+exit=1

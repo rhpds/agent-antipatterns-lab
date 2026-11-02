@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-bcb91e8e18c17f0f",
+  "object": "chat.completion",
+  "created": 1791924890,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe functions available to me are for finding part numbers and checking stock/lead times. I don't have access to service interval recommendations or maintenance schedules. For service intervals, please consult the Kestrel maintenance manual or contact Kestrel Technical Support directly.",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user is asking about the recommended service interval for the coolant pump seal on the K-400 model. Let me think. First, I need to check if I have the necessary functions to answer this. The available tools are find_part and check_stock. \n\nThe find_part function can help find part numbers based on a description and model. But the user isn't asking for a part number; they want a service interval. The check_stock function is for checking stock and lead time, which isn't relevant here.\n\nSince the functions provided don't include anything about service intervals or maintenance schedules, I can't use them to get the required information. I should inform the user that I can't access service interval data and suggest they consult the Kestrel maintenance manual or contact support for that specific information.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 402,
+    "total_tokens": 622,
+    "completion_tokens": 220,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

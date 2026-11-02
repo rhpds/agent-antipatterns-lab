@@ -1,0 +1,17 @@
+{
+  "_comment": "Kestrel Industrial is fictional. Every part number here exists only in this lab.",
+  "parts": [
+    {"part_number": "KI-CP-40817", "name": "Coolant circulation pump assembly", "products": ["K-400"],
+     "keywords": ["coolant", "pump", "pressure", "circulation", "flow"], "notes": "Replaces KI-CP-40611 (superseded)."},
+    {"part_number": "KI-SK-40233", "name": "Coolant pump mechanical seal kit", "products": ["K-400"],
+     "keywords": ["seal", "leak", "coolant", "pump", "gasket"], "notes": "Fits KI-CP-40817 only."},
+    {"part_number": "KI-CP-20412", "name": "Coolant circulation pump assembly", "products": ["K-200"],
+     "keywords": ["coolant", "pump", "pressure", "circulation", "flow"], "notes": ""},
+    {"part_number": "KI-HS-60233", "name": "High-pressure sensor (refrigerant discharge)", "products": ["K-600"],
+     "keywords": ["high-pressure", "high", "pressure", "sensor", "discharge", "transducer"], "notes": "Discontinued line; no remaining stock."},
+    {"part_number": "KI-FM-60105", "name": "Condenser fan motor", "products": ["K-600", "K-400"],
+     "keywords": ["fan", "motor", "condenser", "airflow"], "notes": ""},
+    {"part_number": "KI-CT-40990", "name": "Controller board", "products": ["K-400", "K-600"],
+     "keywords": ["controller", "board", "display", "fault", "plc"], "notes": ""}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "_comment": "Transit days from each depot to customer-site cities. Used by estimate_delivery (module 6).",
+  "transit_days": {
+    "Denver":  {"Boulder": 1, "Colorado Springs": 1, "Salt Lake City": 2, "Albuquerque": 2},
+    "Phoenix": {"Tucson": 1, "Albuquerque": 2, "Las Vegas": 2},
+    "Chicago": {"Milwaukee": 1, "Indianapolis": 1, "Detroit": 2}
+  }
+}

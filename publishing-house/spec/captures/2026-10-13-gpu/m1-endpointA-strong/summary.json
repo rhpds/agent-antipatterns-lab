@@ -1,0 +1,20 @@
+{
+  "run_dir": "runs/20261013-144410-135555",
+  "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+  "endpoint": "http://qwen3-8b-a-predictor.llm-serving.svc:8080/v1",
+  "turns": 1,
+  "ended_by": "plain_answer",
+  "tools_offered": [
+    "find_part",
+    "check_stock"
+  ],
+  "model_calls": [
+    {
+      "call": 1,
+      "finish_reason": "stop",
+      "tool_calls": 0
+    }
+  ],
+  "tool_calls": [],
+  "answer": "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>"
+}

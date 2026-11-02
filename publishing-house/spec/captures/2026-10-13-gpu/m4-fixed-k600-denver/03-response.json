@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-add7aea7ecf108b9",
+  "object": "chat.completion",
+  "created": 1791924820,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user asked if the K-600 high-pressure sensor is available at the Denver depot. First, I needed to find the correct part number for the high-pressure sensor on a K-600. I used the find_part function with the query \"high-pressure sensor\" and product K-600. The response gave me the part number KI-HS-60233.\n\nNext, I checked the stock for that part number at the Denver depot using the check_stock function. The response said there's no stock available at Denver. So, the answer should inform the user that the part isn't available there and maybe suggest alternatives like lead time or other depots. I need to make sure the response is clear and helpful, providing the part number and the availability info.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 595,
+    "total_tokens": 810,
+    "completion_tokens": 215,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}
