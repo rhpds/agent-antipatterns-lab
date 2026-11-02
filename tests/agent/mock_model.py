@@ -177,8 +177,16 @@ def respond(mode, body):
         "id": "chatcmpl-mock", "object": "chat.completion", "created": int(time.time()),
         "model": body.get("model", "mock"),
         "choices": [{"index": 0, "message": message, "finish_reason": finish}],
-        "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+        "usage": usage(body, message),
     }
+
+
+def usage(body, message):
+    """Token counts that grow with the request, as a real server's do (about 4 characters a
+    token), so a run that resends a growing history costs more than one that stops early."""
+    prompt = max(1, len(json.dumps(body.get("messages", [])) + json.dumps(body.get("tools") or [])) // 4)
+    completion = max(1, len(json.dumps({k: message.get(k) for k in ("content", "tool_calls")})) // 4)
+    return {"prompt_tokens": prompt, "completion_tokens": completion, "total_tokens": prompt + completion}
 
 
 def make_handler(mode):
