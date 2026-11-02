@@ -190,8 +190,10 @@ approval_checklist:
 
       AgentOps in Production (agentops-in-prod-showroom, duplicated in rhai-features-workshop)
       scored 99 percent against the rejected design with observability, metrics, tracing
-      and evaluation modules. All of that is removed; MLflow now appears only as the
-      instrument for reading a trace. AgentOps in Action (agentops-in-action-workshop)
+      and evaluation modules. All of that is removed; MLflow appears as the instrument
+      for reading a trace, and in module 7 as the place the regression baseline is
+      recorded and compared (decision 0005). The lab teaches no observability or
+      evaluation practice: no judge, no metric design, no monitoring. AgentOps in Action (agentops-in-action-workshop)
       owns identity-aware authorization and adversarial testing in the neighbouring
       slot; guardrails and adversarial scanning are removed and module 6 carries no
       assessed outcome. Retrieval is bounded to one module because LB1782, showroom-agentic-ai-llamastack

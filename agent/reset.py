@@ -106,6 +106,8 @@ def main(argv=None):
         sys.exit(f"reset needs the lab's git checkout: {getattr(exc, 'stderr', '') or exc}")
     except NotAFile as exc:
         sys.exit(f"reset stopped, nothing changed: {exc}")
+    import version   # here, not at the top: version imports this module
+    version.note_reset(args.module)
     print(f"Ready to start module {args.module}.")
     if backup:
         print(f"Your previous versions of {', '.join(changed)} are in {backup.relative_to(HERE)}/")
