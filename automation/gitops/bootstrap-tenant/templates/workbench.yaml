@@ -75,8 +75,8 @@ spec:
       enableServiceLinks: false
       initContainers:
         # Runs on every start but only clones and installs once: the results live on
-        # the workbench PVC. A separate virtualenv keeps the agent's pinned packages
-        # (mlflow pulls many) out of the image's Python, which runs JupyterLab.
+        # the workbench PVC. The agent's virtualenv sees the image's own packages (mlflow,
+        # psycopg) and adds only what the image lacks; the image's Python runs JupyterLab.
         - name: lab-setup
           image: {{ $image }}
           imagePullPolicy: IfNotPresent
@@ -120,9 +120,12 @@ spec:
               fi
               if [ ! -f "$venv/.lab-installed" ]; then
                 python3 -m venv "$venv"
-                # The image's pip.conf points at Red Hat's curated RHOAI index, which lacks
-                # some of the agent's pins; install them from PyPI.
-                "$venv/bin/pip" install --no-cache-dir --quiet --index-url {{ $w.pipIndexUrl }} \
+                # The image's Python is itself a virtualenv (/opt/app-root), so
+                # --system-site-packages would expose /usr's packages, not the image's. A .pth
+                # file adds the image's site-packages after the venv's own.
+                python3 -c 'import sysconfig; p = sysconfig.get_paths(); print("\n".join(dict.fromkeys([p["purelib"], p["platlib"]])))' \
+                  > "$("$venv/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')/workbench-image.pth"
+                "$venv/bin/pip" install --no-cache-dir --quiet {{ with $w.pipIndexUrl }}--index-url {{ . }} {{ end }}\
                   -r "$repo/agent/requirements.txt"
                 touch "$venv/.lab-installed"
               fi

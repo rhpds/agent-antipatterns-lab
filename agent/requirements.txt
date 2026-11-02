@@ -1,5 +1,6 @@
+# What lab-setup installs into the workbench's ~/.venv, from the image's own package index
+# (Red Hat's OpenShift AI index). Everything else the agent needs comes from the workbench
+# image, "Jupyter | Data Science | CPU | Python 3.12" (s2i-generic-data-science-notebook:3.5):
+# mlflow 3.14.0 (matching the lab's MLflow server) and psycopg 3.3.4. Outside a workbench,
+# install requirements-local.txt instead.
 openai==3.24.0
-# Match the lab cluster's MLflow server (3.14.0 on OpenShift AI 3.5.2). A client newer
-# than the server is only best-effort compatible. Re-check on each OpenShift AI release.
-mlflow[kubernetes]==3.14.0
-psycopg[binary]==3.3.6
