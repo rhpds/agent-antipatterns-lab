@@ -109,6 +109,7 @@ def main(argv=None):
     print(f"Answer:\n{summary['answer']}\n")
     run_dir = summary.get("run_dir")
     print(f"Payloads saved in {run_dir}\nView them with: python payloads.py")
+    tracing.report(summary)
     return 0
 
 
