@@ -18,6 +18,8 @@ import sys
 
 import psycopg
 
+import tracing
+
 DIM = 256
 MIN_SCORE = 0.35   # cosine similarity below this is treated as "no passage answers this"
 STOPWORDS = {"the", "a", "an", "of", "for", "on", "in", "is", "are", "what", "whats",
@@ -62,7 +64,22 @@ SEARCH_BULLETINS_DEFINITION = {
 
 
 def search_bulletins(query, product=None, top_k=3):
-    """Return module 4's contract: category, retryable, detail, plus passages in data."""
+    """Return module 4's contract: category, retryable, detail, plus passages in data.
+
+    With tracing on, the search is also a RETRIEVER span whose output is the passages the
+    agent receives, as documents labelled with their bulletin, so the trace view shows what
+    was retrieved (an empty list when nothing matched). Behind the lab's gateway (module 6)
+    tracing is off in the tool server, and the agent's trace shows the tool's reply instead."""
+    with tracing.span("retrieve_bulletins", "RETRIEVER", inputs={"query": query, "product": product}) as span:
+        result = _search(query, product, top_k)
+        if result["data"] is not None:
+            span.set_outputs([{"page_content": p["text"],
+                               "metadata": {"doc_uri": p["source"], "section": p["section"], "score": p["score"]}}
+                              for p in result["data"]["passages"]])
+        return result
+
+
+def _search(query, product, top_k):
     sql = ("SELECT source, section, content, 1 - (embedding <=> %s::vector) AS score "
            "FROM bulletins {where} ORDER BY embedding <=> %s::vector LIMIT %s")
     vec = vector_literal(embed(query))
