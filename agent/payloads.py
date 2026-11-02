@@ -49,6 +49,12 @@ def show(run_dir, raw=False):
         print(f"          tool_calls    = {json.dumps(msg.get('tool_calls'))}")
         print(f"          content       = {json.dumps(msg.get('content'))}")
     print(where_to_read(run_dir))
+    try:
+        trace = json.loads((run_dir / "summary.json").read_text()).get("trace_url")
+    except (OSError, ValueError):
+        trace = None
+    if trace:
+        print(f"Trace in MLflow: {trace}")
 
 
 def where_to_read(run_dir):
