@@ -1,0 +1,5 @@
+# Running the agent outside the lab workbench (a laptop, CI): requirements.txt plus the
+# packages the workbench image provides, at the image's versions.
+-r requirements.txt
+mlflow[kubernetes]==3.14.0
+psycopg[binary]==3.3.4
