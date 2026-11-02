@@ -42,7 +42,7 @@ From throwaway runs in user1's workbench, with the 3.14.0 client pinned in #78:
 ## Decision
 
 - **`regression.py --name` records the regression set as an MLflow evaluation run.** The
-  six existing checks become code scorers over each case's run record, unchanged. The
+  six existing checks, unchanged, give each case's verdict, which one code scorer ("check") records on the case's trace. The
   verdicts are PASS, FAIL or SKIP, and the reason is the rationale. No LLM judge is used.
 - **The evaluation run keeps the three counts** (passed, failed, skipped), logged
   explicitly, because categorical scorers log no run metrics by themselves.

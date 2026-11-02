@@ -157,8 +157,8 @@ def main(argv=None):
         if url:
             print(f"Evaluation in MLflow: {url}")
     elif os.environ.get("MLFLOW_TRACKING_URI"):
-        print("The evaluation wasn't recorded in MLflow (it couldn't be reached). "
-              "Every case is in the report above.")
+        why = " (it couldn't be reached)" if not tracing.enabled() else ""
+        print(f"The evaluation wasn't recorded in MLflow{why}. Every case is in the report above.")
     return 0
 
 

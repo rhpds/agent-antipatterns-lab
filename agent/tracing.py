@@ -66,6 +66,11 @@ def _set_agent_version(mlflow):
         return None
 
 
+def enabled():
+    """True once init() has switched tracing on."""
+    return _mlflow is not None
+
+
 def last_trace_id():
     """The trace of the run that just finished, or None when none was recorded."""
     return _trace_id
@@ -224,7 +229,7 @@ def log_evaluation(name, params, cases, counts):
     verdict the terminal printed, from the same deterministic check (no LLM judge). The run
     also keeps the passed, failed and skipped counts as metrics, and is linked to the agent
     version. Returns the run id, or None when tracing is off or nothing could be recorded."""
-    if _mlflow is None:
+    if _mlflow is None or not cases:
         return None
     try:
         import contextlib
