@@ -11,10 +11,83 @@ metadata:
   namespace: {{ $g.operatorNamespace }}
   annotations:
     {{- include "infra.crAnnotations" (dict "wave" 1) | nindent 4 }}
+{{- if $g.gateway.create }}
 ---
-# Fix 6: Redis on 8081, not 6379. The operator-managed default NetworkPolicy in
-# {{ $ns }} only opens 8443/8080/8081/5432/8082/8099/8181/9443. --protected-mode no
-# is needed or non-loopback clients get a misleading "broken pipe".
+# The lab's own Gateway, never OpenShift AI's. The MCPGatewayExtension inserts an ext_proc filter
+# FIRST on every request through the Gateway it targets, with failure_mode_allow false. Attached
+# to OpenShift AI's data-science-gateway (mcp-gateway v0.7.1, 2026-11-02), that returned 404 for
+# MLflow, the dashboard and workbench routes. Here the filter only ever sees MCP traffic.
+# ClusterIP only: the agent runs in the workbench, inside the cluster, and the gateway has no
+# public address. TLS uses a service-CA certificate, which workbenches already trust.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ $g.gateway.className }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  controllerName: openshift.io/gateway-controller/v1
+---
+# Service settings for the Gateway's Envoy: ClusterIP, and the service CA signs its certificate.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $g.gateway.name }}-config
+  namespace: {{ $g.gateway.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  service: |
+    metadata:
+      annotations:
+        service.beta.openshift.io/serving-cert-secret-name: {{ printf "%s-service-tls" $g.gateway.name | quote }}
+    spec:
+      type: ClusterIP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $g.gateway.name }}
+  namespace: {{ $g.gateway.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  gatewayClassName: {{ $g.gateway.className }}
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: {{ $g.gateway.name }}-config
+  listeners:
+    - name: {{ $g.gateway.sectionName }}
+      port: 443
+      protocol: HTTPS
+      # Only the lab's MCP namespace may attach routes.
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $ns }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: {{ printf "%s-service-tls" $g.gateway.name }}
+{{- end }}
+---
+# Fix 6: Redis on 8081, not 6379. Fixed when the backends lived in redhat-ods-applications, whose
+# operator-managed NetworkPolicy only opens 8443/8080/8081/5432/8082/8099/8181/9443; kept so the
+# chart still works with that namespace. --protected-mode no is needed or non-loopback clients get
+# a misleading "broken pipe".
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -75,61 +148,34 @@ stringData:
   CACHE_CONNECTION_STRING: "redis://mcp-redis.{{ $ns }}.svc.cluster.local:{{ $g.redis.port }}"
   session-key: {{ default (sha256sum (printf "%s/mcp-session-key" .Values.deployer.domain)) $g.sessionKey | quote }}
 ---
-# Fix 7: the same default NetworkPolicy blocks the broker's gRPC ext_proc port
-# (50051). Symptom without it: every CR reports Ready but requests 504 with
-# ext_proc_error_per-message_timeout_exceeded (look in the Gateway's Envoy log in
-# openshift-ingress, not the broker log). Additive policy; the operator-managed one is untouched.
+# Who may reach the lab's MCP namespace: its own pods (the broker's router opens tools/call
+# sessions straight to the tool server), the Gateway's Envoy in {{ $g.gateway.namespace }} (MCP
+# traffic, and the broker's gRPC ext_proc port 50051; without that, every CR reports Ready but
+# requests 504 with ext_proc_error_per-message_timeout_exceeded, found in Envoy's log, not the
+# broker's), and the MCP Gateway controller in {{ $g.operatorNamespace }} (it validates each
+# MCPServerRegistration through the broker's status and config ports 8080 and 8181; without it the
+# registration stays "Validation failed: ... /status: context deadline exceeded"). Workbenches
+# reach the lab only through the Gateway, so Redis and the tool server aren't open to them.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-mcp-gateway-extproc
+  name: lab-mcp-ingress
   namespace: {{ $ns }}
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: mcp-gateway
+  podSelector: {}
   policyTypes:
     - Ingress
   ingress:
-    # Only the Gateway's Envoy calls ext_proc.
     - from:
+        - podSelector: {}
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: openshift-ingress
-      ports:
-        - port: 50051
-          protocol: TCP
----
-# The MCP Gateway controller (in {{ $g.operatorNamespace }}) validates each MCPServerRegistration
-# by calling the broker's status (8080) and config (8181) ports. The namespace-wide policy only
-# admits OpenShift AI's own namespaces, so without this the registration stays
-# "Validation failed: ... /status: context deadline exceeded" and the broker serves no tools.
-# Seen on OpenShift AI 3.5.2 with mcp-gateway v0.7.1, 2026-11-02.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-mcp-gateway-controller
-  namespace: {{ $ns }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: mcp-gateway
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
+              kubernetes.io/metadata.name: {{ $g.gateway.namespace }}
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: {{ $g.operatorNamespace }}
-      ports:
-        - port: 8080
-          protocol: TCP
-        - port: 8181
-          protocol: TCP
 ---
 # Fix 3: MCPGatewayExtension -> Gateway is cross-namespace and needs a ReferenceGrant
 # in the Gateway's namespace. (MCPServerRegistration stays in the same namespace as its
@@ -153,8 +199,8 @@ spec:
       name: {{ $g.gateway.name }}
 {{- if $g.server.enabled }}
 ---
-# Fix 1: backends must live in {{ $ns }} or {{ $g.gateway.namespace }}, the Gateway listener's
-# namespace allow-list. Fix 8/9 (ping method, tool "id" field) are in files/lab-tool-server.py.
+# Fix 1: backends must live in a namespace the Gateway listener admits ({{ $ns }}).
+# Fix 8/9 (ping method, tool "id" field) are in files/lab-tool-server.py.
 apiVersion: v1
 kind: ConfigMap
 metadata:

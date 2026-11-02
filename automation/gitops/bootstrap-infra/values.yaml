@@ -166,7 +166,7 @@ modelServing:
 mcpGateway:
   # Tech Preview, supporting only. Set false to skip entirely.
   enabled: true
-  namespace: redhat-ods-applications     # backends MUST live here or openshift-ingress (Gateway listener allow-list)
+  namespace: lab-mcp                     # the broker, Redis and the tool server; the only namespace the Gateway admits
   operatorNamespace: mcp-system          # Kuadrant CR namespace as verified on the SNO
   operators:
     - name: rhcl-operator                # Red Hat Connectivity Link; pulls in Authorino + Limitador
@@ -179,23 +179,24 @@ mcpGateway:
       channel: preview
       source: redhat-operators
       enabled: true
+  # The lab's own Gateway (created when create is true). Never point this at OpenShift AI's
+  # data-science-gateway: the extension's filter runs first on every request through its
+  # Gateway, and there it returned 404 for MLflow, the dashboard and workbenches (2026-11-02).
   gateway:
-    name: data-science-gateway
-    className: data-science-gateway-class
+    create: true
+    name: lab-mcp-gateway
+    className: lab-mcp-gateway-class
     namespace: openshift-ingress
     sectionName: https
   # The MCP host, used both by participants' agents (LAB_GATEWAY_URL) and by the broker when
   # it hair-pins backend calls back through the Gateway. Empty = the Gateway's in-cluster
   # address, <gateway.name>-<gateway.className>.<gateway.namespace>.svc.cluster.local, which is
-  # what OpenShift AI's Gateway publishes in its status and the only name its listener
-  # certificate (data-science-gateway-service-tls) is valid for. Seen on OpenShift AI 3.5.2 with
-  # mcp-gateway v0.7.1, 2026-11-02:
-  #  - rh-ai.<domain> reaches the Gateway through OpenShift's router, but the broker's hair-pin
-  #    then fails TLS ("certificate is valid for ...svc, not rh-ai...") and every tools/call
-  #    returns HTTP 500;
-  #  - data-science-gateway.<domain> is a plain Route to an nginx that 301-redirects to rh-ai;
-  #  - the operator's default hair-pin address, <gateway>-istio.<ns>.svc, doesn't exist here.
-  # The agent runs in the workbench, inside the cluster, so the in-cluster address suits it.
+  # what the Gateway publishes in its status and the only name its service-CA certificate is
+  # valid for. The gateway has no public address: the agent runs in the workbench, inside the
+  # cluster. Seen with OpenShift AI's Gateway on 3.5.2 and mcp-gateway v0.7.1, 2026-11-02, and
+  # still true of any Gateway here: a public route name fails the broker's hair-pin TLS
+  # ("certificate is valid for ...svc") and every tools/call returns HTTP 500, and the
+  # operator's default hair-pin address, <gateway>-istio.<ns>.svc, doesn't exist.
   publicHost: ""
   # Where the broker's router opens tools/call sessions. Its default hair-pins back through the
   # Gateway (https://<publicHost>:443), but in mcp-gateway v0.7.1 the router verifies that TLS
@@ -205,10 +206,10 @@ mcpGateway:
   # With the lab's single backend, the router goes straight to the tool server's in-cluster
   # service. The tool server authenticates callers itself, with a TokenReview of the bearer
   # token the broker passes on. Empty = hair-pin through the Gateway.
-  privateHost: "http://mcp-server.redhat-ods-applications.svc.cluster.local:8080"
+  privateHost: "http://mcp-server.lab-mcp.svc.cluster.local:8080"
   toolPrefix: "kestrel_"
-  # Redis session store: must be a real Redis (memory:// panics the broker) on a
-  # port the namespace NetworkPolicy allows (8081, NOT 6379) with protected-mode off.
+  # Redis session store: must be a real Redis (memory:// panics the broker), with
+  # protected-mode off. 8081 because redhat-ods-applications' NetworkPolicy blocks 6379.
   redis:
     image: registry.redhat.io/rhel9/redis-7:latest
     port: 8081
