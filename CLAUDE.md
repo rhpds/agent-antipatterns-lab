@@ -79,8 +79,11 @@ sees in each module. David approved each one.
   any code is written. In David's own sessions the `acceptance-first` skill handles this.
   In anyone else's, tell the user to raise the change with David rather than writing
   scenarios yourself.
-- **A fix or refactor that leaves every scenario true is fine.** Make it as usual, and run
-  the tests above before the PR.
+- **In anyone else's session, a change that alters nothing a participant would observe is
+  fine** (a refactor, say, or a cleanup that keeps every scenario's test as strong). Make it
+  as usual, and run the tests above before the PR. If it changes anything a participant
+  would see, even a small fix, tell the user to raise it with David first. In David's own
+  sessions, the `acceptance-first` skill decides whether a change needs scenarios.
 
 The module pages (`content/`) and Publishing House files are not covered by this.
 
