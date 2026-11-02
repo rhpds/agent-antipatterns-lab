@@ -69,14 +69,18 @@ sees in each module. David approved each one.
   `Scenario: <exact title>`. `tests/agent/test_scenarios_are_bound.py` fails if any scenario
   isn't named. Don't remove or rename those lines, and don't weaken the tests that carry them.
 - **A failing scenario test is a signal, not an obstacle.** If your change breaks one, the
-  lab's promised behaviour has changed. Report it rather than adjusting the test to pass.
+  lab's promised behaviour has changed. Report it to the user rather than adjusting the test
+  to pass, unless David has approved that change.
 - **Run the tests before a PR**: `python -m pytest -q -rs` from `tests/agent/` (install
   `tests/agent/requirements.txt` first). The module 5–7 tests need podman and the
-  `docker.io/pgvector/pgvector:pg16` image, and fail if they're missing. CI runs the same
-  tests on every PR to `dev`.
+  `docker.io/pgvector/pgvector:pg16` image, and fail (not skip) if podman is missing or the
+  image can't be pulled or started. CI runs the same tests on every PR to `dev`.
 - **New behaviour in these paths starts with new scenarios.** David approves them before
   any code is written. In David's own sessions the `acceptance-first` skill handles this.
-  In anyone else's, flag the change to David rather than writing scenarios yourself.
+  In anyone else's, tell the user to raise the change with David rather than writing
+  scenarios yourself.
+- **A fix or refactor that leaves every scenario true is fine.** Make it as usual, and run
+  the tests above before the PR.
 
 The module pages (`content/`) and Publishing House files are not covered by this.
 
