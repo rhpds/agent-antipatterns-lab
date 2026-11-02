@@ -99,6 +99,35 @@ spec:
         - port: 50051
           protocol: TCP
 ---
+# The MCP Gateway controller (in {{ $g.operatorNamespace }}) validates each MCPServerRegistration
+# by calling the broker's status (8080) and config (8181) ports. The namespace-wide policy only
+# admits OpenShift AI's own namespaces, so without this the registration stays
+# "Validation failed: ... /status: context deadline exceeded" and the broker serves no tools.
+# Seen on OpenShift AI 3.5.2 with mcp-gateway v0.7.1, 2026-11-02.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-gateway-controller
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $g.operatorNamespace }}
+      ports:
+        - port: 8080
+          protocol: TCP
+        - port: 8181
+          protocol: TCP
+---
 # Fix 3: MCPGatewayExtension -> Gateway is cross-namespace and needs a ReferenceGrant
 # in the Gateway's namespace. (MCPServerRegistration stays in the same namespace as its
 # HTTPRoute so no second grant is needed; the cross-namespace failure mode is a bare
@@ -122,7 +151,7 @@ spec:
 {{- if $g.server.enabled }}
 ---
 # Fix 1: backends must live in {{ $ns }} or {{ $g.gateway.namespace }}, the Gateway listener's
-# namespace allow-list. Fix 8/9 (ping method, tool "id" field) are in files/mcp-server.py.
+# namespace allow-list. Fix 8/9 (ping method, tool "id" field) are in files/lab-tool-server.py.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -131,8 +160,60 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 data:
-  mcp-server.py: |
-    {{- .Files.Get "files/mcp-server.py" | nindent 4 }}
+  lab-tool-server.py: |
+    {{- .Files.Get "files/lab-tool-server.py" | nindent 4 }}
+---
+# The tool server reads each participant's registration ConfigMap (that one name only) and
+# reviews callers' tokens to learn who is asking (system:auth-delegator).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-server
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lab-tool-registrations-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: [{{ $g.server.registrationConfigMap | quote }}]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lab-tool-registrations-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: lab-tool-registrations-reader
+subjects:
+  - kind: ServiceAccount
+    name: mcp-server
+    namespace: {{ $ns }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lab-tool-server-token-review
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: mcp-server
+    namespace: {{ $ns }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -151,24 +232,51 @@ spec:
       labels:
         app: mcp-server
     spec:
+      serviceAccountName: mcp-server
+      initContainers:
+        # The agent's own tool code, as participants have it at the start of module 6
+        # (module 5's tools.py), so the gateway serves exactly what they built.
+        - name: clone
+          image: {{ $g.server.cloneImage }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              git clone --depth 1 --branch {{ $g.server.repo.ref | quote }} {{ $g.server.repo.url | quote }} /src/repo
+              cp /src/repo/agent/solutions/module-05/tools.py /src/repo/agent/tools.py
+          volumeMounts:
+            - name: src
+              mountPath: /src
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
       containers:
         - name: mcp-server
           image: {{ $g.server.image }}
-          command: ["python3", "/app/mcp-server.py"]
+          command: ["python3", "/app/lab-tool-server.py"]
+          env:
+            - name: LAB_AGENT_DIR
+              value: /src/repo/agent
+            - name: LAB_REGISTRATION_CONFIGMAP
+              value: {{ $g.server.registrationConfigMap | quote }}
           ports:
             - containerPort: 8080
           readinessProbe:
             httpGet: {path: /healthz, port: 8080}
           resources:
-            requests: {cpu: 50m, memory: 64Mi}
+            requests: {cpu: 50m, memory: 96Mi}
             limits: {cpu: 500m, memory: 256Mi}
           volumeMounts:
             - name: script
               mountPath: /app
+            - name: src
+              mountPath: /src
       volumes:
         - name: script
           configMap:
             name: mcp-server-script
+        - name: src
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -239,8 +347,9 @@ spec:
     generate: Enabled
 {{- if $g.server.enabled }}
 ---
-# Identity-based filtering (userSpecificList) is deliberately NOT enabled: module 6
-# teaches connection only. Fix 9 (prefix) is kept so it can be switched on later.
+# userSpecificList: the broker asks the tool server for each caller's own tool list (with the
+# caller's session headers), so estimate_delivery appears only for a participant who has
+# registered it. Fix 9: userSpecificList requires a prefix.
 apiVersion: mcp.kuadrant.io/v1alpha1
 kind: MCPServerRegistration
 metadata:
@@ -254,7 +363,8 @@ spec:
     kind: HTTPRoute
     name: mcp-server
   path: {{ $g.server.path }}
-  hint: "Lab placeholder tool server."
+  userSpecificList: Enabled
+  hint: "Kestrel Industrial field service tools: parts, stock, service bulletins, delivery."
   category:
     - lab
   tags:

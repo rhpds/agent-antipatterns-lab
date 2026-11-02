@@ -265,3 +265,50 @@ def regression(name=None):
     recorded = re.search(r"Recorded MLflow run '[^']*' \((\w+)\)", output)
     if name:
         links((f"The baseline run '{name}' in MLflow", run_url(recorded.group(1)) if recorded else None))
+
+
+# --- module 6: registering a tool at the gateway ------------------------------------------
+
+REGISTRATION_CONFIGMAP = "kestrel-tool-registrations"
+SA_DIR = pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount")
+
+
+def gateway_url():
+    """The lab's MCP Gateway address, which the environment gives the workbench."""
+    return os.environ.get("LAB_GATEWAY_URL")
+
+
+def register_tool(tool="estimate_delivery"):
+    """Register a tool at the gateway for this participant only: one ConfigMap in their own
+    project, which the lab's tool server reads. Touches nothing in the agent."""
+    import ssl
+    import urllib.error
+    import urllib.request
+    ns = namespace()
+    host, port = os.environ.get("KUBERNETES_SERVICE_HOST"), os.environ.get("KUBERNETES_SERVICE_PORT", "443")
+    if not (ns and host and (SA_DIR / "token").exists()):
+        print("This isn't a lab workbench, so there's no project to register in.")
+        return False
+    token = (SA_DIR / "token").read_text().strip()
+    ctx = ssl.create_default_context(cafile=str(SA_DIR / "ca.crt"))
+    base = f"https://{host}:{port}/api/v1/namespaces/{ns}/configmaps"
+
+    def call(method, url, body=None):
+        req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body else None,
+                                     headers={"Authorization": f"Bearer {token}",
+                                              "Content-Type": "application/merge-patch+json" if method == "PATCH"
+                                              else "application/json"})
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+            return json.load(resp)
+
+    try:
+        call("PATCH", f"{base}/{REGISTRATION_CONFIGMAP}", {"data": {tool: "registered"}})
+    except urllib.error.HTTPError as exc:
+        if exc.code != 404:
+            print(f"Registration failed: HTTP {exc.code}")
+            return False
+        call("POST", base, {"apiVersion": "v1", "kind": "ConfigMap",
+                            "metadata": {"name": REGISTRATION_CONFIGMAP},
+                            "data": {tool: "registered"}})
+    print(f"Registered {tool} at the gateway for project {ns}.")
+    return True

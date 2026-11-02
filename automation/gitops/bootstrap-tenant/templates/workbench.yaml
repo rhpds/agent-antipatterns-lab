@@ -183,6 +183,10 @@ spec:
             - name: PATH
               value: {{ $src }}/.venv/bin:/opt/app-root/bin:/opt/app-root/src/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
             {{- include "workbench.pgEnv" . | nindent 12 }}
+            {{- if .Values.mcpGateway.enabled }}
+            - name: LAB_GATEWAY_URL
+              value: {{ .Values.mcpGateway.url | default (printf "https://data-science-gateway.%s/mcp" .Values.deployer.domain) | quote }}
+            {{- end }}
           ports:
             - name: notebook-port
               containerPort: 8888

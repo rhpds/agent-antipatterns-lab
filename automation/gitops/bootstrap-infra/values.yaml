@@ -196,10 +196,24 @@ mcpGateway:
   # Argo does not see drift on every render. Override via a sealed/real Secret
   # for anything that is not a throwaway lab.
   sessionKey: ""
-  # Placeholder MCP backend (replace with the lab's real tool server).
+  # The lab's tool server (files/lab-tool-server.py): the agent's own module 5 tools, cloned
+  # from the lab repo at startup, plus estimate_delivery for participants who register it
+  # (module 6). Each caller gets their own tool list (userSpecificList), so one participant
+  # registering doesn't change another's catalog.
   server:
     enabled: true
     image: registry.access.redhat.com/ubi9/python-311:latest
+    # Clones the repo; the workbench image has git (the RHOAI image stream in this namespace).
+    cloneImage: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-minimal-notebook:3.5
+    repo:
+      url: https://github.com/rhpds/agent-antipatterns-lab.git
+      # A branch or tag; dev until the lab is released to main (as for the workbench).
+      ref: dev
     path: /lab-mcp-backend
+    # The ConfigMap a participant creates in their own project to register a tool.
+    registrationConfigMap: kestrel-tool-registrations
     tools:
-      - echo
+      - find_part
+      - check_stock
+      - search_bulletins
+      - estimate_delivery
