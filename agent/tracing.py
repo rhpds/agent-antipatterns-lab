@@ -80,14 +80,32 @@ def span(name, span_type="UNKNOWN", inputs=None):
         cm.__exit__(None, None, None)
 
 
+def _token_usage(response):
+    """The call's token counts in MLflow's form, or None when the model reported none (MLflow
+    then shows no total rather than a misleading 0)."""
+    usage = getattr(response, "usage", None)
+    counts = {"input_tokens": getattr(usage, "prompt_tokens", None),
+              "output_tokens": getattr(usage, "completion_tokens", None),
+              "total_tokens": getattr(usage, "total_tokens", None)}
+    if any(not isinstance(n, int) for n in counts.values()):
+        return None
+    return counts
+
+
 def record_model_call(span, response):
     """Put what the model returned on its span, where the trace view shows it: the stop
-    reason, the tool calls it made (an empty list when it made none), and its text."""
+    reason, the tool calls it made (an empty list when it made none), and its text. The
+    call's token counts go on the span too; MLflow totals them for the trace, which is the
+    Tokens column in the trace list (module 3: a loop costs more than a run that stops)."""
     try:
         choice = response.choices[0]
         calls = [{"name": c.function.name, "arguments": c.function.arguments}
                  for c in (choice.message.tool_calls or [])]
-        span.set_attributes({"finish_reason": choice.finish_reason, "tool_call_count": len(calls)})
+        attributes = {"finish_reason": choice.finish_reason, "tool_call_count": len(calls)}
+        usage = _token_usage(response)
+        if usage:
+            attributes["mlflow.chat.tokenUsage"] = usage
+        span.set_attributes(attributes)
         span.set_outputs({"finish_reason": choice.finish_reason, "tool_calls": calls,
                           "content": choice.message.content})
     except Exception as exc:
