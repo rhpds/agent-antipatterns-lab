@@ -62,8 +62,13 @@ def serving_runtime_url(name, ns="llm-serving"):
     return console_url(f"/k8s/ns/{ns}/serving.kserve.io~v1alpha1~ServingRuntime/{name}/yaml")
 
 
+_seen_experiment = None  # an experiment id learned another way (see regression)
+
+
 def experiment_id():
-    """The kestrel-agent experiment's id, from the newest traced run."""
+    """The kestrel-agent experiment's id, from the newest traced run (or the regression run)."""
+    if _seen_experiment:
+        return _seen_experiment
     for run in reversed(runs(since_start=False)):
         trace = summary(run).get("trace_url") or ""
         if "/experiments/" in trace:
@@ -253,6 +258,10 @@ def regression(name=None):
     done = subprocess.run(command, cwd=AGENT, capture_output=True, text=True)
     output = done.stdout + done.stderr
     print("\n".join(line for line in output.splitlines() if "View run" not in line))
+    global _seen_experiment
+    seen = re.search(r"/experiments/(\w+)/runs/(\w+)", output)   # MLflow's own "View run" line
+    if seen:
+        _seen_experiment = seen.group(1)
     recorded = re.search(r"Recorded MLflow run '[^']*' \((\w+)\)", output)
     if name:
         links((f"The baseline run '{name}' in MLflow", run_url(recorded.group(1)) if recorded else None))
