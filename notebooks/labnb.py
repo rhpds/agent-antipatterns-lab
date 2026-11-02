@@ -6,6 +6,7 @@ Everything here reads what the agent saved under agent/runs/, so the notebooks s
 evidence as `python payloads.py`, and links straight to the matching page in MLflow or the
 OpenShift console.
 """
+import datetime
 import html
 import json
 import os
@@ -18,6 +19,9 @@ from IPython.display import HTML, Markdown, display
 AGENT = pathlib.Path(__file__).resolve().parent.parent / "agent"
 RUNS = AGENT / "runs"
 NAMESPACE_FILE = pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+# Runs are folders named by their start time (runlog.py). Tables show only the runs made since
+# this notebook started, so an earlier module's runs don't appear in this one's evidence.
+STARTED = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
 
 
 # --- where things are ---------------------------------------------------------------------
@@ -60,7 +64,7 @@ def serving_runtime_url(name, ns="llm-serving"):
 
 def experiment_id():
     """The kestrel-agent experiment's id, from the newest traced run."""
-    for run in reversed(runs()):
+    for run in reversed(runs(since_start=False)):
         trace = summary(run).get("trace_url") or ""
         if "/experiments/" in trace:
             return trace.split("/experiments/", 1)[1].split("/", 1)[0]
@@ -88,8 +92,12 @@ def links(*items):
 
 # --- what the agent saved -----------------------------------------------------------------
 
-def runs():
-    return sorted(r for r in RUNS.glob("*") if (r / "summary.json").exists()) if RUNS.exists() else []
+def runs(since_start=True):
+    """The agent's runs, oldest first: by default only those made since this notebook started."""
+    if not RUNS.exists():
+        return []
+    found = sorted(r for r in RUNS.glob("*") if (r / "summary.json").exists())
+    return [r for r in found if r.name >= STARTED] if since_start else found
 
 
 def summary(run):
@@ -156,11 +164,12 @@ COLUMNS = {
 }
 
 
-def evidence(columns=("endpoint", "turns", "ended by", "tools run", "answer"), last=6):
-    """One row per agent run, newest last. Each run's name links to its trace in MLflow."""
+def evidence(columns=("endpoint", "turns", "ended by", "tools run", "answer"), last=8):
+    """One row per agent run made in this notebook, newest last. Each run's name links to its
+    trace in MLflow."""
     rs = runs()[-last:]
     if not rs:
-        return display(Markdown("No runs yet."))
+        return display(Markdown("No runs in this notebook yet."))
     head = "".join(f"<th>{html.escape(c)}</th>" for c in ("run", *columns))
     rows = []
     for r in rs:
@@ -225,3 +234,25 @@ def tool_list():
             "print([d['function']['name'] for d in toolbox.open_toolbox(agent.load_config()).definitions])")
     done = subprocess.run(["python", "-c", code], cwd=AGENT, capture_output=True, text=True)
     print(done.stdout + done.stderr, end="")
+
+
+def run_url(run_id):
+    """An MLflow run (for example the module 7 baseline), in the format MLflow itself prints."""
+    home, eid, ws = mlflow_home(), experiment_id(), namespace()
+    if not (home and eid and run_id):
+        return None
+    return f"{home}/#/experiments/{eid}/runs/{run_id}" + (f"?workspace={ws}" if ws else "")
+
+
+def regression(name=None):
+    """Run the module 7 regression set (optionally recording a named baseline run in MLflow),
+    show its output, and link to the baseline run."""
+    import re
+    import subprocess
+    command = ["python", "regression.py"] + (["--name", name] if name else [])
+    done = subprocess.run(command, cwd=AGENT, capture_output=True, text=True)
+    output = done.stdout + done.stderr
+    print("\n".join(line for line in output.splitlines() if "View run" not in line))
+    recorded = re.search(r"Recorded MLflow run '[^']*' \((\w+)\)", output)
+    if name:
+        links((f"The baseline run '{name}' in MLflow", run_url(recorded.group(1)) if recorded else None))
