@@ -121,7 +121,7 @@ spec:
               if [ ! -f "$venv/.lab-installed" ]; then
                 python3 -m venv "$venv"
                 # The image's pip.conf points at Red Hat's curated RHOAI index, which lacks
-                # some of the agent's pins (mlflow 3.16.1); install them from PyPI.
+                # some of the agent's pins; install them from PyPI.
                 "$venv/bin/pip" install --no-cache-dir --quiet --index-url {{ $w.pipIndexUrl }} \
                   -r "$repo/agent/requirements.txt"
                 touch "$venv/.lab-installed"
