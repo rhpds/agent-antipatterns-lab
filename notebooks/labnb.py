@@ -250,21 +250,25 @@ def run_url(run_id):
 
 
 def regression(name=None):
-    """Run the module 7 regression set (optionally recording a named baseline run in MLflow),
-    show its output, and link to the baseline run."""
+    """Run the module 7 regression set (optionally naming the baseline it records in MLflow),
+    show its output, and link to its evaluation run in MLflow."""
     import re
     import subprocess
     command = ["python", "regression.py"] + (["--name", name] if name else [])
     done = subprocess.run(command, cwd=AGENT, capture_output=True, text=True)
     output = done.stdout + done.stderr
-    print("\n".join(line for line in output.splitlines() if "View run" not in line))
+    keep = [line for line in output.splitlines()
+            if "View run" not in line and not line.startswith("Evaluation in MLflow:")]
+    print("\n".join(keep))
     global _seen_experiment
-    seen = re.search(r"/experiments/(\w+)/runs/(\w+)", output)   # MLflow's own "View run" line
+    seen = re.search(r"/experiments/(\w+)/(?:runs|evaluation-runs)\b", output)
     if seen:
         _seen_experiment = seen.group(1)
+    evaluation = re.search(r"^Evaluation in MLflow: (\S+)", output, re.MULTILINE)
     recorded = re.search(r"Recorded MLflow run '[^']*' \((\w+)\)", output)
+    url = evaluation.group(1) if evaluation else (run_url(recorded.group(1)) if recorded else None)
     if name:
-        links((f"The baseline run '{name}' in MLflow", run_url(recorded.group(1)) if recorded else None))
+        links((f"The evaluation run '{name}' in MLflow", url))
 
 
 # --- module 6: registering a tool at the gateway ------------------------------------------

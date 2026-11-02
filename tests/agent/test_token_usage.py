@@ -61,6 +61,7 @@ def test_a_model_that_reports_no_counts_leaves_the_total_empty(tmp_path, monkeyp
     """David, 2026-11-02 (Q1): with no counts from the model, the trace shows none (not a 0)
     and the call is otherwise recorded as before."""
     mlflow = pytest.importorskip("mlflow")
+    monkeypatch.chdir(tmp_path)   # MLflow writes any local artifacts under the cwd
     monkeypatch.setenv("MLFLOW_TRACKING_URI", f"sqlite:///{tmp_path}/mlflow.db")
     monkeypatch.syspath_prepend(str(AGENT))
     sys.modules.pop("tracing", None)

@@ -1,15 +1,18 @@
 """Module 7: re-run every earlier failure case and report per case.
 
     python regression.py                    # run the whole set against the agent as it is now
-    python regression.py --name my-baseline # also record a named run in MLflow (if configured)
+    python regression.py --name my-baseline # also record it in MLflow as a named evaluation run
 
 Each case is judged from the run record (tool calls, stop reason, error categories),
-not from the wording of the answer. A case that cannot apply yet (for example the
+not from the wording of the answer. With tracing on, the run is also recorded in MLflow as
+an evaluation: one row per case, with its trace and the same PASS, FAIL or SKIP and reason,
+so a later run can be compared with this one. A case that cannot apply yet (for example the
 retrieval cases before module 5) is reported SKIP; nothing blocks the rest.
 Writes runs/regression-<time>.md, including the symptom-to-layer checklist.
 """
 import argparse
 import datetime
+import os
 import pathlib
 import sys
 
@@ -119,14 +122,19 @@ def main(argv=None):
     config = load_config(args.config)
     cap = config["agent"]["max_turns"]
 
-    rows = []
+    rows, traced = [], []
     for key, title, check in CASES:
+        trace_id = None
+        tracing.forget_last_trace()
         try:
             summary = run_agent(QUESTIONS[key], config)
+            trace_id = tracing.last_trace_id()
             status, reason = check(summary, cap)
         except Exception as exc:  # a broken case must not stop the others
             status, reason = "FAIL", f"run raised {type(exc).__name__}: {exc}"
         rows.append((key, title, status, reason))
+        if trace_id:
+            traced.append((trace_id, status, f"{key}: {reason}"))
         print(f"{status:5} {key:8} {title}\n      {reason}")
 
     counts = {s: sum(1 for r in rows if r[2] == s) for s in ("PASS", "FAIL", "SKIP")}
@@ -141,10 +149,16 @@ def main(argv=None):
     report.write_text("\n".join(lines) + "\n\n" + CHECKLIST)
     print(f"Report and checklist: {report}")
 
-    run_id = tracing.log_baseline(args.name, {"endpoint": config["model"]["base_url"]},
-                                  {"passed": counts["PASS"], "failed": counts["FAIL"], "skipped": counts["SKIP"]})
+    run_id = tracing.log_evaluation(args.name, {"endpoint": config["model"]["base_url"]}, traced,
+                                    {"passed": counts["PASS"], "failed": counts["FAIL"], "skipped": counts["SKIP"]})
     if run_id:
         print(f"Recorded MLflow run {args.name!r} ({run_id})")
+        url = tracing.evaluation_url(run_id)
+        if url:
+            print(f"Evaluation in MLflow: {url}")
+    elif os.environ.get("MLFLOW_TRACKING_URI"):
+        why = " (it couldn't be reached)" if not tracing.enabled() else ""
+        print(f"The evaluation wasn't recorded in MLflow{why}. Every case is in the report above.")
     return 0
 
 
