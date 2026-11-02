@@ -16,12 +16,13 @@ _mlflow = None  # the mlflow module once tracing is switched on
 _run_tags = {}  # tags for the next run's trace (see set_run_tags)
 _experiment_id = None  # the experiment traces go to, once init() has set it
 _trace_id = None  # the trace of the run that just finished (see record_run)
+_model_id = None  # the MLflow agent version every trace is linked to (see init)
 NAMESPACE_FILE = pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
 
 
 def init():
     """Switch tracing on if MLFLOW_TRACKING_URI is set. Never raises."""
-    global _mlflow, _experiment_id
+    global _mlflow, _experiment_id, _model_id
     uri = os.environ.get("MLFLOW_TRACKING_URI")
     if not uri:
         return False
@@ -43,11 +44,42 @@ def init():
         experiment = mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "kestrel-agent"))
         _experiment_id = experiment.experiment_id
         _mlflow = mlflow
+        _model_id = _set_agent_version(mlflow)
         return True
     except Exception as exc:  # tracing must never break the agent; report() says so at the end
         if os.environ.get("MLFLOW_LOGGING_LEVEL", "").upper() == "DEBUG":
             print(f"[tracing] disabled: {exc}")
         return False
+
+
+def _set_agent_version(mlflow):
+    """Label every trace from here on with the agent version (see version.py), for example
+    kestrel-m4-start, as an MLflow agent version. Returns its id, or None if it can't be
+    told (not a git checkout) or recorded; traces are recorded either way."""
+    try:
+        import version
+        name = version.current()
+        return mlflow.set_active_model(name=name).model_id if name else None
+    except Exception as exc:
+        if os.environ.get("MLFLOW_LOGGING_LEVEL", "").upper() == "DEBUG":
+            print(f"[tracing] agent version not recorded: {exc}")
+        return None
+
+
+def enabled():
+    """True once init() has switched tracing on."""
+    return _mlflow is not None
+
+
+def last_trace_id():
+    """The trace of the run that just finished, or None when none was recorded."""
+    return _trace_id
+
+
+def forget_last_trace():
+    """Before a new run, so last_trace_id() can't return an earlier run's trace."""
+    global _trace_id
+    _trace_id = None
 
 
 class _NoSpan:
@@ -80,14 +112,32 @@ def span(name, span_type="UNKNOWN", inputs=None):
         cm.__exit__(None, None, None)
 
 
+def _token_usage(response):
+    """The call's token counts in MLflow's form, or None when the model reported none (MLflow
+    then shows no total rather than a misleading 0)."""
+    usage = getattr(response, "usage", None)
+    counts = {"input_tokens": getattr(usage, "prompt_tokens", None),
+              "output_tokens": getattr(usage, "completion_tokens", None),
+              "total_tokens": getattr(usage, "total_tokens", None)}
+    if any(not isinstance(n, int) for n in counts.values()):
+        return None
+    return counts
+
+
 def record_model_call(span, response):
     """Put what the model returned on its span, where the trace view shows it: the stop
-    reason, the tool calls it made (an empty list when it made none), and its text."""
+    reason, the tool calls it made (an empty list when it made none), and its text. The
+    call's token counts go on the span too; MLflow totals them for the trace, which is the
+    Tokens column in the trace list (module 3: a loop costs more than a run that stops)."""
     try:
         choice = response.choices[0]
         calls = [{"name": c.function.name, "arguments": c.function.arguments}
                  for c in (choice.message.tool_calls or [])]
-        span.set_attributes({"finish_reason": choice.finish_reason, "tool_call_count": len(calls)})
+        attributes = {"finish_reason": choice.finish_reason, "tool_call_count": len(calls)}
+        usage = _token_usage(response)
+        if usage:
+            attributes["mlflow.chat.tokenUsage"] = usage
+        span.set_attributes(attributes)
         span.set_outputs({"finish_reason": choice.finish_reason, "tool_calls": calls,
                           "content": choice.message.content})
     except Exception as exc:
@@ -120,6 +170,17 @@ def trace_url(base, experiment_id, trace_id, workspace=None):
     """The MLflow address that opens one trace, in the participant's workspace if known."""
     workspace_part = f"workspace={workspace}&" if workspace else ""
     return f"{base.rstrip('/')}/#/experiments/{experiment_id}/traces?{workspace_part}selectedEvaluationId={trace_id}"
+
+
+def evaluation_url(run_id):
+    """The MLflow address that opens an evaluation run, or None when there's no UI address."""
+    uri = os.environ.get("MLFLOW_TRACKING_URI", "")
+    ui = os.environ.get("LAB_MLFLOW_UI_URL") or (uri if uri.startswith(("http://", "https://")) else None)
+    if not (ui and run_id and _experiment_id):
+        return None
+    workspace = _workspace()
+    workspace_part = f"workspace={workspace}&" if workspace else ""
+    return f"{ui.rstrip('/')}/#/experiments/{_experiment_id}/evaluation-runs?{workspace_part}selectedRunUuid={run_id}"
 
 
 def _workspace():
@@ -160,15 +221,39 @@ def report(summary):
     return where
 
 
-def log_baseline(name, params, metrics):
-    """Record a named run (module 7 baseline). No-op when tracing is off."""
-    if _mlflow is None:
+def log_evaluation(name, params, cases, counts):
+    """Record the module 7 regression set as an MLflow evaluation run called `name`.
+
+    `cases` is [(trace_id, status, reason)] for each case that recorded a trace. Each trace
+    gets the case's PASS, FAIL or SKIP, with the reason, as its "check" assessment: the same
+    verdict the terminal printed, from the same deterministic check (no LLM judge). The run
+    also keeps the passed, failed and skipped counts as metrics, and is linked to the agent
+    version. Returns the run id, or None when tracing is off or nothing could be recorded."""
+    if _mlflow is None or not cases:
         return None
     try:
+        import contextlib
+        import io
+        from mlflow.entities import Feedback
+        from mlflow.genai.scorers import scorer
+
+        verdicts = {trace_id: (status, reason) for trace_id, status, reason in cases}
+
+        @scorer(name="check")
+        def check(trace):
+            status, reason = verdicts[trace.info.trace_id]
+            return Feedback(value=status, rationale=reason)
+
+        # One case at a time, like the regression loop itself (the default is 10 workers).
+        os.environ.setdefault("MLFLOW_GENAI_EVAL_MAX_WORKERS", "1")
+        data = [{"trace": _mlflow.get_trace(trace_id)} for trace_id in verdicts]
         with _mlflow.start_run(run_name=name) as run:
+            # evaluate() prints its own banner and progress; the regression output has enough.
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                _mlflow.genai.evaluate(data=data, scorers=[check], model_id=_model_id)
             _mlflow.log_params(params)
-            _mlflow.log_metrics(metrics)
+            _mlflow.log_metrics(counts)
             return run.info.run_id
     except Exception as exc:
-        print(f"[tracing] baseline not recorded: {exc}")
+        print(f"[tracing] evaluation not recorded: {exc}")
         return None

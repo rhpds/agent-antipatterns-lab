@@ -166,7 +166,8 @@ modelServing:
 mcpGateway:
   # Tech Preview, supporting only. Set false to skip entirely.
   enabled: true
-  namespace: redhat-ods-applications     # backends MUST live here or openshift-ingress (Gateway listener allow-list)
+  namespace: lab-mcp                     # the broker, Redis and the tool server; the only namespace the Gateway admits
+  createNamespace: true                  # false if the namespace already exists and is managed elsewhere
   operatorNamespace: mcp-system          # Kuadrant CR namespace as verified on the SNO
   operators:
     - name: rhcl-operator                # Red Hat Connectivity Link; pulls in Authorino + Limitador
@@ -179,16 +180,37 @@ mcpGateway:
       channel: preview
       source: redhat-operators
       enabled: true
+  # The lab's own Gateway (created when create is true). Never point this at OpenShift AI's
+  # data-science-gateway: the extension's filter runs first on every request through its
+  # Gateway, and there it returned 404 for MLflow, the dashboard and workbenches (2026-11-02).
   gateway:
-    name: data-science-gateway
+    create: true
+    name: lab-mcp-gateway
+    className: lab-mcp-gateway-class
     namespace: openshift-ingress
     sectionName: https
-  # The Gateway listener has no hostname of its own, so publicHost is mandatory.
-  # Empty = derived as data-science-gateway.<deployer.domain> (ASSUMPTION).
+  # The MCP host, used both by participants' agents (LAB_GATEWAY_URL) and by the broker when
+  # it hair-pins backend calls back through the Gateway. Empty = the Gateway's in-cluster
+  # address, <gateway.name>-<gateway.className>.<gateway.namespace>.svc.cluster.local, which is
+  # what the Gateway publishes in its status and the only name its service-CA certificate is
+  # valid for. The gateway has no public address: the agent runs in the workbench, inside the
+  # cluster. Seen with OpenShift AI's Gateway on 3.5.2 and mcp-gateway v0.7.1, 2026-11-02, and
+  # still true of any Gateway here: a public route name fails the broker's hair-pin TLS
+  # ("certificate is valid for ...svc") and every tools/call returns HTTP 500, and the
+  # operator's default hair-pin address, <gateway>-istio.<ns>.svc, doesn't exist.
   publicHost: ""
+  # Where the broker's router opens tools/call sessions. Its default hair-pins back through the
+  # Gateway (https://<publicHost>:443), but in mcp-gateway v0.7.1 the router verifies that TLS
+  # against the system trust store only, which lacks OpenShift's service CA ("x509: certificate
+  # signed by unknown authority"); the registration's caCertSecretRef doesn't help, because it
+  # configures TLS to the tool server itself (and then breaks discovery of a plain-HTTP server).
+  # With the lab's single backend, the router goes straight to the tool server's in-cluster
+  # service. The tool server authenticates callers itself, with a TokenReview of the bearer
+  # token the broker passes on. Empty = hair-pin through the Gateway.
+  privateHost: "http://mcp-server.lab-mcp.svc.cluster.local:8080"
   toolPrefix: "kestrel_"
-  # Redis session store: must be a real Redis (memory:// panics the broker) on a
-  # port the namespace NetworkPolicy allows (8081, NOT 6379) with protected-mode off.
+  # Redis session store: must be a real Redis (memory:// panics the broker), with
+  # protected-mode off. 8081 because redhat-ods-applications' NetworkPolicy blocks 6379.
   redis:
     image: registry.redhat.io/rhel9/redis-7:latest
     port: 8081
@@ -196,10 +218,24 @@ mcpGateway:
   # Argo does not see drift on every render. Override via a sealed/real Secret
   # for anything that is not a throwaway lab.
   sessionKey: ""
-  # Placeholder MCP backend (replace with the lab's real tool server).
+  # The lab's tool server (files/lab-tool-server.py): the agent's own module 5 tools, cloned
+  # from the lab repo at startup, plus estimate_delivery for participants who register it
+  # (module 6). Each caller gets their own tool list (userSpecificList), so one participant
+  # registering doesn't change another's catalog.
   server:
     enabled: true
     image: registry.access.redhat.com/ubi9/python-311:latest
+    # Clones the repo; the workbench image has git (the RHOAI image stream in this namespace).
+    cloneImage: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-minimal-notebook:3.5
+    repo:
+      url: https://github.com/rhpds/agent-antipatterns-lab.git
+      # A branch or tag; dev until the lab is released to main (as for the workbench).
+      ref: dev
     path: /lab-mcp-backend
+    # The ConfigMap a participant creates in their own project to register a tool.
+    registrationConfigMap: kestrel-tool-registrations
     tools:
-      - echo
+      - find_part
+      - check_stock
+      - search_bulletins
+      - estimate_delivery

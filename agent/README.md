@@ -18,7 +18,7 @@ Everything else supports those three: `llm.py` (the one function that calls the 
 ## Run it
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-local.txt   # in the lab workbench this is already done
 python agent.py --q m1            # the module 1 question; see questions.py for the others
 python agent.py "your own question"
 python payloads.py                # the raw request and response of the last run
@@ -33,8 +33,8 @@ logging is needed.
 
 In the lab workbench, OpenShift AI sets this up: the workbench's MLflow integration sets
 `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_AUTH=kubernetes-namespaced` (the pod's service-account
-token, with its namespace as the workspace) and `MLFLOW_K8S_INTEGRATION`, and `mlflow[kubernetes]`
-in `requirements.txt` provides that auth mode. Nothing to export.
+token, with its namespace as the workspace) and `MLFLOW_K8S_INTEGRATION`, and the workbench image's mlflow 3.14.0
+provides that auth mode. Nothing to export.
 
 Outside a workbench, set it by hand:
 

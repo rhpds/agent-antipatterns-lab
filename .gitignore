@@ -9,3 +9,6 @@ publishing-house/worklog.yaml
 .venv/
 __pycache__/
 .pytest_cache/
+
+# MLflow file store left by a local run or test
+mlruns/

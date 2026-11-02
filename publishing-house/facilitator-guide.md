@@ -35,6 +35,22 @@ the new pod is Ready**.
   InferenceService `Ready` condition. That condition goes True before the pod can
   serve.
 
+### Two terminals: run agent commands in the workbench
+
+Participants have two shells, and only one of them runs the agent:
+
+- **The workbench terminal** (JupyterLab, File > New > Terminal) has the lab checkout,
+  the agent's Python environment and the MLflow settings. Every `python agent.py`,
+  `payloads.py`, `reset.py` and `regression.py` command in the lab runs here.
+- **The Showroom terminal tab** (when the catalog item deploys Showroom's `ocp-terminal`)
+  is a shell with the `oc` CLI. It has none of the above. Keep it: it's a quick way for
+  a participant, or for you, to check their project with `oc get pods` or look at the
+  serving configuration.
+
+A participant who types an agent command into the Showroom tab sees
+`python: can't open file '.../agent.py'` or `No module named 'openai'`. Nothing is
+broken: send them to the workbench terminal.
+
 ### Deleting `agent/requirements.txt` re-clones the lab repo
 
 When a workbench starts, its setup step checks that the lab checkout

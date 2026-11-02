@@ -74,7 +74,8 @@ sees in each module. David approved each one.
 - **Run the tests before a PR**: `python -m pytest -q -rs` from `tests/agent/` (install
   `tests/agent/requirements.txt` first). The module 5–7 tests need podman and the
   `docker.io/pgvector/pgvector:pg16` image, and fail (not skip) if podman is missing or the
-  image can't be pulled or started. CI runs the same tests on every PR to `dev`.
+  image can't be pulled or started. The module 6 gateway tests render the charts with `helm`
+  and fail if it isn't installed (set `HELM` to its path if it's not on `PATH`). CI runs the same tests on every PR to `dev`.
 - **New behaviour in these paths starts with new scenarios.** David approves them before
   any code is written. In David's own sessions the `acceptance-first` skill handles this.
   In anyone else's, tell the user to raise the change with David rather than writing
