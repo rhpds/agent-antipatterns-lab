@@ -11,6 +11,21 @@
 - `values-dev-single-l4.yaml`: a dev cluster with one L4. Only one endpoint runs at a time.
 - `values-ai-workloads.yaml`: add this when the RHDP `ai_workloads` role installs OpenShift AI.
 
+`bootstrap-tenant` has one extra values file, `values-dev.yaml`, for dev environments.
+
+## Which branch an environment clones
+
+The participant's workbench and the module 6 lab tool server clone this repo when they
+start. Both clone `labRepoRef`: the branch the environment's catalog item deploys from.
+That is `test` for the test environment and `main` for the event (#88). Neither chart has
+a default, so an environment that doesn't set it fails to render and says why.
+
+- **RHDP catalog items** pass it in `ocp4_workload_gitops_bootstrap_helm_values` for both
+  Applications, from the branch they deploy:
+  `labRepoRef: "{{ ocp4_workload_gitops_bootstrap_repo_revision }}"`.
+- **Dev environments** use `values-dev-single-l4.yaml` (`bootstrap-infra`) and
+  `values-dev.yaml` (`bootstrap-tenant`), which set `dev`.
+
 ## How RHDP deploys these charts
 
 AgnosticD's `ocp4_workload_gitops_bootstrap` role (`rhpds/core_workloads`) creates the Argo CD Applications from a fixed template:

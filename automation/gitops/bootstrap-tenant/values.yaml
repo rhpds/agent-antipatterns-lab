@@ -3,6 +3,14 @@ deployer:
 
 username: user1
 
+# The branch (or tag) of this repo that the environment clones at run time: the branch its
+# catalog item deploys from, test for the test environment and main for the event (David,
+# 2026-11-02, #88). The catalog passes it alongside the branch it deploys, for example
+#   labRepoRef: "{{ ocp4_workload_gitops_bootstrap_repo_revision }}"
+# Dev environments set dev in their values file. No default: an environment that doesn't
+# say its branch fails to render rather than quietly cloning dev.
+labRepoRef: ""
+
 # Must match bootstrap-infra modelServing.namespace / rhoai.applicationsNamespace.
 modelServing:
   # Binds the user read-only to the shared serving namespace (module 2: compare endpoints).
@@ -47,9 +55,6 @@ workbench:
     displayName: Jupyter | Data Science | CPU | Python 3.12
   repo:
     url: https://github.com/rhpds/agent-antipatterns-lab.git
-    # A branch or tag (git clone --branch takes no commit SHA). main does not hold agent/
-    # until dev is released to it; switch this to main as part of that release.
-    ref: dev
     dir: agent-antipatterns-lab
   # Where agent/requirements.txt is installed from. Empty = the image's own pip.conf, Red
   # Hat's OpenShift AI index (packages.redhat.com/api/pypi/public-rhai/rhoai/3.5/cpu-ubi9).
