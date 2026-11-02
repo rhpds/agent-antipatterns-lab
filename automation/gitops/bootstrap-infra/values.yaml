@@ -197,8 +197,15 @@ mcpGateway:
   #  - the operator's default hair-pin address, <gateway>-istio.<ns>.svc, doesn't exist here.
   # The agent runs in the workbench, inside the cluster, so the in-cluster address suits it.
   publicHost: ""
-  # The hair-pin address; empty = https://<publicHost>:443.
-  privateHost: ""
+  # Where the broker's router opens tools/call sessions. Its default hair-pins back through the
+  # Gateway (https://<publicHost>:443), but in mcp-gateway v0.7.1 the router verifies that TLS
+  # against the system trust store only, which lacks OpenShift's service CA ("x509: certificate
+  # signed by unknown authority"); the registration's caCertSecretRef doesn't help, because it
+  # configures TLS to the tool server itself (and then breaks discovery of a plain-HTTP server).
+  # With the lab's single backend, the router goes straight to the tool server's in-cluster
+  # service. The tool server authenticates callers itself, with a TokenReview of the bearer
+  # token the broker passes on. Empty = hair-pin through the Gateway.
+  privateHost: "http://mcp-server.redhat-ods-applications.svc.cluster.local:8080"
   toolPrefix: "kestrel_"
   # Redis session store: must be a real Redis (memory:// panics the broker) on a
   # port the namespace NetworkPolicy allows (8081, NOT 6379) with protected-mode off.

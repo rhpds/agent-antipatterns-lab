@@ -35,7 +35,10 @@ spec:
       containers:
         - name: redis
           image: {{ $g.redis.image }}
-          command: ["redis-server", "--port", {{ $g.redis.port | quote }}, "--protected-mode", "no"]
+          # No snapshots (--save ""): the session store needn't survive a restart, and the image's
+          # working directory isn't writable, so a failed snapshot made Redis refuse every write
+          # ("MISCONF ... unable to persist to disk") and the router fail every tools/call.
+          command: ["redis-server", "--port", {{ $g.redis.port | quote }}, "--protected-mode", "no", "--save", ""]
           ports:
             - containerPort: {{ $g.redis.port }}
           resources:

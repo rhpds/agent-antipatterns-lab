@@ -27,6 +27,7 @@ import threading
 import time
 import types
 import urllib.request
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 AGENT_DIR = os.environ.get("LAB_AGENT_DIR", "/src/agent")
@@ -177,24 +178,44 @@ def visible(namespace):
 # --- MCP ------------------------------------------------------------------------------------
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, code, body=None):
+    def _send(self, code, body=None, session=None):
         data = json.dumps(body).encode() if body is not None else b""
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
+        if session:
+            self.send_header("Mcp-Session-Id", session)
         self.end_headers()
         self.wfile.write(data)
 
+    def _body(self):
+        """The request body, whether sent with Content-Length or chunked (the broker's router
+        sends tools/call chunked, with no Content-Length)."""
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            data = b""
+            while True:
+                size = int(self.rfile.readline().split(b";")[0].strip() or b"0", 16)
+                if size == 0:
+                    self.rfile.readline()          # the blank line after the last chunk
+                    return data
+                data += self.rfile.read(size)
+                self.rfile.readline()              # CRLF after each chunk
+        return self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))
+
     def do_POST(self):
         try:
-            msg = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+            msg = json.loads(self._body() or b"{}")
         except ValueError:
             msg = {}
         method, rid = msg.get("method"), msg.get("id")
         tools = visible(caller_namespace({k.lower(): v for k, v in self.headers.items()}))
         if method == "initialize":
+            # The broker's router caches each backend session id; without one it fails every
+            # tools/call ("failed to add remote session to cache"). The server keeps no state
+            # per session, so any id it later receives is accepted.
             result = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
                       "serverInfo": {"name": "kestrel-lab-tools", "version": "1.0"}}
+            return self._send(200, {"jsonrpc": "2.0", "id": rid, "result": result}, session=uuid.uuid4().hex)
         elif method == "notifications/initialized":
             return self._send(202)
         elif method == "ping":
@@ -219,6 +240,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"jsonrpc": "2.0", "id": rid,
                                     "error": {"code": -32601, "message": f"method not found: {method}"}})
         self._send(200, {"jsonrpc": "2.0", "id": rid, "result": result})
+
+    def do_DELETE(self):
+        """MCP session termination. The server keeps no per-session state, so there's nothing
+        to end; acknowledge it rather than answer 501."""
+        self._send(200, {})
 
     def do_GET(self):
         if self.path == "/healthz":
