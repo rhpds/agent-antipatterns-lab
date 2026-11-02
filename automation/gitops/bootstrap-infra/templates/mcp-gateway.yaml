@@ -11,10 +11,85 @@ metadata:
   namespace: {{ $g.operatorNamespace }}
   annotations:
     {{- include "infra.crAnnotations" (dict "wave" 1) | nindent 4 }}
+{{- if $g.createNamespace }}
 ---
-# Fix 6: Redis on 8081, not 6379. The operator-managed default NetworkPolicy in
-# {{ $ns }} only opens 8443/8080/8081/5432/8082/8099/8181/9443. --protected-mode no
-# is needed or non-loopback clients get a misleading "broken pipe".
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+{{- end }}
+{{- if $g.gateway.create }}
+---
+# The lab's own Gateway, never OpenShift AI's. The MCPGatewayExtension inserts an ext_proc filter
+# FIRST on every request through the Gateway it targets, with failure_mode_allow false. Attached
+# to OpenShift AI's data-science-gateway (mcp-gateway v0.7.1, 2026-11-02), that returned 404 for
+# MLflow, the dashboard and workbench routes. Here the filter only ever sees MCP traffic.
+# ClusterIP only: the agent runs in the workbench, inside the cluster, and the gateway has no
+# public address. TLS uses a service-CA certificate, which workbenches already trust.
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ $g.gateway.className }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  controllerName: openshift.io/gateway-controller/v1
+---
+# Service settings for the Gateway's Envoy: ClusterIP, and the service CA signs its certificate.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $g.gateway.name }}-config
+  namespace: {{ $g.gateway.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  service: |
+    metadata:
+      annotations:
+        service.beta.openshift.io/serving-cert-secret-name: {{ printf "%s-service-tls" $g.gateway.name | quote }}
+    spec:
+      type: ClusterIP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $g.gateway.name }}
+  namespace: {{ $g.gateway.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  gatewayClassName: {{ $g.gateway.className }}
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: {{ $g.gateway.name }}-config
+  listeners:
+    - name: {{ $g.gateway.sectionName }}
+      port: 443
+      protocol: HTTPS
+      # Only the lab's MCP namespace may attach routes.
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $ns }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: {{ printf "%s-service-tls" $g.gateway.name }}
+{{- end }}
+---
+# Fix 6: Redis on 8081, not 6379. Fixed when the backends lived in redhat-ods-applications, whose
+# operator-managed NetworkPolicy only opens 8443/8080/8081/5432/8082/8099/8181/9443; kept so the
+# chart still works with that namespace. --protected-mode no is needed or non-loopback clients get
+# a misleading "broken pipe".
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,7 +110,10 @@ spec:
       containers:
         - name: redis
           image: {{ $g.redis.image }}
-          command: ["redis-server", "--port", {{ $g.redis.port | quote }}, "--protected-mode", "no"]
+          # No snapshots (--save ""): the session store needn't survive a restart, and the image's
+          # working directory isn't writable, so a failed snapshot made Redis refuse every write
+          # ("MISCONF ... unable to persist to disk") and the router fail every tools/call.
+          command: ["redis-server", "--port", {{ $g.redis.port | quote }}, "--protected-mode", "no", "--save", ""]
           ports:
             - containerPort: {{ $g.redis.port }}
           resources:
@@ -72,32 +150,34 @@ stringData:
   CACHE_CONNECTION_STRING: "redis://mcp-redis.{{ $ns }}.svc.cluster.local:{{ $g.redis.port }}"
   session-key: {{ default (sha256sum (printf "%s/mcp-session-key" .Values.deployer.domain)) $g.sessionKey | quote }}
 ---
-# Fix 7: the same default NetworkPolicy blocks the broker's gRPC ext_proc port
-# (50051). Symptom without it: every CR reports Ready but requests 504 with
-# ext_proc_error_per-message_timeout_exceeded (look in the Gateway's Envoy log in
-# openshift-ingress, not the broker log). Additive policy; the operator-managed one is untouched.
+# Who may reach the lab's MCP namespace: its own pods (the broker's router opens tools/call
+# sessions straight to the tool server), the Gateway's Envoy in {{ $g.gateway.namespace }} (MCP
+# traffic, and the broker's gRPC ext_proc port 50051; without that, every CR reports Ready but
+# requests 504 with ext_proc_error_per-message_timeout_exceeded, found in Envoy's log, not the
+# broker's), and the MCP Gateway controller in {{ $g.operatorNamespace }} (it validates each
+# MCPServerRegistration through the broker's status and config ports 8080 and 8181; without it the
+# registration stays "Validation failed: ... /status: context deadline exceeded"). Workbenches
+# reach the lab only through the Gateway, so Redis and the tool server aren't open to them.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-mcp-gateway-extproc
+  name: lab-mcp-ingress
   namespace: {{ $ns }}
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: mcp-gateway
+  podSelector: {}
   policyTypes:
     - Ingress
   ingress:
-    # Only the Gateway's Envoy calls ext_proc.
     - from:
+        - podSelector: {}
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: openshift-ingress
-      ports:
-        - port: 50051
-          protocol: TCP
+              kubernetes.io/metadata.name: {{ $g.gateway.namespace }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $g.operatorNamespace }}
 ---
 # Fix 3: MCPGatewayExtension -> Gateway is cross-namespace and needs a ReferenceGrant
 # in the Gateway's namespace. (MCPServerRegistration stays in the same namespace as its
@@ -121,8 +201,8 @@ spec:
       name: {{ $g.gateway.name }}
 {{- if $g.server.enabled }}
 ---
-# Fix 1: backends must live in {{ $ns }} or {{ $g.gateway.namespace }}, the Gateway listener's
-# namespace allow-list. Fix 8/9 (ping method, tool "id" field) are in files/mcp-server.py.
+# Fix 1: backends must live in a namespace the Gateway listener admits ({{ $ns }}).
+# Fix 8/9 (ping method, tool "id" field) are in files/lab-tool-server.py.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -131,8 +211,60 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 data:
-  mcp-server.py: |
-    {{- .Files.Get "files/mcp-server.py" | nindent 4 }}
+  lab-tool-server.py: |
+    {{- .Files.Get "files/lab-tool-server.py" | nindent 4 }}
+---
+# The tool server reads each participant's registration ConfigMap (that one name only) and
+# reviews callers' tokens to learn who is asking (system:auth-delegator).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-server
+  namespace: {{ $ns }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lab-tool-registrations-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: [{{ $g.server.registrationConfigMap | quote }}]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lab-tool-registrations-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: lab-tool-registrations-reader
+subjects:
+  - kind: ServiceAccount
+    name: mcp-server
+    namespace: {{ $ns }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lab-tool-server-token-review
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: mcp-server
+    namespace: {{ $ns }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -151,24 +283,51 @@ spec:
       labels:
         app: mcp-server
     spec:
+      serviceAccountName: mcp-server
+      initContainers:
+        # The agent's own tool code, as participants have it at the start of module 6
+        # (module 5's tools.py), so the gateway serves exactly what they built.
+        - name: clone
+          image: {{ $g.server.cloneImage }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              git clone --depth 1 --branch {{ $g.server.repo.ref | quote }} {{ $g.server.repo.url | quote }} /src/repo
+              cp /src/repo/agent/solutions/module-05/tools.py /src/repo/agent/tools.py
+          volumeMounts:
+            - name: src
+              mountPath: /src
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
       containers:
         - name: mcp-server
           image: {{ $g.server.image }}
-          command: ["python3", "/app/mcp-server.py"]
+          command: ["python3", "/app/lab-tool-server.py"]
+          env:
+            - name: LAB_AGENT_DIR
+              value: /src/repo/agent
+            - name: LAB_REGISTRATION_CONFIGMAP
+              value: {{ $g.server.registrationConfigMap | quote }}
           ports:
             - containerPort: 8080
           readinessProbe:
             httpGet: {path: /healthz, port: 8080}
           resources:
-            requests: {cpu: 50m, memory: 64Mi}
+            requests: {cpu: 50m, memory: 96Mi}
             limits: {cpu: 500m, memory: 256Mi}
           volumeMounts:
             - name: script
               mountPath: /app
+            - name: src
+              mountPath: /src
       volumes:
         - name: script
           configMap:
             name: mcp-server-script
+        - name: src
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -226,6 +385,7 @@ metadata:
     {{- include "infra.crAnnotations" (dict "wave" 6) | nindent 4 }}
 spec:
   publicHost: {{ $host | quote }}
+  privateHost: {{ $g.privateHost | default (printf "https://%s:443" $host) | quote }}
   targetRef:
     group: gateway.networking.k8s.io
     kind: Gateway
@@ -239,8 +399,9 @@ spec:
     generate: Enabled
 {{- if $g.server.enabled }}
 ---
-# Identity-based filtering (userSpecificList) is deliberately NOT enabled: module 6
-# teaches connection only. Fix 9 (prefix) is kept so it can be switched on later.
+# userSpecificList: the broker asks the tool server for each caller's own tool list (with the
+# caller's session headers), so estimate_delivery appears only for a participant who has
+# registered it. Fix 9: userSpecificList requires a prefix.
 apiVersion: mcp.kuadrant.io/v1alpha1
 kind: MCPServerRegistration
 metadata:
@@ -254,7 +415,8 @@ spec:
     kind: HTTPRoute
     name: mcp-server
   path: {{ $g.server.path }}
-  hint: "Lab placeholder tool server."
+  userSpecificList: Enabled
+  hint: "Kestrel Industrial field service tools: parts, stock, service bulletins, delivery."
   category:
     - lab
   tags:

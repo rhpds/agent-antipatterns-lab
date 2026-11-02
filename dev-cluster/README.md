@@ -60,6 +60,10 @@ Found the hard way during 2026-08-19 verification — full narrative in
   live/timed — collections like `quality`/`avid` pull in probes (e.g.
   `atkgen.Tox`) that run their own local attack-generator model per turn and
   take 100-235s/turn on CPU.
+- **Don't use these MCP manifests on an OpenShift AI 3.5 cluster.** They attach the
+  extension to OpenShift AI's own `data-science-gateway`. There, its filter runs first on every
+  request and returned 404 for MLflow, the dashboard and workbenches (2026-11-02). The
+  `bootstrap-infra` chart gives MCP Gateway a Gateway of its own instead.
 - **MCP Gateway** needed nine separate fixes to get a working end-to-end
   request through — see the comments in `manifests/mcp-*.yaml` for the "why"
   behind each one:

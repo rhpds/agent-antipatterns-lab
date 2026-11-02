@@ -183,6 +183,10 @@ spec:
             - name: PATH
               value: {{ $src }}/.venv/bin:/opt/app-root/bin:/opt/app-root/src/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
             {{- include "workbench.pgEnv" . | nindent 12 }}
+            {{- if .Values.mcpGateway.enabled }}
+            - name: LAB_GATEWAY_URL
+              value: {{ required "mcpGateway.url is required when mcpGateway.enabled" .Values.mcpGateway.url | quote }}
+            {{- end }}
           ports:
             - name: notebook-port
               containerPort: 8888

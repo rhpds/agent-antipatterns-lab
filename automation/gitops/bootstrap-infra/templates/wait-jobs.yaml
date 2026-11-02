@@ -191,7 +191,9 @@ spec:
               wait_for "DataScienceCluster Ready" dsc_ready
               dsc_components
               dsc_settings
-              wait_for "Gateway {{ .Values.mcpGateway.gateway.name }}" oc get gateway {{ .Values.mcpGateway.gateway.name }} -n {{ .Values.mcpGateway.gateway.namespace }}
+              # OpenShift AI's own Gateway, which MLflow, the dashboard and workbenches sit behind.
+              # (Module 6's gateway is the chart's own and is created before this job runs.)
+              wait_for "Gateway data-science-gateway" oc get gateway data-science-gateway -n openshift-ingress
               {{- if .Values.mlflow.enabled }}
               wait_for "MLflow CRD" oc get crd mlflows.mlflow.opendatahub.io
               {{- end }}
@@ -202,5 +204,15 @@ spec:
               {{- end }}
               {{- if .Values.mcpGateway.enabled }}
               wait_for "MCP Gateway CRDs" oc get crd mcpgatewayextensions.mcp.kuadrant.io mcpserverregistrations.mcp.kuadrant.io
+              # The lab's MCP resources are mcp.kuadrant.io/v1alpha1, served by MCP gateway 0.7.x.
+              # Gateway 1.0 (GA in Red Hat Connectivity Link 1.5) stops serving v1alpha1. Stop here
+              # with the reason, rather than let module 6 fail later without one.
+              served=$(oc get crd mcpserverregistrations.mcp.kuadrant.io -o jsonpath='{.spec.versions[?(@.name=="v1alpha1")].served}')
+              if [ "$served" != "true" ]; then
+                echo "FAIL: the installed MCP gateway doesn't serve mcp.kuadrant.io/v1alpha1, which the lab's manifests use."
+                echo "      Gateway 1.0 (Red Hat Connectivity Link 1.5) needs the manifests moved to mcp.kuadrant.io/v1."
+                exit 1
+              fi
+              echo "ok: MCP gateway serves mcp.kuadrant.io/v1alpha1"
               {{- end }}
 {{- end }}

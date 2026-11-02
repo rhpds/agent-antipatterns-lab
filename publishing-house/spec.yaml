@@ -107,13 +107,14 @@ spec:
       across three replicas carries substantial headroom.'
     non_ga_products:
     - MCP Gateway - Tech Preview via Red Hat Connectivity Link (operator v0.7.1, Red
-      Hat provided)
+      Hat provided). Version 1.0 is GA in Red Hat Connectivity Link 1.5; the lab moves
+      to it once a 1.0 build installs from the lab's catalog
     non_ga_access_plan: 'One non-GA dependency, down from three in the rejected version.
       Removing the guardrails and adversarial-scanning rounds took EvalHub and Garak
       off the design entirely.
 
-      MCP Gateway ships inside Red Hat OpenShift AI and installs through the normal
-      operator catalog, so no separate entitlement, early-access programme or non-standard
+      MCP Gateway is a Red Hat Connectivity Link component, not part of Red Hat OpenShift
+      AI, and installs through the normal Red Hat operator catalog, so no separate entitlement, early-access programme or non-standard
       registry is required. It is supporting rather than load-bearing: module 6 teaches
       governed tool access as a build step and carries no assessed outcome that fails
       without it. Documented fallback if it regresses before the event is tool scoping

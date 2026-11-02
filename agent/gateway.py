@@ -3,13 +3,29 @@
 Speaks JSON-RPC over HTTP POST (MCP streamable-HTTP, plain JSON replies). Tools
 are listed again at the start of every run, so a tool registered at the gateway
 shows up on the next run with no code change and no restart.
+
+The lab's gateway only serves authenticated callers, and lists tools per caller. In
+the workbench the agent identifies itself with the workbench's own service-account
+token (LAB_GATEWAY_TOKEN overrides it); elsewhere it sends no credential.
 """
 import itertools
 import json
+import os
+import pathlib
 
 import urllib.request
 
 _ids = itertools.count(1)
+TOKEN_FILE = pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount/token")
+
+
+def _token():
+    if os.environ.get("LAB_GATEWAY_TOKEN"):
+        return os.environ["LAB_GATEWAY_TOKEN"]
+    try:
+        return TOKEN_FILE.read_text().strip() or None
+    except OSError:
+        return None
 
 
 class Gateway:
@@ -26,6 +42,9 @@ class Gateway:
         headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
         if self.session_id:
             headers["Mcp-Session-Id"] = self.session_id
+        token = _token()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         req = urllib.request.Request(self.url, data=json.dumps(payload).encode(), headers=headers)
         with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # raises on HTTP errors
             body = resp.read()
