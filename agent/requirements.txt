@@ -1,3 +1,5 @@
 openai==3.24.0
-mlflow[kubernetes]==3.16.1
+# Match the lab cluster's MLflow server (3.14.0 on OpenShift AI 3.5.2). A client newer
+# than the server is only best-effort compatible. Re-check on each OpenShift AI release.
+mlflow[kubernetes]==3.14.0
 psycopg[binary]==3.3.6
