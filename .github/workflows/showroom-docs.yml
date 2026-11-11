@@ -1,0 +1,55 @@
+name: showroom-docs
+
+on:
+  pull_request:
+    branches: [dev, test, main]
+  push:
+    branches: [dev, test, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: showroom-docs-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  showroom-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LAB_SOURCE_REF: ${{ github.base_ref || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: publishing-house/showroom/requirements.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: publishing-house/showroom/package-lock.json
+      - name: Install documentation build dependencies
+        run: |
+          python -m pip install -r publishing-house/showroom/requirements.txt
+          npm ci --prefix publishing-house/showroom --no-audit --no-fund
+      - name: Test notebook conversion
+        run: |
+          mkdir -p .cache
+          python -m unittest discover -s publishing-house/showroom/tests -v
+      - name: Check committed Showroom pages match the notebooks
+        run: python publishing-house/showroom/generate.py --check
+      - name: Build Showroom preview
+        run: npm run build --prefix publishing-house/showroom -- --attribute "lab-source-ref=$LAB_SOURCE_REF"
+      - name: Check all seven rendered mirrors
+        run: python publishing-house/showroom/verify.py --source-ref "$LAB_SOURCE_REF"
+      - name: Save Showroom preview
+        uses: actions/upload-artifact@v7
+        with:
+          name: showroom-preview
+          path: www/
+          retention-days: 14

@@ -1,130 +1,113 @@
+// Generated from notebooks/module-04-tool-returns.ipynb; edit the notebook, then run:
+// python publishing-house/showroom/generate.py
 = Module 4: Tool returns that tell the truth
-:page-duration: 14 min
+ifndef::lab-source-ref[]
+ifdef::page-origin-refname[]
+:lab-source-ref: {page-origin-refname}
+endif::[]
+ifndef::page-origin-refname[]
+:lab-source-ref: dev
+endif::[]
+endif::[]
+:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-// DRAFT STRUCTURE ONLY. Headers, steps and commands come from
-// publishing-house/spec/modules/module-04-tool-returns.md and the starter agent.
-// TODO(author): write the participant-facing prose for every section.
-// CAPTURED blocks hold real Qwen3 output from 2026-10-13 (OpenShift AI 3.5.1, one L4,
-// endpoint B). Source runs and findings: publishing-house/spec/captures/2026-10-13-gpu/.
-// Replace each CAPTURED block with prose and listings when writing the module.
+NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-04-tool-returns.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
 
-== Learning objectives
+____
+*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+____
 
-* Implement a structured tool-error contract of category, retryable flag and detail so that failed tool calls surface instead of becoming confident empty answers.
-* Analyze a trace to distinguish a tool that returned no data from a tool that failed to run.
-
-== The success that is not one (3 min)
-
-. Run the question. Portland is not a Kestrel depot.
-+
-[source,bash,role=execute]
+[source,python]
 ----
-python agent.py --q m4
-----
-. Note the answer: fluent, authoritative, and reporting no problem.
-
-[NOTE]
-.CAPTURED (gpu): `m4` with the module 3 loop and the starter tools, run `m4-start`
-====
-3 model calls, ended on `stop`. `check_stock(part_number="KI-HS-60233", depot="Portland")` returned `{"results": []}`.
-
-[source,text]
-----
-The high-pressure sensor (KI-HS-60233) for the K-600 is not currently available at the Portland depot. Would you like me to check availability at another depot or provide alternative options?
-----
-====
-// TODO(author): the real answer treats Portland as a real depot that is out of stock,
-// rather than claiming the part is in stock. Adjust "fluent, authoritative" framing (finding F5).
-
-== Find the empty envelope (3 min)
-
-. Open the trace: the tool was called, returned quickly, and the run ended cleanly on `stop`.
-. Open the tool's actual return value:
-+
-[source,bash,role=execute]
-----
-python payloads.py
-----
-. Note it is `{"results": []}` with no sign of failure.
-// TODO(author): confirmed on the real run: the default `python payloads.py` digest does
-// not print tool results. The envelope is in `python payloads.py --raw` (inside the
-// next request's `role: tool` message) or `runs/<dir>/summary.json`. Change the command.
-. Open `run_tool` in `tools.py`. It catches every exception and returns the same empty envelope. `check_stock` also drops a depot it does not recognise.
-
-// TODO(author): explain why "nothing matched" and "the call was invalid" look identical to the model.
-
-== Give failure a shape (6 min)
-
-. Apply the supplied error contract:
-+
-[source,bash,role=execute]
-----
-cp solutions/module-04/tools.py solutions/module-04/agent.py .
-----
-. Read what changed:
-.. Every tool return carries `category` (`ok`, `no_results`, `bad_request`, `upstream_unavailable`), `retryable`, and `detail`.
-.. `check_stock` rejects an unknown depot as `bad_request`.
-.. The loop passes a non-`ok` result back to the model as a result, not as data, and retries only when `retryable` is true, once.
-
-// TODO(author): walk through the contract fields and why `retryable` belongs to the tool, not the loop.
-
-== Re-run and see it surface (2 min)
-
-. Re-run the Portland question:
-+
-[source,bash,role=execute]
-----
-python agent.py --q m4
-----
-. Confirm the run surfaces a `bad_request` failure instead of a confident answer. *This is the module's success signal.*
-. Ask about the same part at a real depot. The K-600 has no stock anywhere, so this returns `no_results`, not `bad_request`:
-+
-[source,bash,role=execute]
-----
-python agent.py "Is the K-600 high-pressure sensor available at the Denver depot?"
-----
-. Run a question the data does cover, and confirm `ok` appears in the trace:
-+
-[source,bash,role=execute]
-----
-python agent.py --q m3
+import labnb as lab
+%cd ../agent
 ----
 
-[NOTE]
-.CAPTURED (gpu): the three runs above with `solutions/module-04`, runs `m4-fixed`, `m4-fixed-k600-denver`, `m4-fixed-m3`
-====
-Portland (`m4`), tool return for `check_stock`:
+== Start from module 4
 
-[source,json]
-----
-{"category": "bad_request", "retryable": false, "detail": "unknown depot 'Portland'; Kestrel depots are Denver, Phoenix, Chicago", "data": null}
-----
+This puts the agent in the state module 4 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
-[source,text]
+[source,python]
 ----
-The part KI-HS-60233 (High-pressure sensor) is not available at the Portland depot. Kestrel depots are Denver, Phoenix, or Chicago. Would you like me to check availability at one of these locations instead?
+!python reset.py 4
 ----
 
-K-600 at Denver, tool return for `check_stock`:
+== 1. A clean-looking run
 
-[source,json]
-----
-{"category": "no_results", "retryable": false, "detail": "KI-HS-60233 has no stock at Denver", "data": {"results": []}}
-----
+Portland is not one of Kestrel's depots.
 
-[source,text]
+[source,python]
 ----
-The high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?
+!python agent.py --q m4
+lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
 ----
 
-`m3`: all three tool returns are `"category": "ok"` (one `find_part`, two `check_stock`). Final answer: both parts in stock at Denver, 3 and 12 units, 1-day lead time.
+Fluent, authoritative, and reporting no problem. Now check the evidence rather than the answer.
 
-No run retried: every non-`ok` return had `retryable: false`.
+[source,python]
+----
+lab.trace_link()
+lab.tool_results()
+----
+
+The tool was called, returned quickly, and the run ended cleanly on `+stop+`. What the tool actually returned is a valid object with an empty results list and no sign that anything went wrong.
+
+*Your read:* what else could have produced exactly that response? Open `+run_tool+` in link:{lab-source-url}/agent/tools.py[`+tools.py+`] and see what it does with an exception, and what `+check_stock+` does with a depot it doesn't recognise.
+
+.Check your answer
+[%collapsible]
 ====
 
-// CAPTURED (gpu) 2026-10-14 from the kestrel-agent-capture experiment; caption and placement are TODO(author).
-image::module-04-trace-category.png["MLflow trace of the module 4 run: the check_stock span returns category bad_request, retryable false, and the unknown-depot detail"]
+`+run_tool+` catches every exception and returns the same empty envelope, and `+check_stock+` silently drops a depot it doesn't recognise. So "nothing matched", "unknown depot", "backend unreachable" and "bad arguments" all reach the model as the same `+{"results": []}+`.
 
-== Key takeaways
+====
 
-// TODO(author): carry over the takeaways from the spec in your own words.
+== 2. Give failure a shape
+
+Apply the supplied error contract:
+
+[source,python]
+----
+!cp solutions/module-04/tools.py solutions/module-04/agent.py .
+!git diff --stat -- tools.py agent.py
+----
+
+Every tool return now carries a `+category+` (`+ok+`, `+no_results+`, `+bad_request+`, `+upstream_unavailable+`), whether a retry could help, and a detail the model can use. `+check_stock+` rejects an unknown depot as `+bad_request+`.
+
+[mermaid]
+....
+flowchart TB
+  subgraph Before["Before: four outcomes, one reply"]
+    B1["nothing matched"] --> E1["results: [] (empty)"]
+    B2["unknown depot"] --> E1
+    B3["backend unreachable"] --> E1
+    B4["bad arguments"] --> E1
+  end
+  subgraph After["After: the error contract"]
+    A1["nothing matched"] --> C1["no_results"]
+    A2["unknown depot"] --> C2["bad_request, naming the real depots"]
+    A3["backend unreachable"] --> C3["upstream_unavailable, retryable"]
+    A4["found it"] --> C4["ok, with the data"]
+  end
+  Before ~~~ After
+....
+
+== 3. Run it again
+
+[source,python]
+----
+!python agent.py --q m4
+lab.tool_results()
+lab.trace_link()
+----
+
+*This is the module's success signal:* a `+bad_request+` that names the real depots, instead of a confident answer. Two more, to see the other categories: a real depot with no stock, and a question the data does cover.
+
+[source,python]
+----
+!python agent.py "Is the K-600 high-pressure sensor available at the Denver depot?"
+!python agent.py --q m3
+lab.evidence(columns=("question", "ended by", "tools run", "answer"), last=3)
+----
+
+The *tools run* column shows each call's category. In each trace, the tool span's outputs carry the same `+category+`, `+retryable+` and `+detail+`.

@@ -8,10 +8,11 @@
 
 ## Tasks
 
-- [ ] Establish project-local documentation dependencies and inspect nbconvert's AsciiDoc output on a real notebook.
-- [ ] Write failing tests in `publishing-house/showroom/tests/test_generate.py` for code preservation, Mermaid, collapsible answers, relative links, excluded outputs, and non-mutating drift detection. Run with `.venv/bin/python -m unittest discover -s publishing-house/showroom/tests -v` and confirm failures expose the missing generator.
-- [ ] Implement `publishing-house/showroom/generate.py` using the existing exporter, without executing notebooks. Re-run the tests until they pass.
-- [ ] Generate all seven module pages, read the existing overview before replacing it, and add a reader-facing index.
-- [ ] Add `publishing-house/showroom/README.md`, pinned build dependencies, a local Antora preview command and `.github/workflows/showroom-docs.yml` that checks generation and builds a preview artifact.
-- [ ] Verify regeneration is deterministic, deliberately change a generated page to confirm check mode fails, regenerate it and confirm a clean check. Build Antora and inspect all seven HTML pages and browser-rendered representative content.
+- [x] Establish project-local documentation dependencies and inspect nbconvert's AsciiDoc output on a real notebook.
+- [x] Write failing tests in `publishing-house/showroom/tests/test_generate.py` for code preservation, Mermaid, collapsible answers, relative links, excluded outputs, and non-mutating drift detection. Run with `.venv/bin/python -m unittest discover -s publishing-house/showroom/tests -v` and confirm failures expose the missing generator.
+- [x] Implement `publishing-house/showroom/generate.py` using the existing exporter, without executing notebooks. Re-run the tests until they pass.
+- [x] Generate all seven module pages, read the existing overview before replacing it, and add a reader-facing index.
+- [x] Add `publishing-house/showroom/README.md`, pinned build dependencies, a local Antora preview command and `.github/workflows/showroom-docs.yml` that checks generation and builds a preview artifact.
+- [x] Verify regeneration is deterministic and the test deliberately changes and removes generated pages to confirm check mode fails without writing. Build Antora and inspect all seven HTML pages.
+- [ ] Inspect browser-rendered representative content. Blocked: the computer-use browser host is unavailable; HTML structure was checked instead, including the Mermaid initialization script and collapsible answer content.
 - [ ] Review the diff, record validation, and commit the completed change on the feature branch. Preserve the branch and report publication status accurately.
