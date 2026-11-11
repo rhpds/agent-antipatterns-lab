@@ -2,4 +2,18 @@
 
 == Lab overview
 
-// TODO(author): lab overview.
+Build a field service agent for Kestrel Industrial, a fictional chiller manufacturer, one layer at a time. Diagnose each failure from the request and response payloads or execution trace, apply the fix, and check the evidence again.
+
+These pages mirror the seven Jupyter notebooks, with their explanations, questions, diagrams and code cells in order. You can review the lab here without provisioning an environment. To execute the cells, open the corresponding notebook in the lab's JupyterLab workbench.
+
+The notebook wording is a working draft. These pages show code without executing it and omit saved outputs. Evidence tables, model responses and links to a particular environment appear when the notebook runs; descriptions of those results state what to inspect during the lab.
+
+== Modules
+
+* xref:module-01-what-you-are-building.adoc[Module 1: What you are building, and how to see inside it]
+* xref:module-02-model-interface.adoc[Module 2: The model interface, making tool calls fire at all]
+* xref:module-03-agent-loop.adoc[Module 3: The agent loop, stop conditions and turn control]
+* xref:module-04-tool-returns.adoc[Module 4: Tool returns that tell the truth]
+* xref:module-05-knowledge-search.adoc[Module 5: Giving the agent knowledge it can search]
+* xref:module-06-platform-tool-access.adoc[Module 6: Connecting tools through the platform]
+* xref:module-07-running-it-for-real.adoc[Module 7: Running it for real, verification and field positioning]

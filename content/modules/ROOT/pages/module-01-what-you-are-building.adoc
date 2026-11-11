@@ -1,1 +1,103 @@
-= What you are building, and how to see inside it
+// Generated from notebooks/module-01-what-you-are-building.ipynb; edit the notebook, then run:
+// python publishing-house/showroom/generate.py
+= Module 1: What you are building, and how to see inside it
+ifndef::lab-source-ref[]
+ifdef::page-origin-refname[]
+:lab-source-ref: {page-origin-refname}
+endif::[]
+ifndef::page-origin-refname[]
+:lab-source-ref: dev
+endif::[]
+endif::[]
+:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
+
+NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-01-what-you-are-building.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+
+____
+*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+____
+
+[source,python]
+----
+import labnb as lab
+%cd ../agent
+----
+
+== Start from module 1
+
+This puts the agent in the state module 1 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+
+[source,python]
+----
+!python reset.py 1
+----
+
+== 1. Meet the agent
+
+The agent answers field service questions for Kestrel Industrial (a fictional chiller maker). Three files matter: link:{lab-source-url}/agent/tools.py[`+tools.py+`] (the tools the model is offered), link:{lab-source-url}/agent/agent.py[`+agent.py+`] (the loop) and link:{lab-source-url}/agent/config.toml[`+config.toml+`] (which model endpoint it calls). Each run leaves two kinds of evidence: the raw payloads under `+agent/runs/+`, and a trace in MLflow.
+
+[mermaid]
+....
+flowchart TB
+  Q["Your question"] --> A["agent.py: the loop"]
+  A <-- "request and response" --> M["Model endpoint qwen3-8b-a, served by vLLM"]
+  A <-- "tool calls and results" --> T["tools.py: find_part, check_stock"]
+  A --> ANS["The answer it prints"]
+  A -. "payloads" .-> R["agent/runs/"]
+  A -. "one trace per run" .-> F["MLflow"]
+....
+
+The endpoint the lab starts on is set in `+config.toml+`. Don't change it yet:
+
+[source,python]
+----
+print(lab.config()["model"]["base_url"])
+----
+
+== 2. Run it once
+
+The question needs a part number that only `+find_part+` knows, because Kestrel's parts aren't in any model's training data.
+
+[source,python]
+----
+!python agent.py --q m1
+lab.evidence(columns=("endpoint", "finish_reason (call 1)", "tool_calls (call 1)", "turns", "answer"))
+----
+
+Look at the answer. Did the agent look anything up? Did anything report a problem?
+
+== 3. Read the payload
+
+The payload is exactly what went to the endpoint and what came back.
+
+[source,python]
+----
+!python payloads.py
+----
+
+[source,python]
+----
+lab.content()
+----
+
+The request offered the tools. The response's `+tool_calls+` is empty, `+finish_reason+` is `+stop+`, and `+content+` holds the call the model meant to make, as text. Don't diagnose why yet; module 2 does.
+
+== 4. Your first trace
+
+MLflow keeps one *trace* per run. A trace is a tree of *spans*, one per step:
+
+* `+agent_run+` is the whole run. Its outputs say how the run ended and how many tools it called.
+* `+model_call_1+` is one request to the model. Its *Inputs* hold the messages and the tools offered; its *Outputs* hold `+finish_reason+`, `+tool_calls+` and `+content+`.
+* A tool the agent actually runs gets its own span underneath. This run should have none.
+
+Open the trace and click each span. Compare what it shows with the payload above.
+
+[source,python]
+----
+lab.trace_link()
+lab.links(("Every trace in this experiment", lab.experiment_url()))
+----
+
+== 5. The rule for the rest of the lab
+
+The answer is a claim; the evidence is somewhere else. From here on, every module ends by checking the evidence: the payload in this module and the next, and the trace from module 3 on, where turn counts, tool sequences and error categories are what matter.
