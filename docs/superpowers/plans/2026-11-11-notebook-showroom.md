@@ -15,4 +15,8 @@
 - [x] Add `publishing-house/showroom/README.md`, pinned build dependencies, a local Antora preview command and `.github/workflows/showroom-docs.yml` that checks generation and builds a preview artifact.
 - [x] Verify regeneration is deterministic and the test deliberately changes and removes generated pages to confirm check mode fails without writing. Build Antora and inspect all seven HTML pages.
 - [ ] Inspect browser-rendered representative content. Blocked: the computer-use browser host is unavailable; HTML structure was checked instead, including the Mermaid initialization script and collapsible answer content.
-- [ ] Review the diff, record validation, and commit the completed change on the feature branch. Preserve the branch and report publication status accurately.
+- [x] Review the diff, record validation, and commit the completed change on the feature branch. Preserve the branch and report publication status accurately.
+
+## Validation
+
+Four conversion tests pass, including deliberately stale and missing page checks. All seven Antora HTML modules preserve the 55 original code cells, seven Mermaid diagrams, collapsible answers and branch-specific source links. Default source-ref and explicit `test` builds both pass with warnings treated as failures. The generated-page check and `git diff --check` pass. The existing agent suite reports 69 passed and eight setup errors: the local Podman VM is stopped, so the pgvector fixture cannot start. No runtime or deployment changes were made. Browser inspection remains blocked as recorded above.
