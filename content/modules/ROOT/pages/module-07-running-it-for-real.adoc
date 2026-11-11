@@ -1,1 +1,94 @@
-= Running it for real: verification and field positioning
+// Generated from notebooks/module-07-running-it-for-real.ipynb; edit the notebook, then run:
+// python publishing-house/showroom/generate.py
+= Module 7: Running it for real, verification and field positioning
+ifndef::lab-source-ref[]
+ifdef::page-origin-refname[]
+:lab-source-ref: {page-origin-refname}
+endif::[]
+ifndef::page-origin-refname[]
+:lab-source-ref: dev
+endif::[]
+endif::[]
+:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
+
+NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-07-running-it-for-real.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+
+____
+*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+____
+
+[source,python]
+----
+import labnb as lab
+%cd ../agent
+----
+
+== Start from module 7
+
+This puts the agent in the state module 7 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+
+[source,python]
+----
+!python reset.py 7
+----
+
+== 1. Run the regression set
+
+One case per earlier module, run against the agent as it is now, and each judged from the run record (tool calls, stop reason, error categories) rather than from the wording of the answer.
+
+[mermaid]
+....
+flowchart LR
+  subgraph Cases["Cases"]
+    direction TB
+    C1["m1: the part number"]
+    C3["m3: the Denver chain"]
+    C4["m4: the Portland depot"]
+    C5["m5: F-21 and the K-900"]
+    C6["m6: delivery time"]
+  end
+  Cases --> AG["The assembled agent"]
+  AG --> REC["Run records: tool calls, stop reason, categories"]
+  REC --> J{"Judged from the record, not the wording"}
+  J --> REP["Report, and a named baseline run in MLflow"]
+....
+
+[source,python]
+----
+lab.regression(name="my-baseline")
+----
+
+A case that can't apply yet (module 6's, without the gateway) is reported as SKIP; nothing blocks the rest. Read the report the run wrote:
+
+[source,python]
+----
+reports = sorted(lab.RUNS.glob("regression-*.md"))
+lab.display(lab.Markdown(reports[-1].read_text() if reports else "No report yet."))
+----
+
+== 2. Check the evidence, not the answers
+
+For each case, confirm the corrected behaviour in its trace: tool calls populate, runs end on the model's own stop, failures carry a category, retrieval grounds the answer, and the out-of-corpus question is an explicit gap.
+
+[source,python]
+----
+lab.evidence(columns=("question", "turns", "ended by", "tools run"))
+lab.links(("Every trace in this experiment", lab.experiment_url()))
+----
+
+The most likely regression is module 2's repoint reverting after a workbench restart, which is why it was written to `+config.toml+` rather than an environment variable.
+
+== 3. The baseline
+
+`+name="my-baseline"+` recorded this run in MLflow as an *evaluation run*: one row per case, each with its trace and the same PASS, FAIL or SKIP and reason printed above. Nothing judges the wording; the verdicts are the regression set's own checks. The run also keeps the `+passed+`, `+failed+` and `+skipped+` counts, and it is linked to the agent version that produced it, for example `+kestrel-m7-start+`, or `+kestrel-m7-start-modified+` once you've edited the agent.
+
+To compare a later run with this baseline, run the set again under another name, then open the experiment's *Evaluation runs* tab and select both runs. Each case's two results sit side by side, and the cases that changed stand out:
+
+[source,python]
+----
+lab.links(("The experiment's Evaluation runs tab", lab.experiment_url("evaluation-runs")))
+----
+
+This baseline is evidence that today's build handles the failures it was built for, and no evidence at all about failures nobody has thought of yet. The checklist at the end of the report maps each symptom a customer might describe to the layer to look at first; take it with you.
+
+Two failure modes this lab covered only by discussion: a model or prompt change underneath a working agent, and cost under real concurrency.

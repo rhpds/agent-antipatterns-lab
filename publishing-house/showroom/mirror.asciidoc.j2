@@ -1,0 +1,5 @@
+{% extends 'asciidoc/index.asciidoc.j2' %}
+
+{% block input %}
+{{ cell.source | code_listing }}
+{% endblock input %}

@@ -1,131 +1,104 @@
+// Generated from notebooks/module-05-knowledge-search.ipynb; edit the notebook, then run:
+// python publishing-house/showroom/generate.py
 = Module 5: Giving the agent knowledge it can search
-:page-duration: 14 min
+ifndef::lab-source-ref[]
+ifdef::page-origin-refname[]
+:lab-source-ref: {page-origin-refname}
+endif::[]
+ifndef::page-origin-refname[]
+:lab-source-ref: dev
+endif::[]
+endif::[]
+:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-// DRAFT STRUCTURE ONLY. Headers, steps and commands come from
-// publishing-house/spec/modules/module-05-knowledge-search.md and the starter agent.
-// TODO(author): write the participant-facing prose for every section.
-// CAPTURED blocks hold real Qwen3 output from 2026-10-13 (OpenShift AI 3.5.1, one L4,
-// endpoint B). Source runs and findings: publishing-house/spec/captures/2026-10-13-gpu/.
-// Replace each CAPTURED block with prose and listings when writing the module.
+NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
 
-== Learning objectives
+____
+*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+____
 
-* Integrate a searchable knowledge source so the agent grounds its answers in retrieved content rather than in model memory.
-* Verify that a retrieval miss produces an explicit gap rather than an invented answer.
-
-== The confident invention (3 min)
-
-. Ask about the coolant pump seal. The answer exists only in service bulletin SB-2024-117.
-+
-[source,bash,role=execute]
+[source,python]
 ----
-python agent.py --q m5
-----
-. Note the specific, plausible, wrong answer. Module 4 does not catch it, because no tool failed.
-. Confirm in the trace that no retrieval happened.
-
-// TODO(author): the m5 question is now "A K-400 is showing fault F-21. What should the
-// technician do?" (answer in SB-2024-102), because the seal-interval question made the model
-// refuse (decision 0003, F6). Rewrite this module's steps that name the seal question or
-// SB-2024-117 (here, the retrieval.py example, and the grounded success signal) to match. Source runs: publishing-house/spec/captures/2026-10-14-m5-f21/.
-
-[NOTE]
-.CAPTURED (gpu): `m5` with `solutions/module-04` (no retrieval tool), run `m5-start` (2026-10-14)
-====
-2 model calls, ended on `stop`. `find_part(query="F-21", product="K-400")` returned `no_results`, then the model answered from memory. *The cause it gives is wrong (F-21 is coolant loop pressure low) and `KI-400-CTRL` doesn't exist:*
-
-[source,text]
-----
-The fault code F-21 on a K-400 chiller typically indicates an issue with the **temperature sensor** or **control board**. The technician should:
-
-1. **Check the temperature sensor** (e.g., PT100 probe) for damage or loose connections.
-2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.
-3. **Refer to the Kestrel fault code manual** for detailed troubleshooting steps.
-4. **Replace the faulty component** (sensor or board) if confirmed.
-
-If parts are needed, use `find_part` with specific descriptions (e.g., "temperature sensor" or "control board") and model. For stock checks, provide a part number.
-----
-====
-
-== Register the retrieval tool (5 min)
-
-. Query the pre-populated corpus directly, outside the agent:
-+
-[source,bash,role=execute]
-----
-python retrieval.py "coolant pump seal service interval"
-----
-. Note each passage carries its source identifier, which is what makes an answer checkable.
-. Register the supplied `search_bulletins` tool:
-+
-[source,bash,role=execute]
-----
-cp solutions/module-05/tools.py solutions/module-05/agent.py .
-----
-. Read the declaration, its parameters, and its return shape, which uses module 4's contract.
-
-// TODO(author): explain why the return shape carries passages and source ids, not concatenated text.
-
-== Ask again, grounded (4 min)
-
-. Re-run the question:
-+
-[source,bash,role=execute]
-----
-python agent.py --q m5
-----
-. Confirm in the trace that `search_bulletins` was called, passages came back, and the answer matches SB-2024-117 rather than the model's prior. *This is the module's success signal.*
-
-[NOTE]
-.CAPTURED (gpu): `m5` with `solutions/module-05`, run `m5-fixed` (2026-10-14)
-====
-2 model calls, ended on `stop`. Tool call: `search_bulletins(query="F-21", product="K-400")`, returning `"category": "ok"` with two passages: SB-2024-117 "Applies to" (score 0.392) and SB-2024-102 "Symptom" (0.385). SB-2024-102's "Action" passage was not retrieved.
-
-[source,text]
-----
-The fault F-21 ("coolant loop pressure low") on K-400 chillers typically indicates a pressure issue in the coolant system. Based on the bulletin:
-
-1. **Check coolant loop pressure** during start-up and under load.
-2. Inspect for leaks in the coolant loop, pump assembly (KI-CP-40817), or seal kit (KI-SK-40233).
-3. If parts are needed, verify with the depot using part numbers **KI-CP-40817** (pump) and **KI-SK-40233** (seal kit).
-
-Let me know if you need stock/lead time checks for these parts.
-----
-====
-// TODO(author): the cause is grounded (SB-2024-102 Symptom); the steps are not the bulletin's
-// Action ("bleed air ... 2.1 bar within 90 seconds"), which retrieval didn't return. This is the
-// worked example for step 11 / module 7's "checkable, not correct" (decision 0003, F9).
-
-// CAPTURED (gpu) 2026-10-14 from the kestrel-agent-capture experiment; caption and placement are TODO(author).
-image::module-05-trace-retrieved-passages.png["MLflow trace of the module 5 run: the search_bulletins span returns two passages with their source identifiers, including SB-2024-102"]
-
-== Ask something outside the corpus (2 min)
-
-. Ask about a product that does not exist:
-+
-[source,bash,role=execute]
-----
-python agent.py --q m5-miss
-----
-. Confirm retrieval returns `no_results` and the agent reports the gap instead of inventing. Compare with the module's opening run.
-. Note the limit carried into module 7: grounding makes an answer checkable, not correct.
-
-[NOTE]
-.CAPTURED (gpu): `m5-miss` with `solutions/module-05`, run `m5-miss-fixed`
-====
-The model passed `product="K-900"`: `search_bulletins(query="service interval", product="K-900")`. The product filter caught the miss, not the score threshold:
-
-[source,json]
-----
-{"category": "no_results", "retryable": false, "detail": "no bulletin passage matched 'service interval' for product 'K-900'", "data": {"passages": []}}
+import labnb as lab
+%cd ../agent
 ----
 
-[source,text]
-----
-The Kestrel K-900 model is not listed in the available tools (supported models: K-200, K-400, K-600). Could you confirm the correct model number? If the K-900 is a valid model, service intervals may be covered in technical documentation or contact Kestrel support directly for specifics.
-----
-====
+== Start from module 5
 
-== Key takeaways
+This puts the agent in the state module 5 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
-// TODO(author): carry over the takeaways from the spec in your own words.
+[source,python]
+----
+!python reset.py 5
+----
+
+== 1. An answer the model can't know
+
+Fault F-21 is documented only in Kestrel's service bulletins, which no model has seen.
+
+[source,python]
+----
+!python agent.py --q m5
+lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
+lab.trace_link()
+----
+
+A specific, plausible answer. Module 4's contract doesn't catch it, because no tool failed. In the trace, look for a retrieval step: there isn't one, because the agent has no way to search yet.
+
+== 2. The knowledge it could use
+
+The bulletins are already loaded into a PostgreSQL database with pgvector in your project. Query it directly, outside the agent:
+
+[source,python]
+----
+!python retrieval.py "fault F-21"
+----
+
+Each passage carries its `+source+`, the bulletin it came from. That's what makes an answer checkable.
+
+== 3. Register the search tool
+
+[source,python]
+----
+!cp solutions/module-05/tools.py solutions/module-05/agent.py .
+!git diff --stat -- tools.py agent.py
+----
+
+`+search_bulletins+` is declared like the other tools, and returns passages with their sources using module 4's contract.
+
+[mermaid]
+....
+flowchart LR
+  Q["The F-21 question"] --> M["Model"]
+  M -- "search_bulletins: fault F-21" --> T["Retrieval tool"]
+  T --> DB[("pgvector: Kestrel service bulletins")]
+  DB --> T
+  T -- "passages with their source ids, in module 4's contract" --> M
+  M --> ANS["An answer that matches a passage"]
+....
+
+== 4. Ask again
+
+[source,python]
+----
+!python agent.py --q m5
+lab.tool_results()
+lab.trace_link()
+----
+
+*This is the module's success signal:* `+search_bulletins+` was called, passages came back from SB-2024-102, and the answer follows the passage ("coolant loop pressure low") rather than the model's guess.
+
+== 5. Ask something the bulletins don't cover
+
+There is no Kestrel K-900.
+
+[source,python]
+----
+!python agent.py --q m5-miss
+lab.tool_results()
+lab.evidence(columns=("question", "tools run", "answer"), last=3)
+----
+
+The search returns `+no_results+`, and the agent says so instead of inventing. Compare it with the first run of this module, which invented.
+
+Grounding makes an answer checkable; it doesn't make it correct. Nothing yet checks that the retrieved passage actually answers the question. Module 7 comes back to that.
