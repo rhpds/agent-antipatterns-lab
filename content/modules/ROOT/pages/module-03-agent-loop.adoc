@@ -1,119 +1,107 @@
-= Module 3: The agent loop: stop conditions and turn control
-:page-duration: 16 min
+// Generated from notebooks/module-03-agent-loop.ipynb; edit the notebook, then run:
+// python publishing-house/showroom/generate.py
+= Module 3: The agent loop, stop conditions and turn control
+ifndef::lab-source-ref[]
+ifdef::page-origin-refname[]
+:lab-source-ref: {page-origin-refname}
+endif::[]
+ifndef::page-origin-refname[]
+:lab-source-ref: dev
+endif::[]
+endif::[]
+:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-// DRAFT STRUCTURE ONLY. Headers, steps and commands come from
-// publishing-house/spec/modules/module-03-agent-loop.md and the starter agent.
-// TODO(author): write the participant-facing prose for every section.
-// CAPTURED blocks hold real Qwen3 output from 2026-10-13 (OpenShift AI 3.5.1, one L4,
-// endpoint B). Source runs and findings: publishing-house/spec/captures/2026-10-13-gpu/.
-// Replace each CAPTURED block with prose and listings when writing the module.
+NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-03-agent-loop.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
 
-== Learning objectives
+____
+*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+____
 
-* Build an agent loop that terminates on the model's reported stop condition rather than on a text heuristic, a first response, or an iteration cap.
-* Analyze a multi-turn trace to distinguish a model repeating itself from a harness that discards what the model returned.
-
-== Watch it loop (4 min)
-
-// TODO(author): intro prose. Module 2 left the agent calling tools; this module shows it calling the same one indefinitely.
-
-. Run the multi-step question:
-+
-[source,bash,role=execute]
+[source,python]
 ----
-python agent.py --q m3
+import labnb as lab
+%cd ../agent
 ----
-. Note how long the run takes compared with module 2, and what it finally returns.
 
-[NOTE]
-.CAPTURED (gpu): starter loop on `m3`, run `m3-starter`
-====
-[source,text]
+== Start from module 3
+
+This puts the agent in the state module 3 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+
+[source,python]
 ----
-Answer:
-Stopped after 6 turns without a final answer.
+!python reset.py 3
 ----
-====
 
-== Find the discarded result (4 min)
+Module 3 starts on endpoint B (module 2's repoint is applied), so tool calls now fire.
 
-. Open the trace for the run and count the turns. The run hit the cap (`max_turns = 6` in `config.toml`).
-. Read the tool calls in order: the same tool with the same arguments on every turn.
-+
-[source,bash,role=execute]
+== 1. Watch it loop
+
+The question needs two steps: `+find_part+` for the pump, then `+check_stock+` with the part number it returns.
+
+[source,python]
 ----
-python payloads.py
+!python agent.py --q m3
+lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
 ----
-. Open `agent.py` and find the two defects:
-.. The tool result is fetched and never appended to the message list.
-.. The loop exits on a turn counter and a text check, and never reads `finish_reason`.
 
-[NOTE]
-.CAPTURED (gpu): `python payloads.py` after the starter run, run `m3-starter` (calls 02 to 06 are identical to 01 apart from the call id)
-====
-[source,text]
+Note how many turns it took and how the run ended, compared with module 2.
+
+== 2. Find what went wrong, from the evidence
+
+Open the trace. Count the `+model_call_N+` spans, and read the tool spans in order.
+
+[source,python]
 ----
---- model call 01 ---
-request:  2 messages, tools declared: ['find_part', 'check_stock']
-response: finish_reason = tool_calls
-          tool_calls    = [{"id": "chatcmpl-tool-b48adb7b95ae7e59", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
-          content       = null
+lab.trace_link()
+lab.tool_results()
 ----
-Every request has 2 messages: the tool result is never appended.
-====
 
-// CAPTURED (gpu) 2026-10-14 from the kestrel-agent-capture experiment; caption and placement are TODO(author).
-image::module-03-trace-repeated-find-part.png["MLflow trace of the starter loop: six model calls, each followed by the same find_part call with the same arguments"]
+The same tool, with the same arguments, on every turn, until the cap in `+config.toml+` (`+max_turns+`) stopped it. The model isn't repeating itself for no reason: something is wrong with what the loop gives back to it.
 
-// TODO(author): the point to land here is that the repetition comes from the harness, not the model.
+Open link:{lab-source-url}/agent/agent.py[`+agent.py+`] and read `+run_agent+`. Find two defects: one in what happens to a tool's result, and one in how the loop decides to stop.
 
-== Fix the loop (6 min)
-
-. Apply the supplied fix:
-+
-[source,bash,role=execute]
-----
-cp solutions/module-03/agent.py .
-----
-. Read what changed:
-.. Each tool result is appended with the `tool_call_id` it answers.
-.. The loop branches on `finish_reason`: continue on `tool_calls`, return on `stop`. The turn cap stays as a backstop only.
-
-// TODO(author): show the diff or the two key hunks, and explain why the cap is not the mechanism.
-
-== Confirm termination (2 min)
-
-. Re-run the question:
-+
-[source,bash,role=execute]
-----
-python agent.py --q m3
-----
-. In the trace, confirm the turn count is well under the cap and the run ended on the model's own stop condition. *This is the module's success signal.*
-. Confirm `find_part` and `check_stock` were each called once, with different arguments, and that both results are in the message list.
-// TODO(author): the real model calls check_stock twice in one turn (pump and seal kit),
-// because find_part returns both parts. Adjust this step (finding F4).
-
-[NOTE]
-.CAPTURED (gpu): fixed loop on `m3`, run `m3-fixed`
-====
-3 model calls, ended on `finish_reason = stop`:
-
-. `find_part(query="coolant pump", product="K-400")`
-. `check_stock(part_number="KI-CP-40817", depot="Denver")` and `check_stock(part_number="KI-SK-40233", depot="Denver")`, in the same turn
-. final answer
-
-[source,text]
-----
-The replacement coolant pump (part number **KI-CP-40817**) and its mechanical seal kit (part number **KI-SK-40233**) are both available at the Denver depot.
-
-- **KI-CP-40817** (Coolant circulation pump assembly): 3 units in stock, 1-day lead time.
-- **KI-SK-40233** (Coolant pump mechanical seal kit): 12 units in stock, 1-day lead time.
-
-Both can be delivered to Denver this week if ordered today. Would you like to proceed with ordering?
-----
+.Check your answer
+[%collapsible]
 ====
 
-== Key takeaways
+[arabic]
+. The tool result is fetched and never appended to the message list, so the model never sees it and asks again.
+. The loop exits on a turn counter and a text check ("final answer"), and never reads the model's own stop condition, `+finish_reason+`.
 
-// TODO(author): carry over the takeaways from the spec in your own words.
+====
+
+== 3. Fix the loop
+
+Apply the supplied fix, then read what changed:
+
+[source,python]
+----
+!cp solutions/module-03/agent.py .
+!git diff --stat -- agent.py
+!git diff -- agent.py | head -80
+----
+
+Each tool result is now appended with the `+tool_call_id+` it answers, and the loop branches on `+finish_reason+`: continue on `+tool_calls+`, return on `+stop+`. The turn cap stays, as a safety net.
+
+[mermaid]
+....
+flowchart TD
+  Q["The question"] --> C["Call the model"]
+  C --> D{"finish_reason?"}
+  D -- "tool_calls" --> R["Run each tool it asked for"]
+  R --> AP["Append each result, with the tool_call_id it answers"]
+  AP --> C
+  D -- "stop" --> ANS["Return the model's answer"]
+  C -. "safety net" .-> CAP["Turn cap reached: stop and say so"]
+....
+
+== 4. Confirm it stops
+
+[source,python]
+----
+!python agent.py --q m3
+lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
+lab.trace_link()
+----
+
+*This is the module's success signal:* the run ended on the model's own stop condition, well under the cap. In the trace: `+find_part+` once, then `+check_stock+` for each part it returned (the pump and its seal kit come back together, so expect two `+check_stock+` calls in one turn), and every result in the messages the model saw.

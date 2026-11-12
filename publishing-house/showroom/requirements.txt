@@ -1,0 +1,4 @@
+# The binary wheel supplies Pandoc 3.6.1 on macOS and Linux. Generation uses that copy.
+nbconvert==7.16.6
+pypandoc-binary==1.15
+beautifulsoup4==4.15.0
