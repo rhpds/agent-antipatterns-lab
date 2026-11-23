@@ -1,3 +1,11 @@
+# The branch (or tag) of this repo that the environment clones at run time: the branch its
+# catalog item deploys from, test for the test environment and main for the event (David,
+# 2026-11-02, #88). The catalog passes it alongside the branch it deploys, for example
+#   labRepoRef: "{{ ocp4_workload_gitops_bootstrap_repo_revision }}"
+# Dev environments set dev in their values file. No default: an environment that doesn't
+# say its branch fails to render rather than quietly cloning dev.
+labRepoRef: ""
+
 deployer:
   domain: apps.example.com
 
@@ -53,6 +61,9 @@ gpu:
   # Master switch for NFD + NVIDIA GPU Operator + model serving.
   # Set false on a CPU-only cluster (e.g. the homelab SNO).
   enabled: true
+  # False when RHDP already installed NFD, the GPU operator and their operands.
+  # GPU-backed serving and the allocatable-GPU readiness check remain enabled.
+  install: true
   namespace: nvidia-gpu-operator
   name: gpu-operator-certified
   # Pinned to the catalog default verified on Dev CI (OCP 4.22) and the SNO.
@@ -229,8 +240,7 @@ mcpGateway:
     cloneImage: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-minimal-notebook:3.5
     repo:
       url: https://github.com/rhpds/agent-antipatterns-lab.git
-      # A branch or tag; dev until the lab is released to main (as for the workbench).
-      ref: dev
+      # The branch comes from labRepoRef (top of this file).
     path: /lab-mcp-backend
     # The ConfigMap a participant creates in their own project to register a tool.
     registrationConfigMap: kestrel-tool-registrations

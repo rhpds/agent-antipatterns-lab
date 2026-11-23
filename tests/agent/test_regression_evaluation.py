@@ -6,6 +6,7 @@ mlflow.genai.evaluate with one deterministic code scorer ("check"), inside a run
 two evaluation runs can be compared.
 """
 import re
+import json
 
 import pytest
 
@@ -54,6 +55,9 @@ def test_the_regression_run_is_recorded_as_an_evaluation(work, tmp_path):
     counts = {s: list(printed(out).values()).count(s) for s in ("PASS", "FAIL", "SKIP")}
     assert run.data.metrics == {"passed": counts["PASS"], "failed": counts["FAIL"], "skipped": counts["SKIP"]}
     assert f"Recorded MLflow run 'my-baseline' ({run.info.run_id})" in out
+    records = [json.loads(p.read_text()) for p in (work.path / "runs").glob("*/summary.json")]
+    assert len(records) == 6
+    assert all(record.get("trace_id") for record in records), "Regression evidence must keep each case's recorded trace"
 
 
 def test_mlflows_verdicts_match_the_terminals(work, tmp_path):

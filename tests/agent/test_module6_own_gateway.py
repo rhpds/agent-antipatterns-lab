@@ -30,8 +30,16 @@ def helm():
     return path
 
 
-def render(chart, *sets):
+def render(chart, *sets, files=()):
+    """Render a chart. Each environment must say which branch it clones (labRepoRef, #88);
+    unless the call sets it or passes values files, render as the test environment."""
     args = [helm(), "template", "t", str(CHARTS / chart), "--set", "deployer.domain=apps.example.com"]
+    for f in files:
+        args += ["-f", str(f)]
+    if not files and not any(s.startswith("labRepoRef=") for s in sets):
+        sets = (*sets, "labRepoRef=test")
+    if chart == "bootstrap-tenant" and not any(s.startswith(("username=", "tenant.user.name=")) for s in sets):
+        sets = (*sets, "username=user1")
     for s in sets:
         args += ["--set", s]
     out = subprocess.run(args, check=True, capture_output=True, text=True).stdout

@@ -293,7 +293,7 @@ spec:
           args:
             - |
               set -euo pipefail
-              git clone --depth 1 --branch {{ $g.server.repo.ref | quote }} {{ $g.server.repo.url | quote }} /src/repo
+              git clone --depth 1 --branch {{ required "labRepoRef is required: the branch this environment clones (its catalog branch: test or main; dev for a dev environment)" .Values.labRepoRef | quote }} {{ $g.server.repo.url | quote }} /src/repo
               cp /src/repo/agent/solutions/module-05/tools.py /src/repo/agent/tools.py
           volumeMounts:
             - name: src

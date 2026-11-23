@@ -1,8 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.username }}-edit
-  namespace: {{ .Values.username }}-app
+  name: {{ (include "tenant.username" .) }}-edit
+  namespace: {{ (include "tenant.username" .) }}-app
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 roleRef:
@@ -12,14 +12,14 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: {{ .Values.username }}
+  name: {{ (include "tenant.username" .) }}
 {{- if or .Values.rbac.workbench .Values.rbac.mlflow }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: lab-user
-  namespace: {{ .Values.username }}-app
+  namespace: {{ (include "tenant.username" .) }}-app
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 rules:
@@ -38,8 +38,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.username }}-lab-user
-  namespace: {{ .Values.username }}-app
+  name: {{ (include "tenant.username" .) }}-lab-user
+  namespace: {{ (include "tenant.username" .) }}-app
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 roleRef:
@@ -49,14 +49,14 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: {{ .Values.username }}
+  name: {{ (include "tenant.username" .) }}
 {{- end }}
 {{- if .Values.modelServing.access }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.username }}-serving-viewer
+  name: {{ (include "tenant.username" .) }}-serving-viewer
   namespace: {{ .Values.modelServing.namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -68,7 +68,7 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: {{ .Values.username }}
+  name: {{ (include "tenant.username" .) }}
 {{- end }}
 {{- if and .Values.workbench.enabled .Values.mcpGateway.enabled }}
 ---
@@ -79,7 +79,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: lab-tool-registration
-  namespace: {{ .Values.username }}-app
+  namespace: {{ (include "tenant.username" .) }}-app
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 rules:
@@ -95,7 +95,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: lab-tool-registration
-  namespace: {{ .Values.username }}-app
+  namespace: {{ (include "tenant.username" .) }}-app
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 roleRef:
@@ -105,5 +105,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.workbench.name }}
-    namespace: {{ .Values.username }}-app
+    namespace: {{ (include "tenant.username" .) }}-app
 {{- end }}

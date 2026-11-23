@@ -1,0 +1,11 @@
+# RHDP's cluster catalog already installs these platform operators and operands.
+# Use this overlay on the shared cluster; do not add a second OperatorGroup or
+# change the installed GPU operator channel. The cluster owner must enable the
+# DataScienceCluster v2 mlflowoperator component before the platform wait passes.
+rhoai:
+  install: false
+gpu:
+  install: false
+operators:
+  certManager:
+    enabled: false
