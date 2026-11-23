@@ -37,7 +37,9 @@ def test_module_cannot_be_ready_when_its_documentation_check_failed(tmp_path, mo
         from pathlib import Path
         junit = Path(args[args.index("--junitxml") + 1])
         junit.write_text('<testsuite><testcase name="test_readiness[0]"/><testcase name="test_readiness[1]"/>'
-                         '<testcase name="test_module[0-module-01]"/><testcase name="test_module[1-module-01]"/>'
+                         '<testcase name="test_module[0-module-01]"><properties><property name="runtime" '
+                         'value="{&quot;artifact&quot;:&quot;/workbench/executed.ipynb&quot;}"/></properties></testcase>'
+                         '<testcase name="test_module[1-module-01]"/>'
                          '<testcase name="test_each_module_is_ready_for_david_to_review"><failure message="mirror mismatch"/>'
                          '</testcase></testsuite>')
         return SimpleNamespace(returncode=1)
@@ -46,3 +48,4 @@ def test_module_cannot_be_ready_when_its_documentation_check_failed(tmp_path, mo
     assert runner["main"]() == 1
     report = json.loads((output / "report.json").read_text())
     assert report["modules"][0]["status"] != "PASS"
+    assert report["modules"][0]["evidence"][0].get("runtime") == {"artifact": "/workbench/executed.ipynb"}

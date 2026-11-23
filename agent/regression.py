@@ -129,6 +129,9 @@ def main(argv=None):
         try:
             summary = run_agent(QUESTIONS[key], config)
             trace_id = tracing.last_trace_id()
+            # Persist the same trace link as an ordinary CLI run, so the notebook's
+            # evidence table can open each regression case's actual trace.
+            tracing.report(summary)
             status, reason = check(summary, cap)
         except Exception as exc:  # a broken case must not stop the others
             status, reason = "FAIL", f"run raised {type(exc).__name__}: {exc}"

@@ -32,7 +32,7 @@ def oc(workshop, *args):
     return result.stdout
 
 
-def remote(workshop, participant, phase, *args):
+def remote(workshop, participant, phase, *args, record_property=None):
     namespace = participant + "-app"
     result = command(["oc", "--kubeconfig", workshop["kubeconfig"], "--request-timeout=20s",
                       "exec", "-i", "-n", namespace, "kestrel-agent-0", "-c", "kestrel-agent",
@@ -42,6 +42,17 @@ def remote(workshop, participant, phase, *args):
                    if line.startswith("LB8000_EVIDENCE=")), None)
     assert marker is not None, f"{participant}: workbench check {phase} did not return evidence"
     evidence = json.loads(marker)
+    if phase == "module" and evidence.get("artifact") and os.environ.get("LB8000_EVIDENCE_DIR"):
+        path = Path(evidence["artifact"])
+        assert str(path).startswith("/opt/app-root/src/lb8000-e2e-") and path.name == "executed.ipynb" and ".." not in path.parts
+        relative = Path("artifacts") / participant / f"module-{int(args[0]):02d}.ipynb"
+        destination = Path(os.environ["LB8000_EVIDENCE_DIR"]) / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(oc(workshop, "exec", "-n", namespace, "kestrel-agent-0", "-c", "kestrel-agent", "--", "cat", str(path)))
+        evidence["remote_artifact"] = str(path)
+        evidence["artifact"] = str(relative)
+    if record_property:
+        record_property("runtime", json.dumps({**evidence, "participant": participant}))
     assert result.returncode == 0 and evidence["status"] == "PASS", evidence
     return evidence
 
@@ -61,13 +72,13 @@ def test_readiness_means_participants_can_begin_the_lab(workshop, slot):
 
 @pytest.mark.parametrize("module", range(1, 8), ids=lambda n: f"module-{n:02d}")
 @pytest.mark.parametrize("slot", [0, 1])
-def test_every_module_works_through_the_participant_instructions(workshop, slot, module):
+def test_every_module_works_through_the_participant_instructions(workshop, slot, module, record_property):
     """Scenario: Every module works through the participant instructions"""
     participant = workshop["participants"][slot]
     if module == 6:
         before = remote(workshop, participant, "catalog")
         assert not any(n.endswith("estimate_delivery") for n in before["tools"]), "Use fresh participants for end-to-end acceptance"
-    evidence = remote(workshop, participant, "module", module)
+    evidence = remote(workshop, participant, "module", module, record_property=record_property)
     assert evidence["module"] == module
     assert evidence["code_cells"] > 0
     assert evidence["executed_cells"] == evidence["code_cells"]

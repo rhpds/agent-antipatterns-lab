@@ -7,6 +7,7 @@ import contextlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -14,6 +15,7 @@ import tempfile
 import urllib.request
 
 REPO = Path("/opt/app-root/src/agent-antipatterns-lab")
+ARTIFACT = None
 
 
 def git(*args, cwd=REPO):
@@ -110,6 +112,8 @@ def module(number):
     from nbclient import NotebookClient
 
     directory = Path(tempfile.mkdtemp(prefix="lb8000-e2e-", dir=REPO.parent))
+    global ARTIFACT
+    ARTIFACT = directory / "executed.ipynb"
     root = directory / "repo"
     subprocess.run(["git", "clone", "--local", "--no-hardlinks", str(REPO), str(root)],
                    check=True, capture_output=True)
@@ -131,11 +135,23 @@ def module(number):
     try:
         client.execute()
     finally:
-        nbformat.write(notebook, directory / "executed.ipynb")
+        nbformat.write(notebook, ARTIFACT)
     evidence = verify_module(number, root)
+    if number == 7:
+        text = "\n".join(str(output.get("text", "")) for cell in notebook.cells for output in cell.get("outputs", []))
+        recorded = re.search(r"Recorded MLflow run 'my-baseline' \(([\w-]+)\)", text)
+        assert recorded, "Module 7 did not record its MLflow evaluation"
+        import tracing
+        import mlflow
+        assert tracing.init(), "Cannot verify the recorded MLflow evaluation"
+        run = mlflow.get_run(recorded.group(1))
+        assert all(run.data.metrics.get(key) == value for key, value in {"passed": 6, "failed": 0, "skipped": 0}.items()), "Recorded evaluation counts differ from regression results"
+        rows = mlflow.search_traces(run_id=run.info.run_id, return_type="list")
+        assert len(rows) == 6 and all(any(a.name == "check" and a.value == "PASS" for a in trace.info.assessments) for trace in rows), "MLflow must retain six passing case assessments"
+        evidence["evaluation_id"] = run.info.run_id
     evidence.update(module=number, code_cells=len(original_ids),
                     executed_cells=sum(c.cell_type == "code" and c.id in original_ids and c.execution_count is not None for c in notebook.cells),
-                    artifact=str(directory / "executed.ipynb"))
+                    artifact=str(ARTIFACT))
     return evidence
 
 
@@ -154,5 +170,7 @@ if __name__ == "__main__":
         result.update(status="PASS", commit=sys.argv[2])
     except Exception as error:
         result["reason"] = str(error) if isinstance(error, AssertionError) else type(error).__name__
+        if ARTIFACT and ARTIFACT.exists():
+            result["artifact"] = str(ARTIFACT)
     print("LB8000_EVIDENCE=" + json.dumps(result))
     sys.exit(0 if result["status"] == "PASS" else 1)

@@ -44,10 +44,10 @@ def main():
         junit = args.output.resolve() / f"junit-{uuid.uuid4().hex}.xml"
         report["junit"] = junit.name
         command = [sys.executable, "-m", "pytest", str(ROOT / "tests/e2e"), "-q", "-rA",
-                   "--junitxml", str(junit), "--basetemp", str(args.output.resolve() / "pytest")]
+                   "-o", "junit_family=xunit1", "--junitxml", str(junit), "--basetemp", str(args.output.resolve() / "pytest")]
         if args.readiness_only:
             command += ["-k", "readiness"]
-        done = subprocess.run(command, cwd=ROOT)
+        done = subprocess.run(command, cwd=ROOT, env={**os.environ, "LB8000_EVIDENCE_DIR": str(args.output.resolve())})
         cases = []
         if junit.exists():
             for case in ET.parse(junit).iter("testcase"):
@@ -55,6 +55,9 @@ def main():
                 cases.append({"name": case.attrib.get("name", ""),
                               "status": "PASS" if failure is None else "FAIL",
                               "reason": "" if failure is None else failure.attrib.get("message", "Check did not pass")})
+                for prop in case.findall("properties/property"):
+                    if prop.attrib.get("name") == "runtime":
+                        cases[-1]["runtime"] = json.loads(prop.attrib["value"])
         readiness = [case for case in cases if "readiness" in case["name"]]
         ready = len(readiness) == 2 and all(c["status"] == "PASS" for c in readiness)
         docs = [case for case in cases if "each_module_is_ready_for_david_to_review" in case["name"]]
@@ -73,13 +76,15 @@ def main():
     (args.output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     lines = ["# Lab module review", "", f"Result: {report['status']}",
              f"Tested commit: {report['commit'] or 'not selected'}", "", report["reason"], "",
-             "| Module | Notebook | Showroom preview | Live checks | Unresolved issues |",
-             "|---|---|---|---|---|"]
+             "| Module | Notebook | Showroom preview | Live checks | Execution evidence | Unresolved issues |",
+             "|---|---|---|---|---|---|"]
     for row, notebook in zip(report["modules"], sorted((ROOT / "notebooks").glob("module-*.ipynb"))):
         source = f"https://github.com/rhpds/agent-antipatterns-lab/blob/{report['commit']}/{notebook.relative_to(ROOT)}" if report["commit"] else str(notebook)
         page = ROOT / "www/modules" / notebook.with_suffix(".html").name
         issues = "; ".join(row["issues"]).replace("|", "\\|").replace("\n", " ")
-        lines.append(f"| {row['module']} | [Notebook]({source}) | [Rendered page]({page}) | {row['status']} | {issues} |")
+        artifacts = ", ".join(f"[Participant {i+1}]({case['runtime']['artifact']})" for i, case in enumerate(row["evidence"])
+                              if case.get("runtime", {}).get("artifact"))
+        lines.append(f"| {row['module']} | [Notebook]({source}) | [Rendered page]({page}) | {row['status']} | {artifacts} | {issues} |")
     lines += ["", f"Evidence: [structured report](report.json), [individual live checks]({report.get('junit', 'not-run')}).",
               "The Showroom links refer to the local preview build. Live results do not establish publication."]
     (args.output / "review.md").write_text("\n".join(lines) + "\n")
