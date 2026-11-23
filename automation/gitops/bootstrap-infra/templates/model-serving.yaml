@@ -129,7 +129,8 @@ metadata:
     opendatahub.io/dashboard: "true"
   annotations:
     openshift.io/display-name: {{ .displayName | quote }}
-    serving.kserve.io/deploymentMode: RawDeployment
+    # OpenShift AI 3.5 persists the standard (formerly RawDeployment) spelling.
+    serving.kserve.io/deploymentMode: Standard
     # Lab endpoint is cluster-internal and unauthenticated so participants need no token.
     security.opendatahub.io/enable-auth: "false"
     argocd.argoproj.io/sync-wave: "5"

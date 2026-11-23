@@ -69,6 +69,7 @@ def test_rhdp_overlay_reuses_installed_operators_and_keeps_serving():
     assert not of_kind(docs, "NodeFeatureDiscovery")
     assert of_kind(docs, "InferenceService")
     for service in of_kind(docs, "InferenceService"):
+        assert service["metadata"]["annotations"]["serving.kserve.io/deploymentMode"] == "Standard"
         predictor = service["spec"]["predictor"]
         assert predictor.get("automountServiceAccountToken") is False
         assert predictor["model"].get("protocolVersion") == "v2"
