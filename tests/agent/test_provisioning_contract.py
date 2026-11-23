@@ -68,6 +68,11 @@ def test_rhdp_overlay_reuses_installed_operators_and_keeps_serving():
     assert not of_kind(docs, "ClusterPolicy")
     assert not of_kind(docs, "NodeFeatureDiscovery")
     assert of_kind(docs, "InferenceService")
+    for service in of_kind(docs, "InferenceService"):
+        predictor = service["spec"]["predictor"]
+        assert predictor.get("automountServiceAccountToken") is False
+        assert predictor["model"].get("protocolVersion") == "v2"
+        assert predictor["model"].get("name") == ""
     assert of_kind(docs, "MLflow")
     waits = {j["metadata"]["name"]: j["spec"]["template"]["spec"]["containers"][0]["args"][0]
              for j in of_kind(docs, "Job")}

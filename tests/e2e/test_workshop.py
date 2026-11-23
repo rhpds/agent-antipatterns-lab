@@ -64,6 +64,16 @@ def test_readiness_means_participants_can_begin_the_lab(workshop, slot):
     namespace = participant + "-app"
     notebook = json.loads(oc(workshop, "get", "notebook", "kestrel-agent", "-n", namespace, "-o", "json"))
     assert notebook["metadata"]["annotations"]["opendatahub.io/username"] == participant
+    applications = oc(workshop, "get", "applications", "-n", "openshift-gitops", "-o", "json")
+    audit = command([sys.executable, str(ROOT / "automation/gitops/check-release.py"), "--applications", "-"],
+                    input=applications, cwd=ROOT)
+    assert audit.returncode == 0, audit.stderr
+    assert workshop["commit"][:12] in audit.stdout, "Applications do not select the tested release"
+    selected = [app for app in json.loads(applications)["items"] if app.get("spec", {}).get("source", {}).get("path")
+                in ("automation/gitops/bootstrap-infra", "automation/gitops/bootstrap-tenant")]
+    # Assertions may print their operands. Never expose credential-bearing App values.
+    states = [(app["metadata"]["name"], app["status"]["sync"]["status"], app["status"]["health"]["status"]) for app in selected]
+    assert len(states) == 3 and all(sync == "Synced" and health == "Healthy" for _, sync, health in states), "All three lab Applications must be Synced and Healthy"
     pod = json.loads(oc(workshop, "get", "pod", "kestrel-agent-0", "-n", namespace, "-o", "json"))
     assert any(c["type"] == "Ready" and c["status"] == "True" for c in pod["status"]["conditions"])
     assert oc(workshop, "auth", "can-i", "get", "notebooks", "--as", participant, "-n", namespace).strip() == "yes"

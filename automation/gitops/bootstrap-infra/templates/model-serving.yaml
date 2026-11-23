@@ -136,6 +136,9 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   predictor:
+    # Match KServe's persisted defaults so an otherwise healthy endpoint stays
+    # Synced in Argo CD and the catalog's required health/sync wait can finish.
+    automountServiceAccountToken: false
     minReplicas: {{ .replicas }}
     maxReplicas: {{ .replicas }}
     # Each replica holds a whole GPU, so a surge pod waits for a GPU the old pod never
@@ -146,6 +149,8 @@ spec:
         maxSurge: 0
         maxUnavailable: 1
     model:
+      name: ""
+      protocolVersion: v2
       modelFormat:
         name: vLLM
       runtime: {{ .name }}
