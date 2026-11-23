@@ -1,0 +1,116 @@
+"""Live acceptance only: invoke through qa-automation/run.py on a dedicated workshop.
+
+These checks never fall back to mock services. Every missing input/service fails.
+"""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def command(args, **kwargs):
+    return subprocess.run(args, capture_output=True, text=True, timeout=kwargs.pop("timeout", 60), **kwargs)
+
+
+@pytest.fixture(scope="session")
+def workshop():
+    required = ("LB8000_KUBECONFIG", "LB8000_PARTICIPANTS", "LB8000_RELEASE")
+    assert all(os.environ.get(key) for key in required), "Run through qa-automation/run.py with explicit lab settings"
+    return {"kubeconfig": os.environ[required[0]], "participants": os.environ[required[1]].split(","),
+            "commit": os.environ[required[2]], "isolation": {}}
+
+
+def oc(workshop, *args):
+    result = command(["oc", "--kubeconfig", workshop["kubeconfig"], "--request-timeout=20s", *args])
+    assert result.returncode == 0, "OpenShift read/check failed; inspect the selected workshop"
+    return result.stdout
+
+
+def remote(workshop, participant, phase, *args):
+    namespace = participant + "-app"
+    result = command(["oc", "--kubeconfig", workshop["kubeconfig"], "--request-timeout=20s",
+                      "exec", "-i", "-n", namespace, "kestrel-agent-0", "-c", "kestrel-agent",
+                      "--", "python", "-", phase, workshop["commit"], *map(str, args)],
+                     input=(ROOT / "qa-automation/workbench-check.py").read_text(), timeout=3600)
+    marker = next((line.removeprefix("LB8000_EVIDENCE=") for line in result.stdout.splitlines()
+                   if line.startswith("LB8000_EVIDENCE=")), None)
+    assert marker is not None, f"{participant}: workbench check {phase} did not return evidence"
+    evidence = json.loads(marker)
+    assert result.returncode == 0 and evidence["status"] == "PASS", evidence
+    return evidence
+
+
+@pytest.mark.parametrize("slot", [0, 1])
+def test_readiness_means_participants_can_begin_the_lab(workshop, slot):
+    """Scenario: Readiness means participants can begin the lab"""
+    participant = workshop["participants"][slot]
+    namespace = participant + "-app"
+    notebook = json.loads(oc(workshop, "get", "notebook", "kestrel-agent", "-n", namespace, "-o", "json"))
+    assert notebook["metadata"]["annotations"]["opendatahub.io/username"] == participant
+    pod = json.loads(oc(workshop, "get", "pod", "kestrel-agent-0", "-n", namespace, "-o", "json"))
+    assert any(c["type"] == "Ready" and c["status"] == "True" for c in pod["status"]["conditions"])
+    assert oc(workshop, "auth", "can-i", "get", "notebooks", "--as", participant, "-n", namespace).strip() == "yes"
+    assert remote(workshop, participant, "readiness")["services"] == ["models", "pgvector", "mlflow", "gateway"]
+
+
+@pytest.mark.parametrize("module", range(1, 8), ids=lambda n: f"module-{n:02d}")
+@pytest.mark.parametrize("slot", [0, 1])
+def test_every_module_works_through_the_participant_instructions(workshop, slot, module):
+    """Scenario: Every module works through the participant instructions"""
+    participant = workshop["participants"][slot]
+    if module == 6:
+        before = remote(workshop, participant, "catalog")
+        assert not any(n.endswith("estimate_delivery") for n in before["tools"]), "Use fresh participants for end-to-end acceptance"
+    evidence = remote(workshop, participant, "module", module)
+    assert evidence["module"] == module
+    assert evidence["code_cells"] > 0
+    assert evidence["executed_cells"] == evidence["code_cells"]
+    assert evidence["commit"] == workshop["commit"]
+    if module == 7:
+        assert evidence["regression"] == {"PASS": 6, "FAIL": 0, "SKIP": 0}
+    if module == 6:
+        own = remote(workshop, participant, "catalog")
+        assert any(n.endswith("estimate_delivery") for n in own["tools"])
+        if slot == 0:
+            other = remote(workshop, workshop["participants"][1], "catalog")
+            assert not any(n.endswith("estimate_delivery") for n in other["tools"])
+        workshop["isolation"][participant] = True
+
+
+def test_participants_complete_the_lab_independently(workshop):
+    """Scenario: Participants complete the lab independently"""
+    assert len(set(workshop["participants"])) == 2
+    assert set(workshop["isolation"]) == set(workshop["participants"]), "Both module 6 isolation sequences must pass"
+
+
+def test_each_module_is_ready_for_david_to_review(workshop):
+    """Scenario: Each module is ready for David to review"""
+    generated = command([sys.executable, "publishing-house/showroom/generate.py", "--check"], cwd=ROOT)
+    assert generated.returncode == 0, generated.stdout + generated.stderr
+    rendered = command([sys.executable, "publishing-house/showroom/verify.py", "--source-ref", workshop["commit"]], cwd=ROOT)
+    assert rendered.returncode == 0, rendered.stdout + rendered.stderr
+    assert len(list((ROOT / "www/modules").glob("module-*.html"))) == 7
+
+
+def test_the_reviewed_release_is_the_release_promoted(workshop):
+    """Scenario: The reviewed release is the release promoted"""
+    number = os.environ.get("LB8000_RELEASE_PR")
+    assert number, "Set LB8000_RELEASE_PR to the test-to-main release PR"
+    result = command(["gh", "pr", "view", number, "--repo", "rhpds/agent-antipatterns-lab",
+                      "--json", "headRefOid,headRefName,baseRefName"])
+    assert result.returncode == 0, "Cannot read the release PR"
+    pr = json.loads(result.stdout)
+    assert (pr["headRefName"], pr["baseRefName"], pr["headRefOid"]) == ("test", "main", workshop["commit"])
+    protection = command(["gh", "api", "repos/rhpds/agent-antipatterns-lab/branches/main/protection"])
+    assert protection.returncode == 0, "main must have enforceable branch protection"
+    rules = json.loads(protection.stdout)
+    assert rules["enforce_admins"]["enabled"]
+    assert rules["required_pull_request_reviews"]["dismiss_stale_reviews"]
+    checks = set(rules["required_status_checks"]["contexts"])
+    checks.update(c["context"] for c in rules["required_status_checks"].get("checks", []))
+    assert {"agent-tests", "showroom-docs", "release-approval", "live-e2e"} <= checks
