@@ -1,6 +1,6 @@
 {{- if .Values.pgvector.enabled }}
 {{- $p := .Values.pgvector }}
-{{- $ns := printf "%s-app" .Values.username }}
+{{- $ns := printf "%s-app" (include "tenant.username" .) }}
 ---
 apiVersion: v1
 kind: Secret

@@ -2,7 +2,7 @@
 ---
 {{ include "infra.operator" (dict "ns" .Values.operators.certManager.namespace "name" .Values.operators.certManager.name "channel" .Values.operators.certManager.channel "source" .Values.operators.certManager.source "ownNamespaceOnly" true) }}
 {{- end }}
-{{- if .Values.gpu.enabled }}
+{{- if and .Values.gpu.enabled .Values.gpu.install }}
 ---
 {{ include "infra.operator" (dict "ns" .Values.nfd.namespace "name" .Values.nfd.name "channel" .Values.nfd.channel "source" .Values.nfd.source "ownNamespaceOnly" true) }}
 ---

@@ -53,7 +53,7 @@ def test_dev_is_the_explicit_default_for_dev_environments_only():
 @pytest.mark.parametrize("chart", ["bootstrap-tenant", "bootstrap-infra"])
 def test_without_a_branch_rendering_stops_with_the_reason(chart):
     """No quiet fallback to dev: an environment that doesn't say its branch fails to render."""
-    out = subprocess.run([helm(), "template", "t", str(CHARTS / chart), "--set", "deployer.domain=apps.example.com"],
+    out = subprocess.run([helm(), "template", "t", str(CHARTS / chart), "--set", "deployer.domain=apps.example.com", "--set", "username=user1"],
                          capture_output=True, text=True)
     assert out.returncode != 0
     assert "labRepoRef" in out.stderr

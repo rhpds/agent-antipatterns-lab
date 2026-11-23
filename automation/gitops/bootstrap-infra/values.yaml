@@ -61,6 +61,9 @@ gpu:
   # Master switch for NFD + NVIDIA GPU Operator + model serving.
   # Set false on a CPU-only cluster (e.g. the homelab SNO).
   enabled: true
+  # False when RHDP already installed NFD, the GPU operator and their operands.
+  # GPU-backed serving and the allocatable-GPU readiness check remain enabled.
+  install: true
   namespace: nvidia-gpu-operator
   name: gpu-operator-certified
   # Pinned to the catalog default verified on Dev CI (OCP 4.22) and the SNO.

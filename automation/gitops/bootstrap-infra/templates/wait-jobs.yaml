@@ -92,7 +92,7 @@ spec:
               {{- if .Values.operators.certManager.enabled }}
                 "{{ .Values.operators.certManager.namespace }} {{ .Values.operators.certManager.name }}"
               {{- end }}
-              {{- if .Values.gpu.enabled }}
+              {{- if and .Values.gpu.enabled .Values.gpu.install }}
                 "{{ .Values.nfd.namespace }} {{ .Values.nfd.name }}"
                 "{{ .Values.gpu.namespace }} {{ .Values.gpu.name }}"
               {{- end }}
@@ -154,13 +154,13 @@ spec:
               # (default-dsc) or, with rhoai.install false, the ai_workloads role.
               # .items[0]: the operator allows only one DataScienceCluster. stderr is dropped
               # because oc reports "array index out of bounds" until the DSC exists.
-              dsc_ready() { [ "$(oc get datasciencecluster -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" = "True" ]; }
+              dsc_ready() { [ "$(oc get datascienceclusters.v2.datasciencecluster.opendatahub.io -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" = "True" ]; }
               # The lab needs these components Managed. Fail with a clear message rather
               # than time out later on a missing CRD or a workbench that never starts.
               dsc_components() {
                 missing=""
                 for c in {{ join " " .Values.rhoai.requiredComponents }}{{ if .Values.mlflow.enabled }} mlflowoperator{{ end }}; do
-                  state=$(oc get datasciencecluster -o jsonpath="{.items[0].spec.components.$c.managementState}")
+                  state=$(oc get datascienceclusters.v2.datasciencecluster.opendatahub.io -o jsonpath="{.items[0].spec.components.$c.managementState}")
                   [ "$state" = Managed ] || missing="$missing $c(${state:-unset})"
                 done
                 if [ -n "$missing" ]; then
@@ -176,7 +176,7 @@ spec:
               # and Route are created there.
               dsc_settings() {
                 bad=""
-                raw=$(oc get datasciencecluster -o jsonpath='{.items[0].spec.components.kserve.rawDeploymentServiceConfig}')
+                raw=$(oc get datascienceclusters.v2.datasciencecluster.opendatahub.io -o jsonpath='{.items[0].spec.components.kserve.rawDeploymentServiceConfig}')
                 [ "$raw" = {{ .Values.rhoai.kserveRawServiceConfig }} ] || bad="$bad kserve.rawDeploymentServiceConfig=${raw:-unset}(want {{ .Values.rhoai.kserveRawServiceConfig }})"
                 appns=$(oc get dscinitialization -o jsonpath='{.items[0].spec.applicationsNamespace}')
                 [ "$appns" = {{ .Values.rhoai.applicationsNamespace }} ] || bad="$bad applicationsNamespace=${appns:-unset}(want {{ .Values.rhoai.applicationsNamespace }})"
