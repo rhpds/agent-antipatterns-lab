@@ -3,6 +3,7 @@
 These checks never fall back to mock services. Every missing input/service fails.
 """
 import json
+import base64
 import os
 from pathlib import Path
 import subprocess
@@ -110,7 +111,15 @@ def test_the_reviewed_release_is_the_release_promoted(workshop):
     assert protection.returncode == 0, "main must have enforceable branch protection"
     rules = json.loads(protection.stdout)
     assert rules["enforce_admins"]["enabled"]
-    assert rules["required_pull_request_reviews"]["dismiss_stale_reviews"]
+    reviews = rules["required_pull_request_reviews"]
+    assert reviews["dismiss_stale_reviews"]
+    assert reviews["require_code_owner_reviews"]
+    assert reviews["required_approving_review_count"] >= 1
     checks = set(rules["required_status_checks"]["contexts"])
     checks.update(c["context"] for c in rules["required_status_checks"].get("checks", []))
-    assert {"agent-tests", "showroom-docs", "release-approval", "live-e2e"} <= checks
+    assert {"agent-tests", "showroom-docs", "live-e2e"} <= checks
+    owner = command(["gh", "api", "repos/rhpds/agent-antipatterns-lab/contents/.github/CODEOWNERS?ref=main"])
+    assert owner.returncode == 0, "The required owner must already be configured on main"
+    content = base64.b64decode(json.loads(owner.stdout)["content"]).decode()
+    active = [line.strip() for line in content.splitlines() if line.strip() and not line.startswith("#")]
+    assert active == ["* @ishuverma"], "Confirm the effective required reviewer before promotion"

@@ -36,3 +36,17 @@ The review index links all seven notebooks at the selected commit and their loca
 The full run also verifies the test-to-main release PR and effective branch protection. Until that PR and its required approval/check policy exist, the overall result remains unsuccessful even if individual modules pass. Keep the commit fixed through validation and review; changes require rerunning the checks and renewing approval.
 
 The catalog must point at the verified release before a fresh provision is meaningful. Patching existing Argo Applications proves repair of that workshop, not repeatability from the catalog.
+
+## Repository administrator setup
+
+Use GitHub's native code-owner review requirement. The repository's `.github/CODEOWNERS` names the release reviewer, who must have write access. GitHub reads ownership from the PR's **base branch**, so that file must reach `main` before the first release can rely on the requirement. Establish it through a separately reviewed setup PR, then verify the effective rule before opening or enabling auto-merge on a release. See [GitHub's code-owner documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+
+`main-protection.json` is a proposed administrator input, not an installed rule. It requires the agent and Showroom CI checks plus `live-e2e`, requires owner approval and dismisses stale approvals. Compare it with any existing policy before applying; never overwrite stronger existing restrictions.
+
+After reviewing the policy, a repository administrator can apply it:
+
+```bash
+gh api --method PUT repos/rhpds/agent-antipatterns-lab/branches/main/protection --input qa-automation/main-protection.json
+```
+
+The administrator must also enable repository auto-merge if automatic merging after approval is desired. The live promotion check reads the actual GitHub policy and the owner file on `main`; committed JSON alone cannot satisfy it. Publish a successful `live-e2e` status only after a complete live run on the exact release commit, retaining its evidence with the release PR. A readiness-only run cannot satisfy that check.
