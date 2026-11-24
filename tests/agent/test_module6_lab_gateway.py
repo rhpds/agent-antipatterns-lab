@@ -77,7 +77,8 @@ def test_search_through_the_gateway_still_cites_the_service_bulletin(work, lab_s
     search = [t for t in summary["tool_calls"] if t["name"].endswith("search_bulletins")]
     assert search and search[0]["result"]["category"] == "ok"
     assert "SB-2024-102" in [p["source"] for p in search[0]["result"]["data"]["passages"]]
-    assert "SB-2024-102" in summary["answer"] or "coolant loop pressure low" in summary["answer"].lower()
+    assert "SB-2024-102" in summary["answer"]
+    assert "coolant loop pressure low" in summary["answer"].lower()
 
 
 def test_registering_the_delivery_tool_changes_only_that_participants_catalog(lab_server):
