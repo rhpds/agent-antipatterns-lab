@@ -21,7 +21,7 @@ Feature: Each module opens with its failure and closes with its fix
   Scenario: A stronger prompt doesn't make the tools fire
     Given the agent still points at the mismatched endpoint
     When a participant strengthens the prompt and asks the module 1 question again
-    Then the wording of the answer changes but still no tool is called
+    Then the saved request contains the stronger prompt but still no tool is called
 
   Scenario: The endpoint whose parser matches the model makes the tool fire
     When a participant points the agent at the validated endpoint and asks the module 1 question
