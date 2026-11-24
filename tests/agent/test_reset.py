@@ -1,4 +1,6 @@
 """reset.py puts a participant's checkout in the state a module starts from."""
+import os
+import pathlib
 import shutil
 import subprocess
 import sys
@@ -135,3 +137,71 @@ def test_a_directory_in_place_of_a_file_stops_the_reset(checkout):
     out = subprocess.run([sys.executable, "reset.py", "1"], cwd=checkout, capture_output=True, text=True)
     assert out.returncode != 0 and "tools.py should be a file" in out.stderr
     assert (checkout / "tools.py" / "notes.txt").read_text() == "mine\n"
+
+
+def participant_state(checkout):
+    """File contents and link targets, excluding Git internals and Python caches."""
+    state = {}
+    for directory, folders, files in os.walk(checkout, followlinks=False):
+        folders[:] = [name for name in folders if name not in (".git", "__pycache__")]
+        for name in folders + files:
+            path = pathlib.Path(directory) / name
+            relative = str(path.relative_to(checkout))
+            if path.is_symlink():
+                state[relative] = ("link", os.readlink(path))
+            elif path.is_file():
+                state[relative] = ("file", path.read_bytes())
+            else:
+                state[relative] = ("directory",)
+    index = subprocess.check_output(["git", "ls-files", "--stage", "-z"], cwd=checkout)
+    return state, index
+
+
+@pytest.mark.parametrize("relative", ["solutions", "solutions/module-03"])
+def test_a_file_obstructing_a_parent_stops_reset_without_changing_any_edits(checkout, relative):
+    """Scenario: Resetting to a module's start keeps the participant's edits"""
+    blocked = checkout / relative
+    shutil.move(blocked, checkout.parent / "saved-original")
+    blocked.write_text("participant notes, not a directory\n")
+    (checkout / "agent.py").write_text("# another participant edit\n")
+    before = participant_state(checkout)
+    result = subprocess.run([sys.executable, "reset.py", "4"], cwd=checkout, capture_output=True, text=True)
+    assert result.returncode != 0, "Reset must stop before replacing the obstructing participant file"
+    assert relative in result.stderr and "directory" in result.stderr
+    assert participant_state(checkout) == before
+    assert not (checkout / ".reset-backup").exists()
+
+
+@pytest.mark.parametrize("relative", ["tools.py", "solutions/module-03"])
+@pytest.mark.parametrize("dangling", [False, True])
+def test_symbolic_links_are_preserved_instead_of_restored_through(checkout, relative, dangling):
+    """Scenario: Resetting to a module's start keeps the participant's edits"""
+    path = checkout / relative
+    is_directory = path.is_dir()
+    target = checkout.parent / "participant-target"
+    shutil.move(path, target)
+    if is_directory:
+        notes = target / "notes.txt"
+    else:
+        notes = target
+    notes.write_text("participant data behind the link\n")
+    path.symlink_to(checkout.parent / "missing-target" if dangling else target,
+                    target_is_directory=is_directory)
+    (checkout / "agent.py").write_text("# another participant edit\n")
+    before = participant_state(checkout)
+    result = subprocess.run([sys.executable, "reset.py", "4"], cwd=checkout, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert relative in result.stderr and "symbolic link" in result.stderr
+    assert participant_state(checkout) == before
+    assert notes.read_text() == "participant data behind the link\n"
+
+
+@pytest.mark.parametrize("relative", ["solutions", "solutions/module-03"])
+def test_a_genuinely_missing_parent_directory_can_still_be_restored(checkout, relative):
+    """Scenario: Resetting to a module's start keeps the participant's edits"""
+    original = checkout / relative
+    shutil.move(original, checkout.parent / "saved-original")
+    reset(checkout, 1)
+    assert original.is_dir()
+    assert (checkout / "solutions/module-03/agent.py").read_bytes() == (AGENT / "solutions/module-03/agent.py").read_bytes()
+    assert not (checkout / ".reset-backup").exists()
