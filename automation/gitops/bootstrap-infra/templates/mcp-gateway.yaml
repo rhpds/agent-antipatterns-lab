@@ -293,8 +293,12 @@ spec:
           args:
             - |
               set -euo pipefail
-              git clone --depth 1 --branch {{ required "labRepoRef is required: the branch this environment clones (its catalog branch: test or main; dev for a dev environment)" .Values.labRepoRef | quote }} {{ $g.server.repo.url | quote }} /src/repo
-              cp /src/repo/agent/solutions/module-05/tools.py /src/repo/agent/tools.py
+              # Init containers can rerun with their emptyDir intact after a node restart.
+              # Publish only a complete checkout; preserve interrupted attempts until pod removal.
+              checkout_dir=$(mktemp -d /src/checkout.XXXXXX)
+              git clone --depth 1 --branch {{ required "labRepoRef is required: the branch this environment clones (its catalog branch: test or main; dev for a dev environment)" .Values.labRepoRef | quote }} {{ $g.server.repo.url | quote }} "$checkout_dir"
+              cp "$checkout_dir/agent/solutions/module-05/tools.py" "$checkout_dir/agent/tools.py"
+              ln -sfn "$checkout_dir" /src/repo
           volumeMounts:
             - name: src
               mountPath: /src

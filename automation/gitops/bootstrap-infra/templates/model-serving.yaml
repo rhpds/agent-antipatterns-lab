@@ -129,13 +129,17 @@ metadata:
     opendatahub.io/dashboard: "true"
   annotations:
     openshift.io/display-name: {{ .displayName | quote }}
-    serving.kserve.io/deploymentMode: RawDeployment
+    # OpenShift AI 3.5 persists the standard (formerly RawDeployment) spelling.
+    serving.kserve.io/deploymentMode: Standard
     # Lab endpoint is cluster-internal and unauthenticated so participants need no token.
     security.opendatahub.io/enable-auth: "false"
     argocd.argoproj.io/sync-wave: "5"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   predictor:
+    # Match KServe's persisted defaults so an otherwise healthy endpoint stays
+    # Synced in Argo CD and the catalog's required health/sync wait can finish.
+    automountServiceAccountToken: false
     minReplicas: {{ .replicas }}
     maxReplicas: {{ .replicas }}
     # Each replica holds a whole GPU, so a surge pod waits for a GPU the old pod never
@@ -146,6 +150,8 @@ spec:
         maxSurge: 0
         maxUnavailable: 1
     model:
+      name: ""
+      protocolVersion: v2
       modelFormat:
         name: vLLM
       runtime: {{ .name }}

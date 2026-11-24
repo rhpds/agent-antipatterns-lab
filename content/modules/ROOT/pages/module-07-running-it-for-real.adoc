@@ -27,9 +27,23 @@ import labnb as lab
 
 This puts the agent in the state module 7 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+The reset restores the code fixes through module 5 and clears the gateway setting. Reconnect to the lab gateway below before running the assembled agent. Your module 6 tool registration belongs to your project and survives the reset. Confirm that `+estimate_delivery+` appears in the tool list. If it is missing, complete module 6's registration step first.
+
 [source,python]
 ----
 !python reset.py 7
+----
+
+[source,python]
+----
+import json
+from pathlib import Path
+gateway = lab.gateway_url()
+if not gateway:
+    raise RuntimeError("The lab gateway is unavailable. Check LAB_GATEWAY_URL before continuing.")
+config = Path("config.toml")
+config.write_text(config.read_text().replace('gateway_url = ""', 'gateway_url = ' + json.dumps(gateway), 1))
+lab.tool_list()
 ----
 
 == 1. Run the regression set

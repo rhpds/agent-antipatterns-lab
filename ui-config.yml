@@ -10,7 +10,7 @@ view_switcher:
 
 tabs:
   - name: ">_ terminal"
-    path: /wetty
+    path: /terminal
     port: 443
   - name: OpenShift Console
     url: 'https://console-openshift-console.${DOMAIN}'

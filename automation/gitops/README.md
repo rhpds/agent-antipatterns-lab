@@ -10,8 +10,32 @@
 - `values.yaml`: the event layout (one 4× L40S node).
 - `values-dev-single-l4.yaml`: a dev cluster with one L4. Only one endpoint runs at a time.
 - `values-ai-workloads.yaml`: add this when the RHDP `ai_workloads` role installs OpenShift AI.
+- `values-rhdp.yaml`: reuse RHDP's existing OpenShift AI, GPU, NFD and cert-manager operators and operands. The cluster owner must enable `spec.components.mlflowoperator.managementState: Managed` on the **v2** DataScienceCluster before the platform readiness job can succeed. Model serving still requires allocatable GPUs.
 
 `bootstrap-tenant` has one extra values file, `values-dev.yaml`, for dev environments.
+
+## Release and participant preflight
+
+Before provisioning, fetch the configured origin and check the selected release:
+
+```bash
+git fetch origin
+python automation/gitops/check-release.py origin/test
+```
+
+The selected revision must contain both charts, the agent and all seven notebooks. A tag's name is not proof of its contents. Do not move published tags to repair a bad pin: select a new tested release instead. Infrastructure and tenant Applications must select the same release, and their `labRepoRef` must resolve to that same commit. Use a branch or tag for `labRepoRef`, because the workbench clones it using `git clone --branch`.
+
+Audit existing Applications without printing their credential-bearing Helm values (requires PyYAML):
+
+```bash
+oc get applications -n openshift-gitops -o json | python automation/gitops/check-release.py --applications -
+```
+
+For a fresh checkout, fetch the selected branch/tag before auditing. The audit checks source/runtime consistency, not service readiness. A successful audit does not replace the live end-to-end checks.
+
+The tenant chart accepts RHDP's `tenant.user.name` directly. A standalone deployment must supply `username`. If both are supplied they must agree. Missing or conflicting identities stop rendering; there is no shared `user1` fallback.
+
+In the owning AgnosticV catalog, use the RHDP values overlay for infrastructure, set `labRepoRef` for **both** charts and set `ocp4_workload_gitops_bootstrap_health_ignore: false`. Apply the notebook ignore rules below before enabling that failure behavior. These catalog settings must be committed in AgnosticV; changing a live Application or this repository does not update the catalog's source pin.
 
 ## Which branch an environment clones
 
