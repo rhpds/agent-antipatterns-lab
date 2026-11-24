@@ -48,20 +48,36 @@ def supplied_copies(name):
 
 
 class NotAFile(Exception):
-    """A tracked file's path holds something else, such as a directory."""
+    """A tracked file or its parent path cannot safely be restored."""
+
+
+def check_restore_paths(names):
+    """Reject obstructions before Git can replace them or follow a link."""
+    for name in names:
+        parts = pathlib.Path(name).parts
+        for depth in range(1, len(parts) + 1):
+            relative = pathlib.Path(*parts[:depth])
+            path = HERE / relative
+            if path.is_symlink():
+                raise NotAFile(f"{relative} is a symbolic link; move it aside and run reset again")
+            if not path.exists():
+                # A deleted file or directory has no participant data to preserve.
+                break
+            expected = "file" if depth == len(parts) else "directory"
+            correct = path.is_file() if expected == "file" else path.is_dir()
+            if not correct:
+                raise NotAFile(f"{relative} should be a {expected} but isn't; move it aside and run reset again")
 
 
 def reset(module):
     # Restoring would replace whatever is there without a backup, so stop instead.
-    odd = [name for name in changed_files()
-           if os.path.lexists(HERE / name) and not (HERE / name).is_file()]
-    if odd:
-        raise NotAFile(f"{', '.join(odd)} should be a file but isn't; move it aside and run reset again")
+    names = changed_files()
+    check_restore_paths(names)
     # Back up only the participant's own edits. A file that holds exactly what an earlier
     # reset (or the module's instructions) put there is lab-supplied, and backing it up
     # on every reset would bury real edits under copies of the solutions. A deleted file
     # has nothing to back up; it is restored below.
-    changed = [name for name in changed_files()
+    changed = [name for name in names
                if (HERE / name).is_file()
                and (HERE / name).read_bytes() not in supplied_copies(name)]
     restore = changed_files("--diff-filter=a")
