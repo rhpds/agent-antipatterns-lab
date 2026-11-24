@@ -50,7 +50,10 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
                "A bad_request or upstream_unavailable means the check could not be completed: "
                "explain the error and do not call it out of stock. Only no_results from "
                "check_stock means no stock was found at a valid depot. "
-               "When using search_bulletins passages, cite their source bulletin IDs in your answer. "
+               "When using search_bulletins passages, cite each source bulletin ID next to the "
+               "claim it supports. A symptom's source and a component's source may differ. "
+               "End the answer with 'Retrieved sources:' followed by every distinct source ID "
+               "returned by search_bulletins, so the technician can inspect the full context. "
                "If search_bulletins returns no_results, say that the bulletins do not cover the "
                "question and do not invent an answer.")
     messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
