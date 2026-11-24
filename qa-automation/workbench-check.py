@@ -101,6 +101,7 @@ def verify_module(number, root):
         assert verdict == "PASS", reason
     elif number == 5:
         assert not calls(first, "search_bulletins"), "Starting state already has retrieval"
+        assert any(marker in first["answer"].lower() for marker in ("temperature sensor", "control board")), "The starting F-21 run did not demonstrate the lab's unsupported cause claim"
         hits = calls(summaries[1], "search_bulletins")
         assert any(p["source"] == "SB-2024-102" for t in hits for p in t["result"].get("data", {}).get("passages", [])), "F-21 retrieval source is missing"
         assert "SB-2024-102" in summaries[1]["answer"], "Grounded answer omitted its citation"

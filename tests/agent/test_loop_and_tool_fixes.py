@@ -1,6 +1,7 @@
 """Modules 3-4: the supplied fixes, and the faults they fix."""
 import json
 import textwrap
+import tomllib
 
 from conftest import fixture_part, read_json
 
@@ -85,6 +86,23 @@ def test_module4_no_results_and_ok_are_distinguishable(work):
     """)).stdout.splitlines()
     cats = [json.loads(line)["category"] for line in empty]
     assert cats == ["no_results", "bad_request", "bad_request", "bad_request"]
+
+
+def test_error_guidance_does_not_change_the_unsupported_knowledge_start(work):
+    """Scenario: Without knowledge search, the agent invents a cause for fault F-21
+    Scenario: With the error contract, a bad depot is no longer mistaken for out of stock"""
+    work.repoint_to_validated()
+    work.apply_solution("module-04")
+    original = tomllib.loads(work.config.read_text())["agent"]["system_prompt"]
+    start, directory = work.agent("m5")
+    assert "temperature sensor" in start["answer"]
+    assert all(read_json(p)["messages"][0]["content"] == original for p in directory.glob("*-request.json"))
+    failed, directory = work.agent("m4")
+    requests = [read_json(p) for p in sorted(directory.glob("*-request.json"))]
+    assert requests[0]["messages"][0]["content"] == original
+    assert requests[1]["messages"][0]["content"] == original
+    assert requests[-1]["messages"][0]["content"] != original
+    assert failed["tool_calls"][-1]["result"]["category"] == "bad_request"
 
 
 RETRY_SCRIPT = textwrap.dedent("""

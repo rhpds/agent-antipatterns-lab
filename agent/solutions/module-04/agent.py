@@ -45,12 +45,6 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
     """Run the agent on one question. Returns the run summary (also saved as summary.json)."""
     agent_cfg = config["agent"]
     system = agent_cfg["system_prompt_strong" if strong_prompt else "system_prompt"]
-    # The error contract is useful only when the model interprets its categories correctly.
-    system += ("\nUse actual values returned by tools, never example or invented part numbers. "
-               "Wait for find_part's result before calling check_stock with a returned part number. "
-               "A bad_request or upstream_unavailable means the check could not be completed: "
-               "explain the error and do not call it out of stock. Only no_results from "
-               "check_stock means no stock was found at a valid depot.")
     messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
     runlog = RunLog(question, config["model"]["base_url"], runs_dir)
     toolbox = open_toolbox(config)
@@ -78,6 +72,12 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
                             result = toolbox.call(call.function.name, arguments)
                         tool_span.set_outputs(result)
                     runlog.add_tool_call(call.function.name, arguments, result)
+                    if result.get("category") in ("bad_request", "upstream_unavailable"):
+                        # Interpret an actual failed check without changing the earlier
+                        # requests or the next module's unsupported-knowledge demonstration.
+                        messages[0] = {"role": "system", "content": system +
+                                       "\nThe tool check could not be completed. Explain its error "
+                                       "and do not describe it as out of stock or an empty search."}
                     messages.append({"role": "tool", "tool_call_id": call.id,
                                      "content": json.dumps(result)})
                 continue

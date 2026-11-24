@@ -37,6 +37,16 @@ def test_live_module2_rejects_a_stronger_prompt_that_was_never_sent(monkeypatch,
         verify(monkeypatch, tmp_path, 2, [summary(), summary(), validated], prompts=["plain", "plain"])
 
 
+def test_live_module5_rejects_a_start_that_did_not_demonstrate_the_invention(monkeypatch, tmp_path):
+    """Scenario: Without knowledge search, the agent invents a cause for fault F-21"""
+    start = summary(tool("find_part", {"category": "no_results"}), answer="No part found; consult support.")
+    grounded = summary(tool("search_bulletins", {"category": "ok", "data": {"passages": [{"source": "SB-2024-102"}]}}),
+                       answer="See SB-2024-102 for coolant loop pressure low.")
+    miss = summary(tool("search_bulletins", {"category": "no_results", "data": {"passages": []}}))
+    with pytest.raises(AssertionError):
+        verify(monkeypatch, tmp_path, 5, [start, grounded, miss])
+
+
 def test_live_module4_rejects_an_answer_that_still_calls_bad_input_out_of_stock(monkeypatch, tmp_path):
     """Scenario: Every module works through the participant instructions"""
     before = summary(tool("check_stock", {"results": []}, depot="Portland"))
