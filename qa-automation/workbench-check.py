@@ -66,6 +66,8 @@ lab.sh = _checked_sh
 
 def verify_module(number, root):
     agent_dir = root / "agent"
+    sys.path.insert(0, str(agent_dir))
+    import regression
     summaries = [json.loads(p.read_text()) for p in sorted((agent_dir / "runs").glob("*/summary.json"))]
     assert summaries, "Notebook produced no agent run records"
     assert all(s.get("trace_url") for s in summaries), "A required run has no recorded MLflow trace"
@@ -78,12 +80,18 @@ def verify_module(number, root):
     elif number == 2:
         assert len(summaries) == 3 and not first["tool_calls"] and not summaries[1]["tool_calls"], "Mismatched/strong-prompt failure is missing"
         assert calls(last, "find_part"), "Validated endpoint did not fire the tool"
+        verdict, reason = regression.check_m1(last, 6)
+        assert verdict == "PASS", reason
     elif number == 3:
         assert first["ended_by"] == "max_turns", "Looping starting failure is missing"
         assert last["ended_by"] == "stop" and calls(last, "find_part") and calls(last, "check_stock"), "Fixed loop did not finish correctly"
+        verdict, reason = regression.check_m3(last, 6)
+        assert verdict == "PASS", reason
     elif number == 4:
         assert not any(t["result"].get("category") == "bad_request" for t in first["tool_calls"]), "Starting tool error was already fixed"
         assert any(t["result"].get("category") == "bad_request" for t in summaries[1]["tool_calls"]), "Fixed tool did not expose the bad request"
+        verdict, reason = regression.check_m4(summaries[1], 6)
+        assert verdict == "PASS", reason
     elif number == 5:
         assert not calls(first, "search_bulletins"), "Starting state already has retrieval"
         hits = calls(summaries[1], "search_bulletins")
@@ -91,11 +99,19 @@ def verify_module(number, root):
         assert "SB-2024-102" in summaries[1]["answer"], "Grounded answer omitted its citation"
         assert any(t["result"].get("category") == "no_results" for t in calls(last, "search_bulletins")), "Out-of-corpus result is not an explicit miss"
     elif number == 6:
+        for summary in summaries[:2]:
+            verdict, reason = regression.check_m3(summary, 6)
+            assert verdict == "PASS", reason
+        # The model may also check the seal kit. Compare the requested pump's facts,
+        # rather than treating an additional valid tool call as a failed lesson.
+        results = lambda summary: sorted(json.dumps(t["result"], sort_keys=True)
+                                         for t in calls(summary, "check_stock")
+                                         if t["arguments"].get("part_number") == "KI-CP-40817"
+                                         and t["arguments"].get("depot") == "Denver")
+        assert results(summaries[0]) == results(summaries[1]), "Gateway pump-stock results differ from the participant's local tools"
         assert not calls(summaries[-2], "estimate_delivery"), "Tool was visible before registration"
         assert any(t["result"].get("data", {}).get("transit_days") == 1 for t in calls(last, "estimate_delivery")), "New tool was not discovered and used"
     else:
-        sys.path.insert(0, str(agent_dir))
-        import regression
         config = __import__("agent").load_config()
         assert len(summaries) == 6, "Regression did not produce all six cases"
         counts = {"PASS": 0, "FAIL": 0, "SKIP": 0}

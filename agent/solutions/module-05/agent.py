@@ -45,6 +45,14 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
     """Run the agent on one question. Returns the run summary (also saved as summary.json)."""
     agent_cfg = config["agent"]
     system = agent_cfg["system_prompt_strong" if strong_prompt else "system_prompt"]
+    system += ("\nUse actual values returned by tools, never example or invented part numbers. "
+               "Wait for find_part's result before calling check_stock with a returned part number. "
+               "A bad_request or upstream_unavailable means the check could not be completed: "
+               "explain the error and do not call it out of stock. Only no_results from "
+               "check_stock means no stock was found at a valid depot. "
+               "When using search_bulletins passages, cite their source bulletin IDs in your answer. "
+               "If search_bulletins returns no_results, say that the bulletins do not cover the "
+               "question and do not invent an answer.")
     messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
     runlog = RunLog(question, config["model"]["base_url"], runs_dir)
     toolbox = open_toolbox(config)

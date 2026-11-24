@@ -14,8 +14,10 @@ endif::[]
 NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-06-platform-tool-access.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
 
 ____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+*Review draft.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
 ____
+
+Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
 
 [source,python]
 ----
@@ -26,6 +28,8 @@ import labnb as lab
 == Start from module 6
 
 This puts the agent in the state module 6 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+
+The reset does not remove tools registered in your project. To observe the before/after registration demonstration, `+estimate_delivery+` must be absent initially. If you already completed this module, use the saved before/after evidence or a fresh participant project; do not erase other registrations.
 
 [source,python]
 ----
@@ -70,7 +74,7 @@ flowchart TB
 
 == 2. Point the agent at the gateway
 
-The lab's MCP Gateway serves the same tools from the platform. The lab runs MCP Gateway 0.7.1 (Technology Preview); version 1.0 is generally available in Red Hat Connectivity Link 1.5. Its address:
+The lab's MCP Gateway serves the same tools from the platform. The lab runs MCP Gateway 0.7.1 (Technology Preview). Red Hat announced the generally available MCP gateway in https://www.redhat.com/en/blog/model-context-protocol-gateway-red-hat-openshift-now-generally-available[Red Hat Connectivity Link 1.5]; this lab retains its pinned preview deployment. Its address:
 
 [source,python]
 ----
@@ -95,7 +99,7 @@ else:
     print("gateway_url is empty, so the agent still uses its own tools.")
 ----
 
-Same turns, same results as the run on the agent's own tools above; the tool names now carry the gateway's `+kestrel_+` prefix. The agent asked the gateway for its tool list at the start of the run instead of carrying one. Here is that list:
+The pump lookup and Denver stock facts should match the local run above; tool names now carry the gateway's `+kestrel_+` prefix. Turn counts and additional valid seal-kit checks can vary. The agent asked the gateway for its tool list at the start of the run instead of carrying one. Here is that list:
 
 [source,python]
 ----
@@ -140,3 +144,11 @@ else:
 ----
 
 *This is the module's success signal:* the agent discovered and used `+estimate_delivery+`, a tool it didn't have a moment ago, and answered "1 day". The tool catalogue is now a property of the platform, versioned and changed independently of the agent's releases.
+
+== If the result differs
+
+If `+LAB_GATEWAY_URL+` is absent or a cell prints “Set gateway_url first”, stop, correct the environment or configuration, and repeat the confirmation cell. Those messages mean the gateway step did not run. For HTTP 401/403, check the workbench's assigned identity and permissions; participant steps use that identity, not cluster-admin credentials.
+
+Compare the pump's stock facts through both paths: the part number must come from `+find_part+`, and `+KI-CP-40817+` at Denver must return quantity 3 and lead time 1 day. The model may also check the seal kit, so turn counts and extra valid calls can differ. A placeholder such as `+KI-XX-00000+` is a failed chain.
+
+After registration, rerun tool discovery if the new tool is not yet listed; the server caches registrations briefly. Do not continue until `+estimate_delivery+` appears. Its successful Denver-to-Boulder result must contain `+transit_days: 1+`, and the answer must report one day.
