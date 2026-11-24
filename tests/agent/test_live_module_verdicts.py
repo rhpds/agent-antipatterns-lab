@@ -16,14 +16,25 @@ def summary(*tools, answer=""):
             "ended_by": "stop", "turns": 3, "trace_url": "https://mlflow.example/trace"}
 
 
-def verify(monkeypatch, tmp_path, number, records):
+def verify(monkeypatch, tmp_path, number, records, prompts=None):
     monkeypatch.syspath_prepend(str(AGENT))
     for i, record in enumerate(records):
         directory = tmp_path / "agent/runs" / f"run-{i:02d}"
         directory.mkdir(parents=True)
         (directory / "summary.json").write_text(json.dumps(record))
+        if prompts and i < len(prompts):
+            (directory / "01-request.json").write_text(json.dumps({"messages": [{"role": "system", "content": prompts[i]}]}))
+    if prompts:
+        (tmp_path / "agent/config.toml").write_text('[agent]\nsystem_prompt = "plain"\nsystem_prompt_strong = "strong"\n')
     checker = runpy.run_path(str(REPO / "qa-automation/workbench-check.py"))
     return checker["verify_module"](number, tmp_path)
+
+
+def test_live_module2_rejects_a_stronger_prompt_that_was_never_sent(monkeypatch, tmp_path):
+    """Scenario: A stronger prompt doesn't make the tools fire"""
+    validated = summary(tool("find_part", {"results": [{"part_number": "KI-CP-40817"}]}))
+    with pytest.raises(AssertionError):
+        verify(monkeypatch, tmp_path, 2, [summary(), summary(), validated], prompts=["plain", "plain"])
 
 
 def test_live_module4_rejects_an_answer_that_still_calls_bad_input_out_of_stock(monkeypatch, tmp_path):

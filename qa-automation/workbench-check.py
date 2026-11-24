@@ -79,6 +79,13 @@ def verify_module(number, root):
         assert "<tool_call>" in response["choices"][0]["message"]["content"], "Stranded tool call evidence is missing"
     elif number == 2:
         assert len(summaries) == 3 and not first["tool_calls"] and not summaries[1]["tool_calls"], "Mismatched/strong-prompt failure is missing"
+        import tomllib
+        config = tomllib.loads((agent_dir / "config.toml").read_text())["agent"]
+        paths = sorted((agent_dir / "runs").glob("*/summary.json"))
+        prompts = [json.loads((path.parent / "01-request.json").read_text())["messages"][0]["content"]
+                   for path in paths[:2]]
+        assert prompts == [config["system_prompt"], config["system_prompt_strong"]], "The stronger prompt was not sent in the saved request"
+        assert prompts[0] != prompts[1], "The two requests must use different system prompts"
         assert calls(last, "find_part"), "Validated endpoint did not fire the tool"
         verdict, reason = regression.check_m1(last, 6)
         assert verdict == "PASS", reason

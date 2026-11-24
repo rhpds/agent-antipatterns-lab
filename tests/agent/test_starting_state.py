@@ -1,5 +1,6 @@
 """Modules 1-3: the starter agent as shipped, and what repointing does to it."""
 import json
+import tomllib
 from conftest import fixture_part, read_json
 
 PUMP = fixture_part("circulation pump", "K-400")
@@ -33,11 +34,19 @@ def test_payload_viewer_shows_the_evidence(work):
     assert "NN-response.json" in out and "summary.json" in out and "--raw" in out
 
 
-def test_module2_stronger_prompt_changes_wording_not_tool_calls(work):
+def test_module2_sends_the_stronger_prompt_without_executing_tools(work):
     """Scenario: A stronger prompt doesn't make the tools fire"""
-    plain, _ = work.agent("m1")
+    plain, plain_dir = work.agent("m1")
     strong, run_dir = work.agent("m1", "--strong-prompt")
-    assert strong["tool_calls"] == [] and strong["answer"] != plain["answer"]
+    assert strong["tool_calls"] == plain["tool_calls"] == []
+    config = tomllib.loads(work.config.read_text())["agent"]
+    default_request = read_json(plain_dir / "01-request.json")
+    stronger_request = read_json(run_dir / "01-request.json")
+    assert default_request["messages"][0]["content"] == config["system_prompt"]
+    assert stronger_request["messages"][0]["content"] == config["system_prompt_strong"]
+    assert config["system_prompt_strong"] != config["system_prompt"]
+    stronger_request["messages"][0]["content"] = default_request["messages"][0]["content"]
+    assert stronger_request == default_request, "Only the system prompt should change"
     assert read_json(run_dir / "01-response.json")["choices"][0]["message"]["tool_calls"] == []
 
 
