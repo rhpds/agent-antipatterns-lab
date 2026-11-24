@@ -14,7 +14,7 @@
 {{- end }}
 {{- if .Values.workbench.enabled }}
 {{- $w := .Values.workbench }}
-{{- $ns := printf "%s-app" .Values.username }}
+{{- $ns := printf "%s-app" (include "tenant.username" .) }}
 {{- $image := printf "image-registry.openshift-image-registry.svc:5000/%s/%s:%s" $w.image.namespace $w.image.stream $w.image.tag }}
 {{- $src := "/opt/app-root/src" }}
 ---
@@ -53,7 +53,7 @@ metadata:
     notebooks.opendatahub.io/last-image-selection: {{ printf "%s:%s" $w.image.stream $w.image.tag | quote }}
     notebooks.opendatahub.io/inject-auth: "true"
     opendatahub.io/image-display-name: {{ $w.image.displayName | quote }}
-    opendatahub.io/username: {{ .Values.username | quote }}
+    opendatahub.io/username: {{ (include "tenant.username" .) | quote }}
     {{- if .Values.rbac.mlflow }}
     # OpenShift AI's own MLflow integration, as the dashboard sets it. The notebook
     # webhook injects MLFLOW_TRACKING_URI (the Gateway's /mlflow URL),

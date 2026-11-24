@@ -1,4 +1,4 @@
-{{- if .Values.gpu.enabled }}
+{{- if and .Values.gpu.enabled .Values.gpu.install }}
 ---
 apiVersion: nfd.openshift.io/v1
 kind: NodeFeatureDiscovery

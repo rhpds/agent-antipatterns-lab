@@ -1,7 +1,9 @@
 deployer:
   domain: apps.example.com
 
-username: user1
+# Standalone installs set username; RHDP supplies tenant.user.name. Never silently
+# put different participants in the same default namespace.
+username: ""
 
 # The branch (or tag) of this repo that the environment clones at run time: the branch its
 # catalog item deploys from, test for the test environment and main for the event (David,

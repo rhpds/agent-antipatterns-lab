@@ -1,13 +1,14 @@
 ---
-# E2E — End-to-end test
-# Runs all module solve + validate sequences to verify the full lab
-# works from start to finish without manual intervention.
-
 - name: "End-to-End Test"
   hosts: localhost
   connection: local
   gather_facts: false
   tasks:
-    - name: "TODO: Implement end-to-end test sequence"
-      ansible.builtin.debug:
-        msg: "Replace this task with your e2e test implementation"
+    - name: Execute two-participant live acceptance and write module evidence
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - "{{ playbook_dir }}/run.py"
+          - --output
+          - "{{ lab_evidence_dir | default(playbook_dir + '/../.cache/live-e2e') }}"
+      changed_when: false
