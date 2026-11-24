@@ -91,7 +91,8 @@ spec:
       configuration, so the module has no failure to diagnose and no fix to apply.
       Self-hosted vLLM is therefore required. This is also what separates the design
       from the other candidates in this topic slot, all of which consume a centrally
-      hosted model. L40S specifically, not A100: the model is an FP8 checkpoint, and
+      hosted model. To be confirmed: Red Hat''s validated-models matrix lists L4,
+      A100-40, H100 and H200 for this model, not L40S. L40S specifically, not A100: the model is an FP8 checkpoint, and
       native FP8 compute (W8A8) requires compute capability 8.9 or later, meaning
       Ada Lovelace or Hopper. On Ampere (A100, SM80) vLLM does not fail, it silently
       falls back to weight-only W8A16 via FP8 Marlin, dequantizing to 16-bit before
@@ -111,7 +112,8 @@ spec:
       to it once a 1.0 build installs from the lab's catalog
     non_ga_access_plan: 'One non-GA dependency, down from three in the rejected version.
       Removing the guardrails and adversarial-scanning rounds took EvalHub and Garak
-      off the design entirely.
+      off the design entirely. Both are GA as of OpenShift AI 3.5, so scope, not maturity,
+      now keeps them out.
 
       MCP Gateway is a Red Hat Connectivity Link component, not part of Red Hat OpenShift
       AI, and installs through the normal Red Hat operator catalog, so no separate entitlement, early-access programme or non-standard
@@ -125,8 +127,8 @@ spec:
       with the pgvector extension, deployed as a plain Deployment via GitOps and queried
       directly by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector
       as a remote vector store provider, so the lab shows a participant the direction
-      the platform is going. The RHOAI built-in pgvector provider integration is EA2
-      as of 3.5 and is deliberately not used, because querying Postgres directly needs
+      the platform is going. The RHOAI built-in pgvector provider integration is Technology
+      Preview (since 3.2, still listed in 3.5) and is deliberately not used, because querying Postgres directly needs
       nothing pre-GA and remains forward-compatible with that integration.'
     external_services:
     # Model weights come from Red Hat's ModelCar image on registry.redhat.io;
@@ -284,8 +286,8 @@ approval_checklist:
         langfuse, langflow and workbench. There is no serving-configuration module,
         so it does not teach why a mismatched tool-call parser strands a call in the
         response body, which is this lab''s largest block. It is also 360 minutes
-        against this lab''s 120, and is built on Llama Stack, now renamed OGX and
-        being de-emphasized. Genuine overlap is retrieval and MCP connection, both
+        against this lab''s 120, and is built on Llama Stack, renamed OGX in OpenShift AI
+        3.5. Genuine overlap is retrieval and MCP connection, both
         deliberately bounded here to one short module each.'
     - title: VLLM Playground
       ci_name: agd-v2.vllm-playground-aws.prod
