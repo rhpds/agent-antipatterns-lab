@@ -85,7 +85,8 @@ def check_applications(document):
                 runtime_ref = parameter.get("value")
         if not isinstance(runtime_ref, str) or not runtime_ref.strip():
             raise ValueError("labRepoRef is required for each lab Application")
-        if not any(subprocess.run(["git", "show-ref", "--verify", "--quiet", prefix + runtime_ref],
+        # origin/HEAD is a symbolic remote default, not a branch clone --branch can use.
+        if runtime_ref == "HEAD" or not any(subprocess.run(["git", "show-ref", "--verify", "--quiet", prefix + runtime_ref],
                                   cwd=ROOT).returncode == 0
                    for prefix in ("refs/heads/", "refs/remotes/origin/", "refs/tags/")):
             raise ValueError("labRepoRef must be a fetched branch or tag usable by git clone --branch")

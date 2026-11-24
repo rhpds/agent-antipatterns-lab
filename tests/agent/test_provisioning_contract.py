@@ -120,3 +120,39 @@ def test_runtime_clone_requires_a_branch_or_tag_even_when_commits_match():
                          input=json.dumps(app), capture_output=True, text=True)
     assert out.returncode == 1
     assert "labRepoRef" in out.stderr
+
+
+def test_tool_server_checkout_survives_init_container_retries(tmp_path):
+    """Scenario: A new workshop uses deployable lab sources"""
+    source = tmp_path / "source"
+    tools = source / "agent/solutions/module-05/tools.py"
+    tools.parent.mkdir(parents=True)
+    tools.write_text("SELECTED_RELEASE = True\n")
+    subprocess.run(["git", "init", "-b", "test", str(source)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(source), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(source), "-c", "user.name=Test", "-c",
+                    "user.email=test@example.com", "commit", "-m", "fixture"], check=True, capture_output=True)
+    docs = render("bootstrap-infra", "labRepoRef=test", f"mcpGateway.server.repo.url={source.as_uri()}")
+    deployment = next(d for d in of_kind(docs, "Deployment") if d["metadata"]["name"] == "mcp-server")
+    script = deployment["spec"]["template"]["spec"]["initContainers"][0]["args"][0]
+    volume = tmp_path / "src"
+    volume.mkdir()
+    # Simulate a previous interrupted clone without clearing the init volume.
+    (volume / "checkout.interrupted").mkdir()
+    script = script.replace("/src/", str(volume) + "/")
+    interrupted = subprocess.run(["bash", "-c", script.replace('--branch "test"', '--branch "unavailable"')],
+                                 capture_output=True, text=True)
+    assert interrupted.returncode != 0
+    assert not (volume / "repo").exists()
+    for _ in range(2):
+        result = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        assert (volume / "repo/agent/tools.py").read_text() == tools.read_text()
+        actual = subprocess.check_output(["git", "-C", str(volume / "repo"), "rev-parse", "HEAD"], text=True)
+        expected = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True)
+        assert actual == expected
+    published = (volume / "repo").resolve()
+    failed_retry = subprocess.run(["bash", "-c", script.replace('--branch "test"', '--branch "unavailable"')],
+                                 capture_output=True, text=True)
+    assert failed_retry.returncode != 0
+    assert (volume / "repo").resolve() == published
