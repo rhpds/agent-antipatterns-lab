@@ -39,4 +39,6 @@ The implementation passed all 109 fast CI tests with the disposable pgvector dat
 
 ## Separate deployment and release work
 
-Fresh catalog provisioning and effective owner approval on `main` remain tracked in [release PR #96](https://github.com/rhpds/agent-antipatterns-lab/pull/96). The tool-server restart repair remains [PR #97](https://github.com/rhpds/agent-antipatterns-lab/pull/97). Neither dependency is inferred to be complete from this module review.
+Fresh catalog provisioning and effective owner approval on `main` remain tracked in [release PR #96](https://github.com/rhpds/agent-antipatterns-lab/pull/96). The restart repair in [PR #97](https://github.com/rhpds/agent-antipatterns-lab/pull/97) and reset safety repair in [PR #99](https://github.com/rhpds/agent-antipatterns-lab/pull/99) passed independent code review and merged into `test`. The review branch includes both repairs; its lesson notebooks, module pages and model-facing solution code are unchanged from content snapshot `063acb2`.
+
+The lab author reviews the module content first. The designated release reviewer then reviews promotion from `test` to `main`. Operational code review into `test` does not substitute for either content review or release approval. [Implementation provenance](../implementation-provenance.md) records the automated contributions.

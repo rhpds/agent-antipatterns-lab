@@ -33,7 +33,7 @@ npm run build --prefix publishing-house/showroom -- --attribute lab-source-ref=t
 .venv/bin/python publishing-house/showroom/verify.py --source-ref test
 ```
 
-The Showroom build can also set the `lab-source-ref` AsciiDoc attribute for its deployment branch. CI sets it to the pull request's target branch, or the branch being pushed.
+The Showroom build can also set the `lab-source-ref` AsciiDoc attribute for its deployment branch. CI checks out the pull request's exact head commit and uses that SHA in source links. Push builds use the pushed commit SHA.
 
 ## What is mirrored
 
