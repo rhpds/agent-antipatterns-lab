@@ -1,0 +1,55 @@
+{
+  "id": "chatcmpl-b116a70a1aaec8b1",
+  "object": "chat.completion",
+  "created": 1791924842,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-b55063794a6b9641",
+            "type": "function",
+            "function": {
+              "name": "check_stock",
+              "arguments": "{\"part_number\": \"KI-CP-40817\", \"depot\": \"Denver\"}"
+            }
+          },
+          {
+            "id": "chatcmpl-tool-be097b2c3b4318ef",
+            "type": "function",
+            "function": {
+              "name": "check_stock",
+              "arguments": "{\"part_number\": \"KI-SK-40233\", \"depot\": \"Denver\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user asked if they can get a replacement coolant pump for a K-400 to the Denver depot this week. First, I needed to find the correct part numbers for the coolant pump on a K-400. I used the find_part function with \"coolant pump\" and \"K-400\" as parameters. The response gave two part numbers: KI-CP-40817 and KI-SK-40233. \n\nNow, the next step is to check the stock and lead time for these parts at the Denver depot. The user wants to know if they can get it this week, so I need to check the availability. I should call the check_stock function for each part number separately. \n\nFirst, I'll check KI-CP-40817. The parameters required are part_number and depot. So, I'll set part_number to KI-CP-40817 and depot to Denver. Then, I'll do the same for KI-SK-40233. \n\nWait, the user mentioned \"coolant pump,\" but the parts found are a pump assembly and a seal kit. Maybe they need both? Or perhaps the pump assembly is the main part. I should check both to be thorough. \n\nI need to make sure to call check_stock for each part number. Let me structure the tool calls correctly. Each check_stock call will give the stock status and lead time. If either part is available in Denver this week, the answer will be yes. If not, maybe suggest alternatives or lead times. \n\nSo, I'll generate two tool calls: one for each part number. Then, based on the responses, I can inform the user if either part is available this week.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 546,
+    "total_tokens": 992,
+    "completion_tokens": 446,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

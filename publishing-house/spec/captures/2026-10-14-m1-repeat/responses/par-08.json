@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-8db5cea9a2428fde",
+  "object": "chat.completion",
+  "created": 1791984768,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user is asking about a K-400 chiller with a coolant pressure fault and needs the replacement part number for the coolant pump. Let me break this down.\n\nFirst, the main goal is to find the correct part number for the coolant pump on a K-400 model. The user mentioned a \"coolant pressure fault,\" which might indicate an issue with the coolant pump or related components. But the primary focus here is on replacing the coolant pump.\n\nI need to use the find_part function. The parameters required are \"query\" and \"product.\" The query here is \"coolant pump,\" and the product is \"K-400.\" Since the function requires \"query\" as mandatory, I'll include that. The product parameter is optional but necessary here to specify the model.\n\nSo, I'll call find_part with query=\"coolant pump\" and product=\"K-400.\" This should retrieve the relevant part numbers. Once I have the part number, the next step would be to check stock using check_stock, but the user hasn't asked about stock yet. They just need the part number. So, I'll focus on the first function call.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 411,
+    "total_tokens": 690,
+    "completion_tokens": 279,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

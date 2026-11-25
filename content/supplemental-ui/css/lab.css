@@ -1,0 +1,25 @@
+/* LB8000 additions. site-extra.css is shared from another repo; lab-only rules go here. */
+
+/* A code cell from the notebook: labelled so nobody runs it in the terminal tab. */
+.doc .listingblock.notebook-cell > .title {
+  font-style: normal;
+  font-size: 0.85rem;
+  color: #6a6e73;
+}
+
+/* Diagrams keep their natural size in the narrow instructions pane and scroll
+   sideways, instead of shrinking until the text can't be read. */
+.doc .mermaid {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+.doc .mermaid svg {
+  /* lab.js sets the natural width once Mermaid has drawn the diagram. */
+  max-width: none !important;
+}
+.doc .lab-diagram-hint {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #6a6e73;
+}

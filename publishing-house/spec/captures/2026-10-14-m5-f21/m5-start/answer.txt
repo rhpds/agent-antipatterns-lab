@@ -1,0 +1,14 @@
+Question: A K-400 is showing fault F-21. What should the technician do?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The fault code F-21 on a K-400 chiller typically indicates an issue with the **temperature sensor** or **control board**. The technician should:
+
+1. **Check the temperature sensor** (e.g., PT100 probe) for damage or loose connections.  
+2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.  
+3. **Refer to the Kestrel fault code manual** for detailed troubleshooting steps.  
+4. **Replace the faulty component** (sensor or board) if confirmed.  
+
+If parts are needed, use `find_part` with specific descriptions (e.g., "temperature sensor" or "control board") and model. For stock checks, provide a part number.

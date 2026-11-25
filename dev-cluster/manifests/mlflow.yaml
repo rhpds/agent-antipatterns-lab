@@ -26,10 +26,11 @@ spec:
       memory: 1Gi
 ---
 # RHOAIENG-44516 workaround: create a Route direct to the mlflow Service and use
-# its URL as MLFLOW_TRACKING_URI. Auth: SA bearer token + a required
-# "X-MLflow-Workspace: <namespace>" header (undocumented in the CRD, found by
-# probing the API — the workspace value is whatever namespace context you're
-# logging runs under, e.g. the lab namespace).
+# its URL plus the /mlflow path as MLFLOW_TRACKING_URI (the server is mounted under
+# /mlflow; without it /api/3.0 returns 404). Auth: bearer token
+# (MLFLOW_TRACKING_TOKEN) + a required "X-MLflow-Workspace: <namespace>" header,
+# which the client sends from MLFLOW_WORKSPACE. The workspace is the namespace
+# you're logging runs under, e.g. the lab namespace.
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

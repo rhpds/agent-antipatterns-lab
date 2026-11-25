@@ -1,0 +1,14 @@
+{
+  "name": "lb8000-showroom-build",
+  "private": true,
+  "scripts": {
+    "build": "antora --log-failure-level warn ../../site.yml",
+    "build:test": "antora --attribute lab-source-ref=test --log-failure-level warn ../../site.yml"
+  },
+  "devDependencies": {
+    "@antora/cli": "3.1.14",
+    "@antora/site-generator": "3.1.14",
+    "@sntke/antora-mermaid-extension": "0.0.13",
+    "@andrew-jones/antora-tabs-extension": "1.0.0"
+  }
+}

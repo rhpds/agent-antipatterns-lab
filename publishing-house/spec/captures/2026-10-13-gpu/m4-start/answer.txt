@@ -1,0 +1,7 @@
+Question: Is the K-600 high-pressure sensor available at the Portland depot?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The high-pressure sensor (KI-HS-60233) for the K-600 is not currently available at the Portland depot. Would you like me to check availability at another depot or provide alternative options?

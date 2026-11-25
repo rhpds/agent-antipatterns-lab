@@ -1,0 +1,17 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-a746b88ddbc3c0a9", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"high-pressure sensor\", \"product\": \"K-600\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  4 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-9ef5195e5003378c", "type": "function", "function": {"name": "check_stock", "arguments": "{\"part_number\": \"KI-HS-60233\", \"depot\": \"Portland\"}"}}]
+          content       = null
+
+--- model call 03 ---
+request:  6 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe part KI-HS-60233 (High-pressure sensor) is not available at the Portland depot. Kestrel depots are Denver, Phoenix, or Chicago. Would you like me to check availability at one of these locations instead?"

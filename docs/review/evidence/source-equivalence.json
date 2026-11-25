@@ -1,0 +1,26 @@
+{
+  "earlier_source": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+  "later_source": "5e9341173370f6be15f9b50196246e1e474998e4",
+  "changed_paths": [
+    "agent/solutions/module-05/agent.py"
+  ],
+  "unchanged_module_executions_reused": [
+    2,
+    3,
+    4
+  ],
+  "affected_modules_rerun": [
+    5,
+    6,
+    7
+  ],
+  "notebook_code_sha256": {
+    "2": "27240a1089ace39665660ac06bb5f6cbadf1b5ba568c2d5ea328460d7f62752c",
+    "3": "76aa015083c92b6b2b0eecac2e0ed88374728fbd2bb546702946eaa4b5988634",
+    "4": "53aa37988595a14fdf3a3e15b1bc2ef0acec626c5d594d00dd4f63b5a05c35bd",
+    "5": "817b9d5eeb1c1d7d7a77aa802d27e49958e88930d235e2dce2609d7823bc1775",
+    "6": "6b5dbb0eb180916c26018d72e0bf22b4b8d528391eb3aa7231d718e14f46dc88",
+    "7": "aa86fce5be920b4861087835f81c11c329ad6609324a2fc30d35d7126efb389d"
+  },
+  "scope": "Source equivalence for module review only; not fresh provisioning or release approval"
+}

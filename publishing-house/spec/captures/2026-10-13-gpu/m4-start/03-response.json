@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-a6f4f8468656bd66",
+  "object": "chat.completion",
+  "created": 1791924757,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe high-pressure sensor (KI-HS-60233) for the K-600 is not currently available at the Portland depot. Would you like me to check availability at another depot or provide alternative options?",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user asked if the K-600 high-pressure sensor is available at the Portland depot. First, I needed to find the part number for the high-pressure sensor on a K-600. I used the find_part function with the query \"high-pressure sensor\" and product K-600. It returned KI-HS-60233.\n\nNext, I checked the stock using check_stock with that part number and depot Portland. The response was empty. So, the part isn't available there. I should inform the user that it's not in stock at Portland and maybe suggest checking other depots or lead times. But since the tool response is empty, I can't provide lead time info. I'll need to tell them it's unavailable and ask if they want to check another depot.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 540,
+    "total_tokens": 760,
+    "completion_tokens": 220,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

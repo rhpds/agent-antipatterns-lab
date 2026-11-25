@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-8f00fa64777f8e16",
+  "object": "chat.completion",
+  "created": 1791994394,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-b760b999d86187c9",
+            "type": "function",
+            "function": {
+              "name": "search_bulletins",
+              "arguments": "{\"query\": \"F-21\", \"product\": \"K-400\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking about a K-400 chiller showing fault F-21. They want to know what the technician should do. Let me think about how to approach this.\n\nFirst, I need to figure out what fault F-21 means. Since it's a specific fault code, the best place to start is by checking Kestrel's service bulletins. The search_bulletins function can help here. The parameters required are a query and optionally a product model. The query should be the fault code \"F-21\" and the product is K-400. \n\nBy using search_bulletins with these parameters, I can find any relevant service bulletins that explain the cause of F-21 and the recommended steps to resolve it. This will provide the technician with the necessary guidance on diagnosis and repair procedures. \n\nI don't need to use the other functions like find_part or check_stock because the user isn't asking about part numbers or stock availability. The main issue is the fault code, so focusing on the service bulletins makes sense. \n\nLet me make sure the parameters are correctly formatted. The query is \"F-21\" and the product is \"K-400\". That should retrieve the relevant information. Once I get the results from the search_bulletins function, I can relay the specific steps to the technician.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 520,
+    "total_tokens": 839,
+    "completion_tokens": 319,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

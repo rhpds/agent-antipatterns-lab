@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-9310e8620e0babd3",
+  "object": "chat.completion",
+  "created": 1791924926,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-ba638e976e1b7d42",
+            "type": "function",
+            "function": {
+              "name": "search_bulletins",
+              "arguments": "{\"query\": \"service interval\", \"product\": \"K-900\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking about the service interval for a Kestrel K-900. Let me see. The tools available include search_bulletins, which is for looking up service bulletins. The service interval information is likely in a bulletin. The function requires a query and optionally a product model. The user specified the K-900 model, so I should include that. The query should be \"service interval\". Let me call search_bulletins with these parameters.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 516,
+    "total_tokens": 650,
+    "completion_tokens": 134,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

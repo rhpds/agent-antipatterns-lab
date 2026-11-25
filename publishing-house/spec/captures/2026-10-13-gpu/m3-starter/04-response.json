@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-b765e6cd6a2d2477",
+  "object": "chat.completion",
+  "created": 1791924628,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-8332fa4e10289753",
+            "type": "function",
+            "function": {
+              "name": "find_part",
+              "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking if they can get a replacement coolant pump for a K-400 chiller to the Denver depot this week. Let me break this down.\n\nFirst, I need to find the correct part number for the coolant pump on the K-400 model. The user mentioned \"coolant pump\" and the model K-400. So I should use the find_part function with query \"coolant pump\" and product \"K-400\". That should give me the part number.\n\nOnce I have the part number, the next step is to check the stock and lead time at the Denver depot. The check_stock function requires the part number and depot name. If the part is in stock or has a lead time that allows delivery this week, then the answer is yes. Otherwise, no. \n\nWait, the user specifically asked if it can be delivered this week. So after getting the part number, I need to check the stock status. If it's in stock, then Denver might have it this week. If not, the lead time might affect that. But the function only checks stock and lead time, so I need to relay that info back to the user.\n\nSo first, call find_part with the given parameters. Then, use the returned part number to check stock in Denver. Based on the results, answer the user's question about availability this week.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 406,
+    "total_tokens": 727,
+    "completion_tokens": 321,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

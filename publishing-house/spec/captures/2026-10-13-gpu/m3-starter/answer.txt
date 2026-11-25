@@ -1,0 +1,5 @@
+Question: Can we get a replacement coolant pump for a K-400 to the Denver depot this week?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+Stopped after 6 turns without a final answer.

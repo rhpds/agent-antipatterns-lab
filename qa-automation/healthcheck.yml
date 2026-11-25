@@ -1,0 +1,15 @@
+---
+- name: "Environment Health Check"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Check both participant workbenches and real lab services
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - "{{ playbook_dir }}/run.py"
+          - --readiness-only
+          - --output
+          - "{{ lab_evidence_dir | default(playbook_dir + '/../.cache/live-healthcheck') }}"
+      changed_when: false

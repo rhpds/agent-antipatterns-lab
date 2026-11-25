@@ -1,0 +1,3 @@
+# Dev environments only: clone the lab from the dev branch (#88).
+# Usage: helm template ... -f values.yaml -f values-dev.yaml
+labRepoRef: dev

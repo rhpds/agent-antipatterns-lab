@@ -1,5 +1,0 @@
----
-# Project Zero network definitions.
-# The default network always exists; list it here explicitly.
-- name: default
-- name: secondary

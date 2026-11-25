@@ -8,7 +8,7 @@
 #
 # Usage:
 #   KUBECONFIG=~/.kube/sno.kubeconfig ./deploy.sh [component ...]
-#   components: mock-target mlflow nemoguardrails evalhub mcp-gateway guardrailsorchestrator all
+#   components: mock-target mlflow nemoguardrails evalhub guardrailsorchestrator all
 #   (default: all)
 #
 # This is DEV/VERIFICATION scaffolding, not the delivered lab content. Run
@@ -80,54 +80,6 @@ fi
 if want guardrailsorchestrator; then
   echo "=== GuardrailsOrchestrator (Round 4 — WILL fail until a real InferenceService exists, see manifest comment) ==="
   oc apply -f "$MANIFESTS/guardrailsorchestrator.yaml"
-fi
-
-if want mcp-gateway; then
-  echo "=== MCP Gateway (Round 2) ==="
-
-  # Discover the shared AI Gateway's actual public hostname from the mlflow
-  # CR's own status.url, rather than hardcoding it, so this works on any
-  # cluster. NOTE: this is NOT the same as the classic OpenShift Route named
-  # "mlflow" (mlflow-redhat-ods-applications.apps...) — that's a separate
-  # Route object with its own auto-generated hostname. The Gateway API traffic
-  # (dashboard, /mlflow via Gateway, /mcp) all shares one hostname, which only
-  # a component's own status field reliably exposes.
-  GATEWAY_HOST=$(oc get mlflow mlflow -n redhat-ods-applications -o jsonpath='{.status.url}' 2>/dev/null \
-    | sed -E 's#^https?://([^/]+).*#\1#')
-  if [[ -z "$GATEWAY_HOST" ]]; then
-    echo "Could not auto-discover the Gateway hostname (deploy mlflow first, or set GATEWAY_HOST manually)." >&2
-    exit 1
-  fi
-  echo "Using Gateway host: $GATEWAY_HOST"
-
-  oc apply -f "$MANIFESTS/mcp-kuadrant.yaml"
-  oc apply -f "$MANIFESTS/mcp-redis.yaml"
-  oc apply -f "$MANIFESTS/mcp-referencegrants.yaml"
-  oc apply -f "$MANIFESTS/mcp-networkpolicy.yaml"
-  oc apply -f "$MANIFESTS/mcp-session-secret.yaml"
-
-  oc create configmap rh1-mcp-server-script -n redhat-ods-applications \
-    --from-file=mcp-server.py="$MANIFESTS/mock-mcp-server.py" \
-    --dry-run=client -o yaml | oc apply -f -
-  oc apply -f "$MANIFESTS/mcp-server-deploy.yaml"
-
-  sed "s/__GATEWAY_HOST__/$GATEWAY_HOST/" "$MANIFESTS/mcp-httproute.yaml.tmpl" | oc apply -f -
-  sed "s/__GATEWAY_HOST__/$GATEWAY_HOST/" "$MANIFESTS/mcp-gateway-extension.yaml.tmpl" | oc apply -f -
-
-  wait_for mcpgatewayextension rh1-mcp-gateway redhat-ods-applications '{.status.conditions[?(@.type=="Ready")].status}' True 24
-
-  oc apply -f "$MANIFESTS/mcp-server-registration.yaml"
-  wait_for mcpserverregistration rh1-mcp-server redhat-ods-applications '{.status.conditions[?(@.type=="Ready")].status}' True 24
-
-  oc apply -f "$MANIFESTS/mcp-virtualserver.yaml"
-
-  oc create serviceaccount evalhub-tester -n rh1-lab-eval --dry-run=client -o yaml | oc apply -f -
-  oc create serviceaccount rh1-mcp-admin -n rh1-lab-eval --dry-run=client -o yaml | oc apply -f -
-
-  echo "MCP_URL: https://$GATEWAY_HOST/mcp"
-  echo "Auth: Authorization: Bearer \$(oc create token <sa> -n rh1-lab-eval)"
-  echo "Regular identity (evalhub-tester) sees only rh1_public_echo."
-  echo "Admin identity (rh1-mcp-admin) additionally sees rh1_admin_reset."
 fi
 
 echo

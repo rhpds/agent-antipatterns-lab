@@ -1,0 +1,11 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: not a completion:
+{
+  "error": {
+    "message": "Llama3JsonToolParser could not locate the bot token '<|python_tag|>' in the tokenizer.",
+    "type": "InternalServerError",
+    "param": null,
+    "code": 500
+  }
+}

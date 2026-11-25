@@ -39,7 +39,7 @@ Requires module 2. The agent must be able to call a tool before loop behaviour i
 9. Apply the supplied fix for the second defect: branch on the model's reported stop condition. If it indicates a tool call, execute and continue. If it indicates the model finished, return. Keep the iteration cap as a backstop, not as the mechanism.
 10. Re-run the multi-step question.
 11. Confirm in the trace that the turn count is well below the cap and that the run ended on the model's own stop condition. **This is the module's success signal.**
-12. Confirm that the two tools were called with different arguments and that both results appear in the message list.
+12. Confirm the tool sequence: one `find_part` call, then one `check_stock` per part it returned. `find_part` returns the pump and its seal kit, so the served model makes two `check_stock` calls in the same turn. Confirm every result appears in the message list against its own tool-call id (decision 0003, F4).
 
 ### Key Takeaways
 

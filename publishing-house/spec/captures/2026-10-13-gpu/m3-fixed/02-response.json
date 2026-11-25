@@ -1,0 +1,55 @@
+{
+  "id": "chatcmpl-861ff74238ee2ccd",
+  "object": "chat.completion",
+  "created": 1791924694,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-87b0a9e5a98dbbf7",
+            "type": "function",
+            "function": {
+              "name": "check_stock",
+              "arguments": "{\"part_number\": \"KI-CP-40817\", \"depot\": \"Denver\"}"
+            }
+          },
+          {
+            "id": "chatcmpl-tool-af8c3f4791083f8f",
+            "type": "function",
+            "function": {
+              "name": "check_stock",
+              "arguments": "{\"part_number\": \"KI-SK-40233\", \"depot\": \"Denver\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user asked if they can get a replacement coolant pump for a K-400 to the Denver depot this week. First, I needed to find the correct part numbers for the coolant pump on a K-400. I used the find_part function with \"coolant pump\" and \"K-400\" as parameters. The results gave two part numbers: KI-CP-40817 and KI-SK-40233. \n\nNow, the next step is to check the stock and lead time for these parts at the Denver depot. The user wants to know if they can get it this week, so I need to check if the parts are in stock or if the lead time is within a week. \n\nI should call the check_stock function for each part number separately. Let me start with KI-CP-40817. The depot is Denver, so I'll set the parameters as part_number: \"KI-CP-40817\" and depot: \"Denver\". Then, I'll do the same for KI-SK-40233. \n\nWait, the user mentioned \"coolant pump\" generally. The parts found include both the pump assembly and a mechanical seal kit. Maybe they need the assembly, but it's possible they might need the seal kit as well. However, the user didn't specify, so I should check both parts to provide complete information. \n\nI need to make sure to check both part numbers. Let me first check KI-CP-40817. If that's in stock, great. If not, check the lead time. Then do the same for the seal kit. The user might need both, or maybe just the pump. But since the user asked for a replacement, it's safer to check both. \n\nSo, I'll make two tool calls: one for each part number to the Denver depot. That way, the user gets a full picture of availability for both parts. If either is in stock or can be delivered this week, I can inform them accordingly.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 526,
+    "total_tokens": 1037,
+    "completion_tokens": 511,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

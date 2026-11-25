@@ -1,0 +1,37 @@
+{
+  "id": "chatcmpl-b8bfef8abf44daf7",
+  "object": "chat.completion",
+  "created": 1791924931,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe Kestrel K-900 model is not listed in the available tools (supported models: K-200, K-400, K-600). Could you confirm the correct model number? If the K-900 is a valid model, service intervals may be covered in technical documentation or contact Kestrel support directly for specifics.",
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "reasoning": "\nOkay, the user asked about the service interval for a Kestrel K-900. I used the search_bulletins function with \"service interval\" and K-900, but got no results. Hmm, maybe the term \"service interval\" isn't used in the bulletins. Let me think of alternative phrases they might use. Maybe \"maintenance schedule\" or \"recommended service intervals\"? Also, check if the K-900 model exists. Wait, the tools mention K-200, K-400, K-600, but the user asked about K-900. Is that a valid model? If the K-900 isn't listed, maybe that's why there are no results. I should inform the user that the model might not be supported and suggest checking the model number. Alternatively, if the model is correct, perhaps the service interval is covered under a different bulletin topic. Maybe I should try a broader search or check for related terms. But since the first search didn't find anything, I need to let the user know and ask for more details or confirm the model.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 603,
+    "total_tokens": 919,
+    "completion_tokens": 316,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

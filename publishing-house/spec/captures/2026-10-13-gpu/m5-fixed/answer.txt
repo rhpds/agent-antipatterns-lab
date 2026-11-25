@@ -1,0 +1,13 @@
+Question: What's the recommended service interval for the K-400 coolant pump seal?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The recommended service interval for the K-400 coolant pump seal is **every 6,500 operating hours or 14 months**, whichever comes first. However, units in **dusty environments** or those running coolant glycol above **35%** should be serviced at **4,500 hours** instead. 
+
+**Key details from bulletin SB-2024-117**:
+- Replace seal kit **KI-SK-40233** with pump assembly **KI-CP-40817**.
+- **Inspect the weep port** during quarterly visits; a steady drip indicates seal failure requiring immediate replacement.
+
+Always reference the full bulletin for context.

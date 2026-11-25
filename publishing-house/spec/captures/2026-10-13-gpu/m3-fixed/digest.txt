@@ -1,0 +1,17 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-af77ac64e7892f5d", "type": "function", "function": {"name": "find_part", "arguments": "{\"query\": \"coolant pump\", \"product\": \"K-400\"}"}}]
+          content       = null
+
+--- model call 02 ---
+request:  4 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = tool_calls
+          tool_calls    = [{"id": "chatcmpl-tool-87b0a9e5a98dbbf7", "type": "function", "function": {"name": "check_stock", "arguments": "{\"part_number\": \"KI-CP-40817\", \"depot\": \"Denver\"}"}}, {"id": "chatcmpl-tool-af8c3f4791083f8f", "type": "function", "function": {"name": "check_stock", "arguments": "{\"part_number\": \"KI-SK-40233\", \"depot\": \"Denver\"}"}}]
+          content       = null
+
+--- model call 03 ---
+request:  7 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\nThe replacement coolant pump (part number **KI-CP-40817**) and its mechanical seal kit (part number **KI-SK-40233**) are both available at the Denver depot. \n\n- **KI-CP-40817** (Coolant circulation pump assembly): 3 units in stock, 1-day lead time.  \n- **KI-SK-40233** (Coolant pump mechanical seal kit): 12 units in stock, 1-day lead time.  \n\nBoth can be delivered to Denver this week if ordered today. Would you like to proceed with ordering?"

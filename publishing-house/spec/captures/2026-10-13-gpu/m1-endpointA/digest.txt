@@ -1,0 +1,5 @@
+--- model call 01 ---
+request:  2 messages, tools declared: ['find_part', 'check_stock']
+response: finish_reason = stop
+          tool_calls    = null
+          content       = "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>"

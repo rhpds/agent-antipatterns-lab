@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-a8a0cb7e28c6ded0",
+  "object": "chat.completion",
+  "created": 1791924732,
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "refusal": null,
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-a9588fcaa57c3a7b",
+            "type": "function",
+            "function": {
+              "name": "find_part",
+              "arguments": "{\"query\": \"high-pressure sensor\", \"product\": \"K-600\"}"
+            }
+          }
+        ],
+        "reasoning": "\nOkay, the user is asking if the high-pressure sensor for the K-600 is available at the Portland depot. Let me break this down.\n\nFirst, I need to find the part number for the high-pressure sensor on a K-600 model. The function find_part can help here. The parameters required are the query (which is \"high-pressure sensor\") and the product model (K-600). So I'll call find_part with those arguments to get the part number.\n\nOnce I have the part number, the next step is to check the stock and lead time at the Portland depot using the check_stock function. That function needs the part_number and depot name. But first, I have to get the part number from the previous step. \n\nWait, the user didn't mention the part number directly, so I can't skip the find_part step. Let me make sure I use the correct function calls in order. First, find the part, then check its availability. \n\nI should structure the response by first calling find_part with the given query and product. Then, once I have the part number, use check_stock with that part number and the depot as Portland. \n\nI need to ensure that the parameters are correctly formatted. For find_part, the query is \"high-pressure sensor\" and product is \"K-600\". For check_stock, the part_number will be the result from find_part, and depot is \"Portland\". \n\nI should also remember that the user might need the part number if it's not in stock, so providing that information is important. Let me make sure the tool calls are in the right sequence and that all required parameters are included.\n"
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "stop_reason": null,
+      "token_ids": null,
+      "routed_experts": null
+    }
+  ],
+  "service_tier": null,
+  "system_fingerprint": "vllm-0.24.0+rhaiv.13-b45e5656",
+  "usage": {
+    "prompt_tokens": 401,
+    "total_tokens": 781,
+    "completion_tokens": 380,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "prompt_text": null,
+  "kv_transfer_params": null
+}

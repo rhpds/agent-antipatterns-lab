@@ -1,4 +1,0 @@
-= Module 7: Running It for Real
-:page-pagination:
-
-TBD

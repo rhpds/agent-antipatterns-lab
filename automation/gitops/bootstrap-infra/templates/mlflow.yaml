@@ -1,47 +1,39 @@
-{{- if .Values.mlflow.enabled }}
-{{/*
-MLflow instance CR, cluster-wide singleton (name must be "mlflow", namespace
-must be redhat-ods-applications).
-
-Same CRD race condition as the DataScienceCluster itself: this CRD is
-installed by the mlflowoperator component, which only reconciles after the
-DSC above has synced. SkipDryRunOnMissingResource + ServerSideApply + a later
-sync-wave are required for the same reason documented there.
-*/}}
+{{- if and .Values.rhoai.enabled .Values.mlflow.enabled }}
+---
+# Cluster-wide singleton: name MUST be literally "mlflow"; lands in the RHOAI applications namespace.
 apiVersion: mlflow.opendatahub.io/v1
 kind: MLflow
 metadata:
   name: mlflow
-  namespace: redhat-ods-applications
-  labels:
-    app.kubernetes.io/managed-by: argocd
-    rhdp.redhat.com/lab: agentops-in-action
+  namespace: {{ .Values.rhoai.applicationsNamespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "6"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,ServerSideApply=true
+    {{- include "infra.crAnnotations" (dict "wave" 4) | nindent 4 }}
 spec:
   backendStoreUri: {{ .Values.mlflow.backendStoreUri | quote }}
+  # RHOAIENG-45969: must be explicit or log_artifact() fails.
   serveArtifacts: true
   artifactsDestination: {{ .Values.mlflow.artifactsDestination | quote }}
   storage:
-    accessModes:
-      - ReadWriteOnce
+    accessModes: ["ReadWriteOnce"]
     resources:
       requests:
         storage: {{ .Values.mlflow.storageSize }}
   replicas: {{ .Values.mlflow.replicas }}
+  {{- with .Values.mlflow.resources }}
   resources:
-    {{- toYaml .Values.mlflow.resources | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if .Values.mlflow.directRoute.enabled }}
 ---
-# Workaround for RHOAIENG-44516: routes directly to the mlflow Service so its
-# URL can be used as the tracking URI (auth via SA bearer token).
+# RHOAIENG-44516 workaround: Route straight to the Service. Clients send
+# `Authorization: Bearer <SA token>` plus `X-MLflow-Workspace: <namespace>`.
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: mlflow
-  namespace: redhat-ods-applications
+  namespace: {{ .Values.rhoai.applicationsNamespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "6"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   to:
     kind: Service
@@ -51,4 +43,5 @@ spec:
   tls:
     termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect
+{{- end }}
 {{- end }}

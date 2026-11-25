@@ -1,0 +1,77 @@
+(APIServer pid=1) INFO 10-13 23:58:24 [api_utils.py:273] non-default args: {'enable_auto_tool_choice': True, 'tool_call_parser': 'llama3_json', 'port': 8080, 'model': 'RedHatAI/Qwen3-8B-FP8-dynamic', 'max_model_len': 16384, 'served_model_name': ['RedHatAI/Qwen3-8B-FP8-dynamic'], 'override_generation_config': {'temperature': 0, 'top_p': 1, 'top_k': -1}, 'reasoning_parser': 'qwen3', 'gpu_memory_utilization': 0.9}
+(APIServer pid=1) INFO:     127.0.0.1:52248 - "POST /v1/chat/completions HTTP/1.1" 500 Internal Server Error
+(APIServer pid=1) ERROR:    Exception in ASGI application
+(APIServer pid=1) Traceback (most recent call last):
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+(APIServer pid=1)     result = await app(  # type: ignore[func-returns-value]
+(APIServer pid=1)              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+(APIServer pid=1)     return await self.app(scope, receive, send)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/fastapi/applications.py", line 1159, in __call__
+(APIServer pid=1)     await super().__call__(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+(APIServer pid=1)     await self.middleware_stack(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+(APIServer pid=1)     raise exc
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+(APIServer pid=1)     await self.app(scope, receive, _send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__
+(APIServer pid=1)     await self.app(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/prometheus_fastapi_instrumentator/middleware.py", line 180, in __call__
+(APIServer pid=1)     raise exc
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/prometheus_fastapi_instrumentator/middleware.py", line 178, in __call__
+(APIServer pid=1)     await self.app(scope, receive, send_wrapper)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+(APIServer pid=1)     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+(APIServer pid=1)     raise exc
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+(APIServer pid=1)     await app(scope, receive, sender)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+(APIServer pid=1)     await self.app(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/routing.py", line 670, in __call__
+(APIServer pid=1)     await self.middleware_stack(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/routing.py", line 690, in app
+(APIServer pid=1)     await route.handle(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/routing.py", line 280, in handle
+(APIServer pid=1)     await self.app(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/fastapi/routing.py", line 134, in app
+(APIServer pid=1)     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+(APIServer pid=1)     raise exc
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+(APIServer pid=1)     await app(scope, receive, sender)
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/fastapi/routing.py", line 120, in app
+(APIServer pid=1)     response = await f(request)
+(APIServer pid=1)                ^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/fastapi/routing.py", line 674, in app
+(APIServer pid=1)     raw_response = await run_endpoint_function(
+(APIServer pid=1)                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/fastapi/routing.py", line 328, in run_endpoint_function
+(APIServer pid=1)     return await dependant.call(**values)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/entrypoints/serve/utils/api_utils.py", line 91, in wrapper
+(APIServer pid=1)     return handler_task.result()
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/entrypoints/serve/utils/api_utils.py", line 112, in wrapper
+(APIServer pid=1)     return await func(*args, **kwargs)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/entrypoints/openai/chat_completion/api_router.py", line 61, in create_chat_completion
+(APIServer pid=1)     generator = await handler.create_chat_completion(request, raw_request)
+(APIServer pid=1)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/entrypoints/openai/chat_completion/serving.py", line 247, in create_chat_completion
+(APIServer pid=1)     return await self._with_kv_transfer_rejection_cleanup(
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/entrypoints/openai/engine/serving.py", line 176, in _with_kv_transfer_rejection_cleanup
+(APIServer pid=1)     return await awaitable
+(APIServer pid=1)            ^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/entrypoints/openai/chat_completion/serving.py", line 262, in _create_chat_completion
+(APIServer pid=1)     parser = self.parser_cls(
+(APIServer pid=1)              ^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/parser/abstract_parser.py", line 121, in __init__
+(APIServer pid=1)     self._tool_parser = self.__class__.tool_parser_cls(tokenizer, tools)
+(APIServer pid=1)                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/opt/app-root/lib64/python3.12/site-packages/vllm/tool_parsers/llama_tool_parser.py", line 72, in __init__
+(APIServer pid=1)     raise RuntimeError(
+(APIServer pid=1) RuntimeError: Llama3JsonToolParser could not locate the bot token '<|python_tag|>' in the tokenizer.

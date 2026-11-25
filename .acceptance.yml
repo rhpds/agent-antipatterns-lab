@@ -1,0 +1,13 @@
+# Opt-in for David's acceptance-first method (a Claude Code skill installed in
+# his own sessions; other contributors' tools ignore this file).
+# For changes to the paths below, David approves plain-English Given/When/Then
+# scenarios before any code. Approved scenarios live under acceptance/ and are
+# locked: change one by asking David, not by editing it.
+# tests/agent/** is in scope because those tests are what pins each approved
+# scenario (the scenario's title is named in a test's docstring).
+# The module pages (content/) and Publishing House files are out of scope:
+# Publishing House reviews those.
+behavior:
+  - "agent/**"
+  - "automation/**"
+  - "tests/agent/**"

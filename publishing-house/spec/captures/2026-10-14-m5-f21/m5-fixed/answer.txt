@@ -1,0 +1,13 @@
+Question: A K-400 is showing fault F-21. What should the technician do?
+Endpoint: http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1
+
+Answer:
+
+
+The fault F-21 ("coolant loop pressure low") on K-400 chillers typically indicates a pressure issue in the coolant system. Based on the bulletin:
+
+1. **Check coolant loop pressure** during start-up and under load.  
+2. Inspect for leaks in the coolant loop, pump assembly (KI-CP-40817), or seal kit (KI-SK-40233).  
+3. If parts are needed, verify with the depot using part numbers **KI-CP-40817** (pump) and **KI-SK-40233** (seal kit).  
+
+Let me know if you need stock/lead time checks for these parts.
