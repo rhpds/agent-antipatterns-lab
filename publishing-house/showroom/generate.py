@@ -118,7 +118,7 @@ def guide(notebook, name):
         parts += ["## Diagrams", "", f"<details><summary>Show {what}. Open it after you've worked through the "
                   "steps, because it can show the fix.</summary>", "", "\n\n".join(diagrams), "", "</details>", ""]
     if differs:
-        # Collapsed too: troubleshooting names the cause of the failure.
+        # Collapsed too: troubleshooting lists likely causes of the failure.
         parts += ["## If the result differs", "", "<details><summary>Open this if your result doesn't match "
                   "what the notebook expects. It lists likely causes.</summary>", "", "\n\n".join(differs), "", "</details>", ""]
     return "\n".join(parts)

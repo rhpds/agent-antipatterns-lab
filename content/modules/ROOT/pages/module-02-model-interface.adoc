@@ -33,7 +33,7 @@ The agent's tool calls never run. You rule out the prompt, send one identical re
 
 *Your read:* what sits between the model and your agent that should have turned that text into `+tool_calls+`?
 
-*Your read:* each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Which argument differs between the two? The links below open both.
+*Your read:* each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Which argument differs between the two?
 
 .Check your answer
 [%collapsible]

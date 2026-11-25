@@ -44,7 +44,7 @@ Each module page is a short guide to its notebook. The participant works in the 
 - every `**Your read:**` question, with its `<details>` answer as a collapsible block;
 - the `**This is the module's success signal:**` paragraph, as "How you know it worked";
 - the Mermaid diagrams, in one collapsible block, because a diagram can show the fix;
-- the `## If the result differs` section, also collapsed, because it names the cause.
+- the `## If the result differs` section, also collapsed, because it lists likely causes.
 
 Code cells, saved outputs, the reset section and blockquotes such as draft notices are left out. Relative links to agent files point to the repository files on GitHub and open in a new tab. Notebook attachments, raw cells, unsupported cell types, an answer reveal that doesn't follow its question, a reveal containing code, nested reveals, and `~~~` or longer fences all fail generation rather than slipping through.
 
