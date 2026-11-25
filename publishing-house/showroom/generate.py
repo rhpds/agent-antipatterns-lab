@@ -59,6 +59,8 @@ SUCCESS = "**This is the module's success signal:**"
 QUESTION = "**Your read:**"
 DRAFT = "> **Prototype notebook.**"
 STEP = re.compile(r"^## (\d+)\. (.+)$")
+# The notebook's last line points to the next module; Antora's page navigation does that here.
+NEXT = re.compile(r"^Proceed to Module \d+: ")
 
 
 def guide(notebook, name):
@@ -75,6 +77,9 @@ def guide(notebook, name):
     section, previous = None, None
     for cell in cells[1:]:
         for block in blocks(cell, name):
+            if NEXT.match(block):
+                section, previous = None, None
+                continue
             if block.startswith("## "):
                 step = STEP.match(block.splitlines()[0])
                 section = "differs" if block.startswith("## If the result differs") else "step" if step else None

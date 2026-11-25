@@ -39,6 +39,7 @@ class ShowroomMirrorTests(unittest.TestCase):
             md('## 2. Fix it\n\n```mermaid\nflowchart LR\n A --> B\n```'),
             md("**This is the module's success signal:** the run stops."),
             md('## If the result differs\n\nCheck the reset.'),
+            md('Proceed to Module 2: The next one.'),
         )
         self.assertIn('= A lesson\n', result)
         self.assertIn('What this module is about', result)
@@ -60,6 +61,8 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('== If the result differs', result)
         self.assertLess(result.index('== If the result differs'), result.index('Check the reset.'))
         self.assertIn('[%collapsible]\n====\n\nCheck the reset.', result)
+        # The closing pointer to the next module is the notebook's, not part of troubleshooting.
+        self.assertNotIn('Proceed to Module 2', result)
         # The notebook holds the code; the guide never copies it.
         self.assertNotIn('RuntimeError', result)
         self.assertNotIn('[source,python]', result)

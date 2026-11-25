@@ -41,7 +41,7 @@ Each module page is a short guide to its notebook. The participant works in the 
 - the Mermaid diagrams, in one collapsible block, because a diagram can show the fix;
 - the `## If the result differs` section, also collapsed, because it lists likely causes.
 
-Code cells, saved outputs, the reset section and blockquotes such as draft notices are left out. Relative links to agent files open the file in the participant's workbench, in a new tab. Notebook attachments, raw cells, unsupported cell types, an answer reveal that doesn't follow its question, a reveal containing code, nested reveals, and `~~~` or longer fences all fail generation rather than slipping through.
+Code cells, saved outputs, the reset section, blockquotes such as draft notices, and the closing "Proceed to Module N: ..." line are left out. Relative links to agent files open the file in the participant's workbench, in a new tab. Notebook attachments, raw cells, unsupported cell types, an answer reveal that doesn't follow its question, a reveal containing code, nested reveals, and `~~~` or longer fences all fail generation rather than slipping through.
 
 So a notebook change shows up in its guide, keep those conventions when editing a notebook: an opening paragraph under the title, numbered step headings, the two bold labels above, and every `<details>` answer straight after its `**Your read:**` question, with no code inside it.
 
