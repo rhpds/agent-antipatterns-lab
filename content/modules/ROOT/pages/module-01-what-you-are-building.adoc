@@ -13,7 +13,9 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-01-what-you-are-building.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-01-what-you-are-building.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-You run the prototype agent once and look inside it: the raw request and response for each model call, and the run's trace in MLflow. Every later module uses these two kinds of evidence.
+You run the prototype agent once and look inside it in two ways: the raw request and response of each model call, and the run's trace in MLflow. Every later module uses these two kinds of evidence.
+
+Some cells end with a *Your read:* question. Think it through before you go on. There's nothing to type or hand in, and the answer is in a collapsed block right under the question.
 
 == What you'll do in the notebook
 
@@ -26,11 +28,19 @@ You run the prototype agent once and look inside it: the raw request and respons
 
 == Questions to think about
 
-*Your read:* look at the answer. Did the agent look anything up? Did anything report a problem?
+*Your read:* look at the answer. Did the agent look anything up? Did anything report a problem? To check, read the `+tool_calls (call 1)+` and `+turns+` columns, not the answer text.
+
+.Check your answer
+[%collapsible]
+====
+
+No, it looked nothing up. `+tool_calls (call 1)+` is `+null+` or `+[]+`, which means the model asked for no tool, and 1 turn means the agent called the model only once. The answer names `+find_part+`, but that's text the model wrote, not a tool the agent ran. Nothing reported a problem either: there's no error, and the run ended normally. Problems like this don't show up as errors, which is why the lab reads the evidence. Step 3 shows where the tool call went.
+
+====
 
 == How you know it worked
 
-You can find the same `+content+` text in the trace's `+model_call_1+` outputs as in the payload.
+The text the model wrote, `+content+`, appears in two places, the saved payload and the `+model_call_1+` outputs in the MLflow trace, and it's the same in both.
 
 == Diagrams
 
@@ -42,12 +52,30 @@ You can find the same `+content+` text in the trace's `+model_call_1+` outputs a
 ....
 flowchart LR
   Q["Your question"] --> A["agent.py: the loop"]
-  A <-- "request and response" --> M["Model: qwen3-8b-a on vLLM"]
-  A <-- "tool calls and results" --> T["tools.py: find_part, check_stock"]
+  A -- "question and tool list" --> M["Model: qwen3-8b-a on vLLM"]
+  M -- "an answer, or a tool_calls request" --> A
+  A -- "runs the requested tool" --> T["tools.py: find_part, check_stock"]
+  T -- "result, sent back to the model" --> A
   A --> ANS["The answer it prints"]
   A -. "payloads" .-> R["agent/runs/"]
   A -. "one trace per run" .-> F["MLflow"]
 ....
 
+
+====
+
+== If the result differs
+
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
+[%collapsible]
+====
+
+If the answer holds a real part number, or `+tool_calls (call 1)+` names a tool, the agent isn't on the endpoint module 1 starts on. Check that the endpoint cell printed `+qwen3-8b-a+`. If it didn't, run the reset cell at the top of the notebook again, then the cells after it.
+
+If the agent cell ends in an error instead of an answer, such as a timeout or a connection error, it couldn't reach the model endpoint. That's a problem with the lab environment, not the failure this module shows. Wait a minute and run the cell again.
+
+If the agent printed "No trace recorded: MLflow couldn't be reached", your payloads are still saved, so steps 2 and 3 still work, but the trace link says "not available yet". Run the agent cell again to get a trace.
+
+The table, the `+content+` cell and the trace link only show runs made since the notebook's kernel started. If you restarted the kernel or reopened the notebook, they say "No runs in this notebook yet", "No runs yet" or "not available yet", even though your earlier run is saved. Run the agent cell again, then the cells after it.
 
 ====
