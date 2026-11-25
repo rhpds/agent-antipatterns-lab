@@ -8,7 +8,7 @@ import sys
 import pytest
 
 from conftest import AGENT
-from test_agent_versions import checkout, latest_trace_version  # noqa: F401  (fixture and helper)
+from test_agent_versions import checkout  # noqa: F401  (a fixture)
 
 LAB_GATEWAY = "https://lab-gateway.example.com/mcp"
 
@@ -34,6 +34,20 @@ def test_a_case_cut_off_before_its_answer_fails_and_says_to_rerun(regression):
     assert status == "FAIL"
     assert "cut off before it finished its answer" in reason
     assert "run the set again" in reason
+
+
+def test_the_regression_set_reports_a_cut_off_case_as_failed(regression, tmp_path, capsys):
+    """Scenario: A regression case whose run was cut off doesn't pass"""
+    main = regression["main"]
+    # Every case's run is cut off; the report must say so, case by case.
+    main.__globals__["run_agent"] = lambda question, config: passing_m1("length")
+    main.__globals__["RUNS_DIR"] = tmp_path
+    main([])
+    out = capsys.readouterr().out
+    assert "0 passed, 6 failed, 0 skipped" in out
+    report = next(tmp_path.glob("regression-*.md")).read_text()
+    assert report.count("| FAIL | the run was cut off before it finished its answer") == 6
+    assert "run the set again" in report
 
 
 @pytest.mark.parametrize("case", ["check_m1", "check_m3", "check_m4", "check_m5", "check_m5_miss", "check_m6"])

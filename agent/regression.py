@@ -127,11 +127,10 @@ def check_m6(s, cap):
 def judge(check, summary, cap):
     """A case's verdict. A run the model cut off (it ran out of room before finishing its
     answer) never passes, whatever its check found."""
-    status, reason = check(summary, cap)
     if summary.get("ended_by") == "length":
         return "FAIL", ("the run was cut off before it finished its answer (the model ran out of "
                         "room); run the set again")
-    return status, reason
+    return check(summary, cap)
 
 
 CASES = [
