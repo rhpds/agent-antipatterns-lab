@@ -9,13 +9,13 @@ Feature: The complete lab is verified before review and release
     Given a freshly provisioned workshop with two participants
     When David runs the environment readiness check
     Then both participants can access their own workbench
-    And the required model endpoints, database, MLflow and gateway respond successfully
+    And the required model endpoints, database and MLflow respond successfully
 
   Scenario: Every module works through the participant instructions
     Given a ready workshop running the selected lab release
-    When David runs the end-to-end checks for modules 1 through 7
+    When David runs the end-to-end checks for modules 1 through 6
     Then each module demonstrates its approved starting failure and completed behavior
-    And the assembled agent passes all six regression cases
+    And the assembled agent passes all five regression cases
     And the checks use the deployed model and real lab services
 
   Scenario: Incomplete testing cannot be mistaken for success

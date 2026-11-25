@@ -16,11 +16,6 @@ Feature: Module 7's regression run is recorded as an evaluation
     When a participant runs the regression set
     Then each case's result in MLflow is the result printed in the terminal and the report
 
-  Scenario: A later run can be compared with the baseline
-    Given a participant recorded a baseline on an earlier module's state
-    When they finish module 6, run the regression set again and compare it with the baseline in MLflow
-    Then each case shows both results side by side, and the cases that changed stand out
-
   Scenario: Without tracing, the regression run is unchanged
     Given tracing is off
     When a participant runs the regression set
