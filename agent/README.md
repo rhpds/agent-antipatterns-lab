@@ -13,7 +13,7 @@ The agent you build in this lab. Kestrel Industrial is fictional; so is every pa
 Everything else supports those three: `llm.py` (the one function that calls the model),
 `runlog.py` and `payloads.py` (saved request and response payloads), `tracing.py` (MLflow),
 `fixtures/` (the fictional data), `retrieval.py` and `ingest_corpus.py` (knowledge search),
-`regression.py` (module 7).
+`regression.py` (module 6, the closing module).
 
 ## Run it
 

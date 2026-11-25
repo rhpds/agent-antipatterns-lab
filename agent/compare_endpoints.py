@@ -97,7 +97,7 @@ def main(argv=None):
     config = load_config()
     try:
         body = build_body(config, QUESTIONS[args.q])
-    except Exception as exc:  # for example, module 6's gateway is unreachable
+    except Exception as exc:  # for example, a broken edit to tools.py
         sys.exit(f"compare_endpoints: couldn't load the agent's tools: {exc}")
     print(f"Question: {QUESTIONS[args.q]}")
     print(f"Sent the same request to both endpoints (model {body['model']}).\n")

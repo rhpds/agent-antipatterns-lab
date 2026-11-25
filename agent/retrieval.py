@@ -68,8 +68,7 @@ def search_bulletins(query, product=None, top_k=3):
 
     With tracing on, the search is also a RETRIEVER span whose output is the passages the
     agent receives, as documents labelled with their bulletin, so the trace view shows what
-    was retrieved (an empty list when nothing matched). Behind the lab's gateway (module 6)
-    tracing is off in the tool server, and the agent's trace shows the tool's reply instead."""
+    was retrieved (an empty list when nothing matched)."""
     with tracing.span("retrieve_bulletins", "RETRIEVER", inputs={"query": query, "product": product}) as span:
         result = _search(query, product, top_k)
         if result["data"] is not None:

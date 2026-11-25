@@ -1,14 +1,12 @@
-"""Modules 5-7: pgvector retrieval (throwaway podman container), gateway discovery, full regression."""
+"""Modules 5 and 6: pgvector retrieval (throwaway podman container) and the full regression."""
 import json
 import shutil
 import subprocess
-import sys
 import time
-import urllib.request
 
 import pytest
 
-from conftest import AGENT, HERE, fixture_part, free_port, read_json, spawn, wait_for
+from conftest import free_port
 
 IMAGE = "docker.io/pgvector/pgvector:pg16"
 
@@ -17,19 +15,19 @@ IMAGE = "docker.io/pgvector/pgvector:pg16"
 def pg():
     """A throwaway pgvector Postgres on a random local port, removed afterwards.
 
-    If it can't start, the module 5-7 checks fail rather than skip: a skipped check reads as
-    a pass, and these are the checks that exercise retrieval, the gateway and the full regression.
+    If it can't start, the module 5 and 6 checks fail rather than skip: a skipped check reads as
+    a pass, and these are the checks that exercise retrieval and the full regression.
     """
     if not shutil.which("podman"):
         pytest.fail("podman is not installed, so the bulletin database can't start: "
-                    "the module 5-7 checks can't run. Install podman (they never skip).")
+                    "the module 5 and 6 checks can't run. Install podman (they never skip).")
     port = free_port()
     name = f"kestrel-pgvector-test-{port}"
     run = subprocess.run(["podman", "run", "-d", "--rm", "--name", name, "-p", f"127.0.0.1:{port}:5432",
                           "-e", "POSTGRES_PASSWORD=lab", "-e", "POSTGRES_DB=kestrel", IMAGE],
                          capture_output=True, text=True)
     if run.returncode:
-        pytest.fail(f"cannot start {IMAGE}, so the module 5-7 checks can't run: {run.stderr.strip()}")
+        pytest.fail(f"cannot start {IMAGE}, so the module 5 and 6 checks can't run: {run.stderr.strip()}")
     env = {"PGHOST": "127.0.0.1", "PGPORT": str(port), "PGUSER": "postgres",
            "PGPASSWORD": "lab", "PGDATABASE": "kestrel"}
     try:
@@ -104,65 +102,13 @@ def test_module5_invention_then_grounded_then_explicit_miss(work, ingested):
     assert "won't guess" in miss["answer"] and "3,000" not in miss["answer"]
 
 
-@pytest.fixture
-def gateway(work, ingested):
-    # the gateway runs the tools server-side, so it needs the database settings, not the agent
-    work.apply_solution("module-05")
-    port = free_port()
-    proc = spawn([sys.executable, str(HERE / "mock_gateway.py"), "--agent-dir", str(work.path),
-                  "--port", str(port), "--prefix", "kestrel_"],
-                 env={**work.env, **ingested})
-    url = f"http://127.0.0.1:{port}/mcp"
-    wait_for(f"http://127.0.0.1:{port}/x")
-    yield port, url
-    proc.terminate()
-
-
-def register(port, tool):
-    urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{port}/_admin/register",
-                                                  data=json.dumps({"tool": tool}).encode()))
-
-
-def agent_files(work):
-    """What the participant's agent consists of: its code and its config."""
-    return {p.name: p.read_bytes() for p in sorted(work.path.iterdir()) if p.is_file()}
-
-
-def test_module6_gateway_is_behaviour_neutral_and_discovers_new_tool(work, ingested, gateway):
-    """Scenario: A tool added at the gateway is used without redeploying the agent"""
-    port, url = gateway
-    work.repoint_to_validated()
-    local, _ = work.agent("m3", env=ingested)
-    work.set_gateway(url)                                  # the only change: one gateway endpoint in config
-    via_gw, run_dir = work.agent("m3", env=ingested)
-    assert via_gw["ended_by"] == local["ended_by"] and via_gw["turns"] == local["turns"]
-    assert [t["result"] for t in via_gw["tool_calls"]] == [t["result"] for t in local["tool_calls"]]
-    assert via_gw["tool_calls"][0]["name"] == "kestrel_find_part"       # discovered, prefixed by the gateway
-    offered = [t["function"]["name"] for t in read_json(run_dir / "01-request.json")["tools"]]
-    assert "kestrel_estimate_delivery" not in offered
-
-    before, _ = work.agent("m6", env=ingested)             # tool not registered: model has no tool to call
-    assert before["tool_calls"] == []
-    files_before = agent_files(work)
-    register(port, "estimate_delivery")                    # platform operation; agent files untouched
-    after, _ = work.agent("m6", env=ingested)
-    assert agent_files(work) == files_before               # no agent files changed
-    call = after["tool_calls"][0]
-    assert call["name"] == "kestrel_estimate_delivery" and call["result"]["data"]["transit_days"] == 1
-    assert "1 day" in after["answer"]
-
-
-def test_module7_full_regression_against_assembled_agent(work, ingested, gateway):
+def test_module6_full_regression_against_assembled_agent(work, ingested):
     """Scenario: The regression run checks every earlier case against the assembled agent"""
-    port, url = gateway
     work.repoint_to_validated()
     work.apply_solution("module-05")
-    work.set_gateway(url)
-    register(port, "estimate_delivery")
     out = work.run("regression.py", env=ingested).stdout
-    assert "6 passed, 0 failed, 0 skipped" in out, out
-    # and before module 5/6 the same command still reports per case without blocking
-    work.config.write_text(work.config.read_text().replace(f'gateway_url = "{url}"', 'gateway_url = ""'))
+    assert "5 passed, 0 failed, 0 skipped" in out, out
+    # and before module 5 the same command still reports per case without blocking
     work.apply_solution("module-04")
     partial = work.run("regression.py", env=ingested).stdout
-    assert "3 passed, 0 failed, 3 skipped" in partial, partial
+    assert "3 passed, 0 failed, 2 skipped" in partial, partial

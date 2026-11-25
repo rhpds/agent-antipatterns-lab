@@ -50,14 +50,14 @@ def test_every_trace_says_which_build_produced_it(checkout):
     dest, run, uri = checkout
     run("agent.py", "--q", "m1")
     assert latest_trace_version(uri) == "kestrel-m1-start"           # a fresh clone is module 1's start
-    for module in (3, 4, 7):
+    for module in (3, 4, 6):
         run("reset.py", str(module))
         run("agent.py", "--q", "m1")
         assert latest_trace_version(uri) == f"kestrel-m{module}-start"
     # David (Q6): after an edit, the starting version plus "modified".
     (dest / "agent.py").write_text((dest / "agent.py").read_text() + "\n# my edit\n")
     run("agent.py", "--q", "m1")
-    assert latest_trace_version(uri) == "kestrel-m7-start-modified"
+    assert latest_trace_version(uri) == "kestrel-m6-start-modified"
     run("reset.py", "4")
     run("agent.py", "--q", "m1")
     assert latest_trace_version(uri) == "kestrel-m4-start"
@@ -67,7 +67,7 @@ def test_the_evaluation_run_names_the_agent_version_it_tested(checkout):
     """Scenario: The evaluation run names the agent version it tested"""
     dest, run, uri = checkout
     run("reset.py", "5")
-    run("regression.py", "--name", "m5-baseline")
+    run("regression.py", "--name", "m5-run")
     mlflow = pytest.importorskip("mlflow")
     mlflow.set_tracking_uri(uri)
     (summary,) = mlflow.search_runs(experiment_names=["kestrel-agent"], output_format="list")

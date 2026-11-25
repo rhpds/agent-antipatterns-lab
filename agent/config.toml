@@ -28,12 +28,7 @@ the right part and check whether they can get it. Be concise. \
 You MUST use the available tools to look up part numbers, stock and other facts. \
 Never answer from memory. Always call a tool first."""
 
-[tools]
-# Module 6 replaces the per-tool entries below with one gateway endpoint:
-#   gateway_url = "https://<mcp-gateway-route>/mcp"
-gateway_url = ""
-
-# Today every tool carries its own address and credential, written into the agent.
+# Each tool carries its own address and credential, written into the agent.
 # For this lab the addresses are local fixture files and no credential is checked.
 [tools.find_part]
 address = "fixtures/parts.json"

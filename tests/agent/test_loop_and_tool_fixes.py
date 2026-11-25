@@ -142,11 +142,11 @@ def test_regression_reports_per_case_on_each_state(work):
     """Scenario: The regression run checks every earlier case against the assembled agent
     (the clause: on an earlier module's state it still reports each case without stopping)"""
     start = work.run("regression.py").stdout
-    assert "0 passed, 3 failed, 3 skipped" in start        # mismatched endpoint, starter code
+    assert "0 passed, 3 failed, 2 skipped" in start        # mismatched endpoint, starter code
     work.repoint_to_validated()
     work.apply_solution("module-04")
     mid = work.run("regression.py").stdout
-    assert "3 passed, 0 failed, 3 skipped" in mid          # retrieval + gateway cases skip, do not block
+    assert "3 passed, 0 failed, 2 skipped" in mid          # the retrieval cases skip, do not block
     assert "SKIP  m5 " in mid and "PASS  m3 " in mid
     report = next((work.path / "runs").glob("regression-*.md")).read_text()
     assert "Symptom to layer" in report
