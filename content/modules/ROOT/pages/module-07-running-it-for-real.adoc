@@ -26,7 +26,7 @@ You run the regression set, one question for each failure you fixed in modules 1
 
 == Questions to think about
 
-*Your read:* a customer says their agent told them it ordered a part, but no order was ever placed. Which layer do you look at first?
+*Your read:* before you open the report, think back over modules 2 to 6. A customer says their agent told them it ordered a part, but no order was ever placed. Which layer do you look at first?
 
 .Check your answer
 [%collapsible]
