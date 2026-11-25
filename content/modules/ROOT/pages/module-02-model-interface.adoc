@@ -14,8 +14,10 @@ endif::[]
 NOTE: Open `notebooks/module-02-model-interface.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-02-model-interface.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
 ____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+*Prototype notebook.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
 ____
+
+Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
 
 .Notebook cell (runs in the Notebook tab)
 [.notebook-cell]
@@ -186,3 +188,9 @@ lab.trace_link()
 Look at the last row: `+finish_reason+` and `+tool_calls+` on model call 1. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run.
 
 If the run used several turns, each calling `+find_part+` again, that's module 3's failure arriving early.
+
+== If the result differs
+
+If the last run still uses endpoint A, reopen `+config.toml+`, save the `+base_url+` edit and rerun the confirmation cell. Inspect the request's endpoint rather than changing the system prompt again. If endpoint B also leaves `+<tool_call>+` in `+content+`, check that its ServingRuntime and model pods are ready and that its tool-call parser matches the model. A timeout or unreachable endpoint is an environment failure, not the parser demonstration.
+
+The stronger prompt can produce identical text. Confirm the changed system prompt in the saved request; the diagnostic fact is that neither request produced an executable `+tool_calls+` entry. After repointing, require `+find_part+` to return `+KI-CP-40817+`. Repeated calls after that are the loop defect addressed next.

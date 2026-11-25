@@ -18,11 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      LAB_SOURCE_REF: ${{ github.base_ref || github.ref_name }}
+      # A PR preview must link to its reviewed source, rather than the older base branch.
+      LAB_SOURCE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          ref: ${{ env.LAB_SOURCE_REF }}
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"

@@ -9,7 +9,8 @@ name = "RedHatAI/Qwen3-8B-FP8-dynamic"
 api_key_env = "OPENAI_API_KEY"
 temperature = 0
 seed = 0
-max_tokens = 1024
+# Includes Qwen's reasoning as well as its tool call or final answer.
+max_tokens = 4096
 timeout_seconds = 120
 
 [agent]

@@ -72,6 +72,12 @@ def run_agent(question, config, strong_prompt=False, runs_dir=None):
                             result = toolbox.call(call.function.name, arguments)
                         tool_span.set_outputs(result)
                     runlog.add_tool_call(call.function.name, arguments, result)
+                    if result.get("category") in ("bad_request", "upstream_unavailable"):
+                        # Interpret an actual failed check without changing the earlier
+                        # requests or the next module's unsupported-knowledge demonstration.
+                        messages[0] = {"role": "system", "content": system +
+                                       "\nThe tool check could not be completed. Explain its error "
+                                       "and do not describe it as out of stock or an empty search."}
                     messages.append({"role": "tool", "tool_call_id": call.id,
                                      "content": json.dumps(result)})
                 continue

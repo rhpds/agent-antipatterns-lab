@@ -1,0 +1,2757 @@
+{
+  "scope": "Two-participant notebook review in the existing repaired workshop",
+  "implementation_source": "5e9341173370f6be15f9b50196246e1e474998e4",
+  "model": "RedHatAI/Qwen3-8B-FP8-dynamic on the cluster vLLM endpoints",
+  "outside_scope": [
+    "Fresh catalog provisioning",
+    "Main-branch approval enforcement",
+    "30-participant load"
+  ],
+  "source_equivalence": "source-equivalence.json",
+  "modules": [
+    {
+      "participant": 1,
+      "module": 2,
+      "status": "PASS",
+      "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+      "code_cells": 11,
+      "executed_cells": 11,
+      "executed_notebook": "executed-notebooks/participant-1/module-02.ipynb",
+      "notebook_sha256": "0d093487dd7627cd5ed9168f48ee2416deb99496f479095cc194d18db96fec06",
+      "runs": [
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>",
+          "ended_by": "plain_answer",
+          "turns": 1,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [],
+          "trace_id": "tr-9294becb2e74e2e5957522a97e5f73ef",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-9294becb2e74e2e5957522a97e5f73ef"
+        },
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>",
+          "ended_by": "plain_answer",
+          "turns": 1,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [],
+          "trace_id": "tr-b102f5a7b07133f00a2b0d3a5adb44e5",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-b102f5a7b07133f00a2b0d3a5adb44e5"
+        },
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "Stopped after 6 turns without a final answer.",
+          "ended_by": "max_turns",
+          "turns": 6,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "trace_id": "tr-dde5e905e58bd38e6af09cb100609f40",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-dde5e905e58bd38e6af09cb100609f40"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-1/module-02.html"
+    },
+    {
+      "participant": 1,
+      "module": 3,
+      "status": "PASS",
+      "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+      "code_cells": 6,
+      "executed_cells": 6,
+      "executed_notebook": "executed-notebooks/participant-1/module-03.ipynb",
+      "notebook_sha256": "ce37a83821b855dfd88448800ffbd9c0d28ae9b35a58b219829a454c115b2e01",
+      "runs": [
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "Stopped after 6 turns without a final answer.",
+          "ended_by": "max_turns",
+          "turns": 6,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "trace_id": "tr-67366dfdc62dbe4c2576c176a8d5dd98",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-67366dfdc62dbe4c2576c176a8d5dd98"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement coolant pump parts for your K-400 are available at the Denver depot:\n\n- **Coolant circulation pump assembly (KI-CP-40817):** 3 units in stock, 1-day lead time  \n- **Coolant pump mechanical seal kit (KI-SK-40233):** 12 units in stock, 1-day lead time  \n\nBoth parts can be delivered to Denver this week. Let me know if you need further assistance!",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-CP-40817",
+                "depot": "Denver"
+              },
+              "result": {
+                "results": [
+                  {
+                    "depot": "Denver",
+                    "qty": 3,
+                    "lead_days": 1
+                  }
+                ]
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-SK-40233",
+                "depot": "Denver"
+              },
+              "result": {
+                "results": [
+                  {
+                    "depot": "Denver",
+                    "qty": 12,
+                    "lead_days": 1
+                  }
+                ]
+              }
+            }
+          ],
+          "trace_id": "tr-d92bd549c2901b978eff1f4c1a3a21af",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-d92bd549c2901b978eff1f4c1a3a21af"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-1/module-03.html"
+    },
+    {
+      "participant": 1,
+      "module": 4,
+      "status": "PASS",
+      "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+      "code_cells": 7,
+      "executed_cells": 7,
+      "executed_notebook": "executed-notebooks/participant-1/module-04.ipynb",
+      "notebook_sha256": "2497a6c37764195aa79ecd55924f4c4792b859f4fd833073b6e7265e85864f7c",
+      "runs": [
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Portland depot?",
+          "answer": "\n\nThe high-pressure sensor (KI-HS-60233) for the K-600 is not currently available at the Portland depot. Would you like me to check availability at another depot or provide alternative solutions?",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "high-pressure sensor",
+                "product": "K-600"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-HS-60233",
+                    "name": "High-pressure sensor (refrigerant discharge)",
+                    "products": [
+                      "K-600"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-HS-60233",
+                "depot": "Portland"
+              },
+              "result": {
+                "results": []
+              }
+            }
+          ],
+          "trace_id": "tr-37799b909efc276d4735930d86a729eb",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-37799b909efc276d4735930d86a729eb"
+        },
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Portland depot?",
+          "answer": "\n\nThe part number for the K-600 high-pressure sensor is **KI-HS-60233**. However, \"Portland\" is not a valid depot. Available depots are **Denver, Phoenix, and Chicago**. Please check stock at one of these locations.",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "high-pressure sensor",
+                "product": "K-600"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-HS-60233",
+                      "name": "High-pressure sensor (refrigerant discharge)",
+                      "products": [
+                        "K-600"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-HS-60233",
+                "depot": "Portland"
+              },
+              "result": {
+                "category": "bad_request",
+                "retryable": false,
+                "detail": "unknown depot 'Portland'; Kestrel depots are Denver, Phoenix, Chicago",
+                "data": null
+              }
+            }
+          ],
+          "trace_id": "tr-da306770b91d21573735be00722168b5",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-da306770b91d21573735be00722168b5"
+        },
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Denver depot?",
+          "answer": "\n\nThe high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "high-pressure sensor",
+                "product": "K-600"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-HS-60233",
+                      "name": "High-pressure sensor (refrigerant discharge)",
+                      "products": [
+                        "K-600"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-HS-60233",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "KI-HS-60233 has no stock at Denver",
+                "data": {
+                  "results": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-6e5f7039f8d8e3e11971c0b628de9090",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-6e5f7039f8d8e3e11971c0b628de9090"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement parts for your K-400 coolant pump are available at the Denver depot:\n\n1. **Coolant circulation pump assembly** (KI-CP-40817)  \n   - Stock: 3 units  \n   - Lead time: 1 day  \n\n2. **Coolant pump mechanical seal kit** (KI-SK-40233)  \n   - Stock: 12 units  \n   - Lead time: 1 day  \n\nBoth parts can be delivered to Denver this week. Let me know if you need further details!",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-CP-40817",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-SK-40233",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 12,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-63dc0f752fcefdcda4067d3cf2c77e0a",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-63dc0f752fcefdcda4067d3cf2c77e0a"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-1/module-04.html"
+    },
+    {
+      "participant": 1,
+      "module": 5,
+      "status": "PASS",
+      "source_commit": "5e9341173370f6be15f9b50196246e1e474998e4",
+      "code_cells": 7,
+      "executed_cells": 7,
+      "executed_notebook": "executed-notebooks/participant-1/module-05.ipynb",
+      "notebook_sha256": "d525a3ed7a9b4f13514e9c44f1be4b56a831799cc62fc6cf49fec21c053ed2db",
+      "runs": [
+        {
+          "question": "A K-400 is showing fault F-21. What should the technician do?",
+          "answer": "\n\nThe fault code F-21 on a K-400 chiller typically indicates an issue with the **temperature sensor** or **control board**. The technician should:\n\n1. **Check the temperature sensor** (e.g., PT100 probe) for damage or loose connections.  \n2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.  \n3. **Inspect wiring** to the sensor or board for shorts or breaks.  \n4. **Refer to the Kestrel fault code manual** for model-specific troubleshooting.  \n\nIf parts are needed after diagnosis, use `find_part` with specific descriptions (e.g., \"temperature sensor\" or \"control board\"). For stock checks, provide a part number.",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "F-21",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "no part matched 'F-21'",
+                "data": {
+                  "results": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-100659bc23e6f4c60ad4160914b554e8",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-100659bc23e6f4c60ad4160914b554e8"
+        },
+        {
+          "question": "A K-400 is showing fault F-21. What should the technician do?",
+          "answer": "\n\nThe fault F-21 (coolant loop pressure low) in K-400 chillers indicates a potential issue with the coolant pump assembly (KI-CP-40817) or seal kit (KI-SK-40233). The technician should:  \n1. Inspect the coolant pump assembly and seal kit for leaks or damage.  \n2. Verify coolant levels and system pressure during start-up and under load.  \n3. Replace faulty components if necessary.  \n\nRetrieved sources: SB-2024-117, SB-2024-102.",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "find_part",
+            "check_stock",
+            "search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "search_bulletins",
+              "arguments": {
+                "query": "F-21",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "passages": [
+                    {
+                      "source": "SB-2024-117",
+                      "section": "Applies to",
+                      "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+                      "score": 0.392
+                    },
+                    {
+                      "source": "SB-2024-102",
+                      "section": "Symptom",
+                      "text": "Controller raises fault F-21 (coolant loop pressure low) during start-up or under load.",
+                      "score": 0.385
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-b6d6ad8df4777d35cf895384553eaf9f",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-b6d6ad8df4777d35cf895384553eaf9f"
+        },
+        {
+          "question": "What's the service interval on a Kestrel K-900?",
+          "answer": "\n\nThe service interval for the Kestrel K-900 is not covered by available service bulletins. No relevant passages were found in the Kestrel service database for this query.\n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "find_part",
+            "check_stock",
+            "search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "search_bulletins",
+              "arguments": {
+                "query": "service interval",
+                "product": "K-900"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "no bulletin passage matched 'service interval' for product 'K-900'",
+                "data": {
+                  "passages": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-7925ac1222f265d1e0ce396d21c5930f",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-7925ac1222f265d1e0ce396d21c5930f"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-1/module-05.html"
+    },
+    {
+      "participant": 1,
+      "module": 6,
+      "status": "PASS",
+      "source_commit": "5e9341173370f6be15f9b50196246e1e474998e4",
+      "code_cells": 11,
+      "executed_cells": 11,
+      "executed_notebook": "executed-notebooks/participant-1/module-06.ipynb",
+      "notebook_sha256": "77db32cfb6806bdef9d6717c1ce0d217425d168f78d44a91f83ee32e28cf9efc",
+      "runs": [
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement coolant pump parts for your K-400 are available at the Denver depot:  \n- **KI-CP-40817 (Coolant circulation pump assembly)**: 3 units in stock, 1-day lead time.  \n- **KI-SK-40233 (Coolant pump mechanical seal kit)**: 12 units in stock, 1-day lead time.  \n\nBoth parts will arrive by the end of the week.  \n\nRetrieved sources:  \nNo service bulletins were referenced for this query.",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock",
+            "search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-CP-40817",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-SK-40233",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 12,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-3e7e9ba696b90421b075e40c658dccfb",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-3e7e9ba696b90421b075e40c658dccfb"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement coolant pump (part number KI-CP-40817) is available at the Denver depot with 3 units in stock and a lead time of 1 day. This meets the \"this week\" requirement. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-400",
+                "query": "coolant pump"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-CP-40817"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-e4bfd4c51ed4229b8b520e6966538d10",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-e4bfd4c51ed4229b8b520e6966538d10"
+        },
+        {
+          "question": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
+          "answer": "\n\nThe tools provided do not include shipping logistics or delivery time estimation functionality. To determine arrival time, you would need to contact the Denver depot directly for shipping details. If you need the part number first, provide the chiller model and symptom description. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 1,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins"
+          ],
+          "tool_calls": [],
+          "trace_id": "tr-c9a993a350f15a3329be22ba3a29eb8c",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-c9a993a350f15a3329be22ba3a29eb8c"
+        },
+        {
+          "question": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
+          "answer": "\n\nShipping from Denver to Boulder takes 1 day. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_estimate_delivery",
+              "arguments": {
+                "origin_depot": "Denver",
+                "destination": "Boulder"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "origin_depot": "Denver",
+                  "destination": "Boulder",
+                  "transit_days": 1
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-a641df15c5db96e3733626c28ec2fa1e",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-a641df15c5db96e3733626c28ec2fa1e"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-1/module-06.html"
+    },
+    {
+      "participant": 1,
+      "module": 7,
+      "status": "PASS",
+      "source_commit": "5e9341173370f6be15f9b50196246e1e474998e4",
+      "code_cells": 7,
+      "executed_cells": 7,
+      "executed_notebook": "executed-notebooks/participant-1/module-07.ipynb",
+      "notebook_sha256": "e4976c70fe6410e87f3fa5805fb4e99c64bd7a3dbd49107edf4e5042e03b798b",
+      "runs": [
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "\n\nThe replacement part numbers for the coolant pump on a K-400 are:  \n- **KI-CP-40817** (Coolant circulation pump assembly)  \n- **KI-SK-40233** (Coolant pump mechanical seal kit)  \n\nStock availability depends on the depot. Provide a depot name to check inventory.  \n\nRetrieved sources:  \nkestrel_find_part",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-400",
+                "query": "coolant pump"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-0e66ca39aac0b6ff161f52c1b39f9003",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-0e66ca39aac0b6ff161f52c1b39f9003"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe Denver depot has both part numbers in stock with a 1-day lead time:\n- **KI-CP-40817** (Coolant circulation pump assembly): 3 units available\n- **KI-SK-40233** (Coolant pump mechanical seal kit): 12 units available\n\nBoth can be delivered this week. Note that these are separate components - the assembly (KI-CP-40817) is the main pump, while the seal kit (KI-SK-40233) is a maintenance component. \n\nRetrieved sources:  \nKI-CP-40817, KI-SK-40233",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-400",
+                "query": "coolant pump"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-CP-40817"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-SK-40233"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 12,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-ac6991a6237bfe930071078853a3ad43",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-ac6991a6237bfe930071078853a3ad43"
+        },
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Portland depot?",
+          "answer": "\n\nThe part number for the K-600 high-pressure sensor is **KI-HS-60233**. However, \"Portland\" is not a valid Kestrel depot. Available depots are **Denver, Phoenix, and Chicago**. Check stock at these locations instead.\n\nRetrieved sources:  \nNo relevant service bulletins found for this query.",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-600",
+                "query": "high-pressure sensor"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-HS-60233",
+                      "name": "High-pressure sensor (refrigerant discharge)",
+                      "products": [
+                        "K-600"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Portland",
+                "part_number": "KI-HS-60233"
+              },
+              "result": {
+                "category": "bad_request",
+                "retryable": false,
+                "detail": "unknown depot 'Portland'; Kestrel depots are Denver, Phoenix, Chicago",
+                "data": null
+              }
+            }
+          ],
+          "trace_id": "tr-d31beeec984a0214de8680ac13f69408",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-d31beeec984a0214de8680ac13f69408"
+        },
+        {
+          "question": "A K-400 is showing fault F-21. What should the technician do?",
+          "answer": "\n\nThe technician should check the coolant loop pressure and inspect the coolant pump assembly (KI-CP-40817) and seal kit (KI-SK-40233) for leaks or damage, as fault F-21 indicates low coolant loop pressure. Refer to SB-2024-102 for detailed procedures.  \n\nRetrieved sources: SB-2024-117, SB-2024-102",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_search_bulletins",
+              "arguments": {
+                "product": "K-400",
+                "query": "F-21"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "passages": [
+                    {
+                      "source": "SB-2024-117",
+                      "section": "Applies to",
+                      "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+                      "score": 0.392
+                    },
+                    {
+                      "source": "SB-2024-102",
+                      "section": "Symptom",
+                      "text": "Controller raises fault F-21 (coolant loop pressure low) during start-up or under load.",
+                      "score": 0.385
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-85021eba150ae7306c417ace30576906",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-85021eba150ae7306c417ace30576906"
+        },
+        {
+          "question": "What's the service interval on a Kestrel K-900?",
+          "answer": "\n\nThe service interval for the Kestrel K-900 is not covered by available service bulletins. The search returned no relevant passages. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_search_bulletins",
+              "arguments": {
+                "product": "K-900",
+                "query": "service interval"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "no bulletin passage matched 'service interval' for product 'K-900'",
+                "data": {
+                  "passages": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-a6bc234da1633c00dee3789f66ae6365",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-a6bc234da1633c00dee3789f66ae6365"
+        },
+        {
+          "question": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
+          "answer": "\n\nShipping from Denver to Boulder takes 1 day. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_estimate_delivery",
+              "arguments": {
+                "origin_depot": "Denver",
+                "destination": "Boulder"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "origin_depot": "Denver",
+                  "destination": "Boulder",
+                  "transit_days": 1
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-5660aa453eaf8f280ae5dadcdc77d699",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/traces?workspace=user-zgrkm-app&selectedEvaluationId=tr-5660aa453eaf8f280ae5dadcdc77d699"
+        }
+      ],
+      "regression": {
+        "PASS": 6,
+        "FAIL": 0,
+        "SKIP": 0
+      },
+      "evaluation_id": "1fd48c9f84294f3dbf523652e13d47bd",
+      "evaluation_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/1/evaluation-runs?workspace=user-zgrkm-app&selectedRunUuid=1fd48c9f84294f3dbf523652e13d47bd",
+      "executed_html": "executed-notebooks/participant-1/module-07.html"
+    },
+    {
+      "participant": 2,
+      "module": 2,
+      "status": "PASS",
+      "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+      "code_cells": 11,
+      "executed_cells": 11,
+      "executed_notebook": "executed-notebooks/participant-2/module-02.ipynb",
+      "notebook_sha256": "2268df687b9453985a8befe5c3ea2645cf3532f6a17528c4a11b5c68b6819e2a",
+      "runs": [
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>",
+          "ended_by": "plain_answer",
+          "turns": 1,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [],
+          "trace_id": "tr-1be92f1bdc6681d476f570bec6dab476",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-1be92f1bdc6681d476f570bec6dab476"
+        },
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "\n\n<tool_call>\n{\"name\": \"find_part\", \"arguments\": {\"query\": \"coolant pump\", \"product\": \"K-400\"}}\n</tool_call>",
+          "ended_by": "plain_answer",
+          "turns": 1,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [],
+          "trace_id": "tr-22002054589729c5b0d77cd236296d77",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-22002054589729c5b0d77cd236296d77"
+        },
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": "Stopped after 6 turns without a final answer.",
+          "ended_by": "max_turns",
+          "turns": 6,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "trace_id": "tr-6ea928923c8668b65313368ca95730e6",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-6ea928923c8668b65313368ca95730e6"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-2/module-02.html"
+    },
+    {
+      "participant": 2,
+      "module": 3,
+      "status": "PASS",
+      "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+      "code_cells": 6,
+      "executed_cells": 6,
+      "executed_notebook": "executed-notebooks/participant-2/module-03.ipynb",
+      "notebook_sha256": "2d82027369e5d714487eb74c0fedf9081ad62c4498c41bb7aed1b7487aefb9de",
+      "runs": [
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "Stopped after 6 turns without a final answer.",
+          "ended_by": "max_turns",
+          "turns": 6,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "trace_id": "tr-2cc16c275f26146879132aa855deb0a8",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-2cc16c275f26146879132aa855deb0a8"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement coolant pump components for your K-400 are available at the Denver depot:\n\n1. **Coolant circulation pump assembly** (KI-CP-40817)  \n   - Stock: 3 units  \n   - Lead time: 1 day  \n\n2. **Coolant pump mechanical seal kit** (KI-SK-40233)  \n   - Stock: 12 units  \n   - Lead time: 1 day  \n\nBoth parts will arrive in Denver by the end of the week. Would you like assistance with ordering?",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-CP-40817",
+                    "name": "Coolant circulation pump assembly",
+                    "products": [
+                      "K-400"
+                    ]
+                  },
+                  {
+                    "part_number": "KI-SK-40233",
+                    "name": "Coolant pump mechanical seal kit",
+                    "products": [
+                      "K-400"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-CP-40817",
+                "depot": "Denver"
+              },
+              "result": {
+                "results": [
+                  {
+                    "depot": "Denver",
+                    "qty": 3,
+                    "lead_days": 1
+                  }
+                ]
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-SK-40233",
+                "depot": "Denver"
+              },
+              "result": {
+                "results": [
+                  {
+                    "depot": "Denver",
+                    "qty": 12,
+                    "lead_days": 1
+                  }
+                ]
+              }
+            }
+          ],
+          "trace_id": "tr-73bbe290602b21611d53feb7e5292c91",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-73bbe290602b21611d53feb7e5292c91"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-2/module-03.html"
+    },
+    {
+      "participant": 2,
+      "module": 4,
+      "status": "PASS",
+      "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+      "code_cells": 7,
+      "executed_cells": 7,
+      "executed_notebook": "executed-notebooks/participant-2/module-04.ipynb",
+      "notebook_sha256": "8eba6d92df93f853be032cab5cdb0e914b6ece86d950c3e0ff92a648d20015ff",
+      "runs": [
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Portland depot?",
+          "answer": "\n\nThe high-pressure sensor (KI-HS-60233) for the K-600 is not currently available at the Portland depot. Would you like to check availability at another depot or proceed with a lead time estimate?",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "high-pressure sensor",
+                "product": "K-600"
+              },
+              "result": {
+                "results": [
+                  {
+                    "part_number": "KI-HS-60233",
+                    "name": "High-pressure sensor (refrigerant discharge)",
+                    "products": [
+                      "K-600"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-HS-60233",
+                "depot": "Portland"
+              },
+              "result": {
+                "results": []
+              }
+            }
+          ],
+          "trace_id": "tr-8c6973a6bc20e5a1a55acd298f6a5f3b",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-8c6973a6bc20e5a1a55acd298f6a5f3b"
+        },
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Portland depot?",
+          "answer": "\n\nThe part number for the K-600 high-pressure sensor is **KI-HS-60233**. However, \"Portland\" is not a valid depot. Available depots are **Denver, Phoenix, and Chicago**. Please check stock at one of these locations.",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "high-pressure sensor",
+                "product": "K-600"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-HS-60233",
+                      "name": "High-pressure sensor (refrigerant discharge)",
+                      "products": [
+                        "K-600"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-HS-60233",
+                "depot": "Portland"
+              },
+              "result": {
+                "category": "bad_request",
+                "retryable": false,
+                "detail": "unknown depot 'Portland'; Kestrel depots are Denver, Phoenix, Chicago",
+                "data": null
+              }
+            }
+          ],
+          "trace_id": "tr-2f4c1b11ccfe6d4b6b3ff11f0a944ffb",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-2f4c1b11ccfe6d4b6b3ff11f0a944ffb"
+        },
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Denver depot?",
+          "answer": "\n\nThe high-pressure sensor for the K-600 (part number KI-HS-60233) is not currently available at the Denver depot. Would you like information about lead times or alternative depots?",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "high-pressure sensor",
+                "product": "K-600"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-HS-60233",
+                      "name": "High-pressure sensor (refrigerant discharge)",
+                      "products": [
+                        "K-600"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-HS-60233",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "KI-HS-60233 has no stock at Denver",
+                "data": {
+                  "results": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-7765168ff9ecf136b2a50037e0cbccf5",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-7765168ff9ecf136b2a50037e0cbccf5"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement parts for your K-400 coolant pump are available at the Denver depot:\n\n- **Coolant circulation pump assembly (KI-CP-40817)**: 3 units in stock, 1-day lead time  \n- **Coolant pump mechanical seal kit (KI-SK-40233)**: 12 units in stock, 1-day lead time  \n\nBoth parts can be delivered to Denver this week. Let me know if you need further details!",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-CP-40817",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-SK-40233",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 12,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-5964545f1dfa046c669166956dadc411",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-5964545f1dfa046c669166956dadc411"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-2/module-04.html"
+    },
+    {
+      "participant": 2,
+      "module": 5,
+      "status": "PASS",
+      "source_commit": "5e9341173370f6be15f9b50196246e1e474998e4",
+      "code_cells": 7,
+      "executed_cells": 7,
+      "executed_notebook": "executed-notebooks/participant-2/module-05.ipynb",
+      "notebook_sha256": "d4a9cc103f366b9fe3100bdbed66faf35184bfddf42e66eaef9b0d444e7a6f33",
+      "runs": [
+        {
+          "question": "A K-400 is showing fault F-21. What should the technician do?",
+          "answer": "\n\nThe fault code F-21 on a K-400 chiller typically indicates an issue with the **temperature sensor** or **control board**. The technician should:\n\n1. **Check the temperature sensor** (e.g., PT100 probe) for damage or loose connections.  \n2. **Verify the control board** (e.g., KI-400-CTRL) for faults or error codes.  \n3. **Refer to the Kestrel fault code manual** for detailed troubleshooting steps.  \n4. **Replace the faulty component** (sensor or board) if confirmed.  \n\nIf parts are needed, use `find_part` with specific descriptions (e.g., \"temperature sensor\" or \"control board\") and model. For stock checks, provide a part number.",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "find_part",
+            "check_stock"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "F-21",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "no part matched 'F-21'",
+                "data": {
+                  "results": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-f7d1399461c90ce6f66db1f770fac201",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-f7d1399461c90ce6f66db1f770fac201"
+        },
+        {
+          "question": "A K-400 is showing fault F-21. What should the technician do?",
+          "answer": "\n\nThe fault F-21 (coolant loop pressure low) on a K-400 chiller may indicate issues with the coolant pump assembly or seal kit. Technicians should inspect the coolant pump assembly **KI-CP-40817** and seal kit **KI-SK-40233** as identified in the bulletin. Verify coolant levels, pump operation, and seal integrity. \n\nRetrieved sources:  \nSB-2024-117, SB-2024-102",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "find_part",
+            "check_stock",
+            "search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "search_bulletins",
+              "arguments": {
+                "query": "F-21",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "passages": [
+                    {
+                      "source": "SB-2024-117",
+                      "section": "Applies to",
+                      "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+                      "score": 0.392
+                    },
+                    {
+                      "source": "SB-2024-102",
+                      "section": "Symptom",
+                      "text": "Controller raises fault F-21 (coolant loop pressure low) during start-up or under load.",
+                      "score": 0.385
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-d1b1b55e8b9171212c10b76d678eded7",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-d1b1b55e8b9171212c10b76d678eded7"
+        },
+        {
+          "question": "What's the service interval on a Kestrel K-900?",
+          "answer": "\n\nThe service interval for the Kestrel K-900 is not covered by available service bulletins. No relevant passages were found in the Kestrel service database for this query.\n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "find_part",
+            "check_stock",
+            "search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "search_bulletins",
+              "arguments": {
+                "query": "service interval",
+                "product": "K-900"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "no bulletin passage matched 'service interval' for product 'K-900'",
+                "data": {
+                  "passages": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-c6e36262d3d9b8a0331d397aee44e71e",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-c6e36262d3d9b8a0331d397aee44e71e"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-2/module-05.html"
+    },
+    {
+      "participant": 2,
+      "module": 6,
+      "status": "PASS",
+      "source_commit": "5e9341173370f6be15f9b50196246e1e474998e4",
+      "code_cells": 11,
+      "executed_cells": 11,
+      "executed_notebook": "executed-notebooks/participant-2/module-06.ipynb",
+      "notebook_sha256": "c31338a426281f0eb0b34ad703f6fd01e1705817fc9b8d2351b98a4741bb1478",
+      "runs": [
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement coolant pump (part number KI-CP-40817) is available at the Denver depot with 3 units in stock and a lead time of 1 day. This means it can be delivered to Denver this week. \n\nFor the K-400 model, the coolant pump mechanical seal kit (KI-SK-40233) is also available as a separate component, though stock wasn't checked in this query. \n\nRetrieved sources:  \n- KI-CP-40817 (Coolant circulation pump assembly)  \n- KI-SK-40233 (Coolant pump mechanical seal kit)",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "find_part",
+            "check_stock",
+            "search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "find_part",
+              "arguments": {
+                "query": "coolant pump",
+                "product": "K-400"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "check_stock",
+              "arguments": {
+                "part_number": "KI-CP-40817",
+                "depot": "Denver"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-e5d67b71ff106a8e99079afe90b44816",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-e5d67b71ff106a8e99079afe90b44816"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe replacement parts for the K-400 coolant pump are available at the Denver depot with a 1-day lead time:\n\n- **KI-CP-40817** (Coolant circulation pump assembly): 3 units in stock  \n- **KI-SK-40233** (Coolant pump mechanical seal kit): 12 units in stock  \n\nBoth parts can be delivered to Denver this week.  \n\nRetrieved sources:  \n- kestrel_find_part  \n- kestrel_check_stock",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-400",
+                "query": "coolant pump"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-CP-40817"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-SK-40233"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 12,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-903ea7765a332e469251783c19bdd3ea",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-903ea7765a332e469251783c19bdd3ea"
+        },
+        {
+          "question": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
+          "answer": "\n\nThe tools provided do not include functionality to check shipping schedules or transit times between depots and customer sites. Kestrel_check_stock only confirms part availability and lead time at a depot, not shipping logistics. For shipping timelines, you would need to consult Kestrel's logistics team or use a dedicated shipping tracking system. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 1,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins"
+          ],
+          "tool_calls": [],
+          "trace_id": "tr-5afdc2f2aa1c01af3bcb345341d7007c",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-5afdc2f2aa1c01af3bcb345341d7007c"
+        },
+        {
+          "question": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
+          "answer": "\n\nShipping from Denver to Boulder takes 1 day. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_estimate_delivery",
+              "arguments": {
+                "origin_depot": "Denver",
+                "destination": "Boulder"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "origin_depot": "Denver",
+                  "destination": "Boulder",
+                  "transit_days": 1
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-4580311844fff734cb37a6d9a08d6f47",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-4580311844fff734cb37a6d9a08d6f47"
+        }
+      ],
+      "executed_html": "executed-notebooks/participant-2/module-06.html"
+    },
+    {
+      "participant": 2,
+      "module": 7,
+      "status": "PASS",
+      "source_commit": "5e9341173370f6be15f9b50196246e1e474998e4",
+      "code_cells": 7,
+      "executed_cells": 7,
+      "executed_notebook": "executed-notebooks/participant-2/module-07.ipynb",
+      "notebook_sha256": "694a9d88e418322c44b422b5864fc0e30a693456c4e66dc1fe4fc6f895438863",
+      "runs": [
+        {
+          "question": "A customer's K-400 is showing a coolant pressure fault. What's the replacement part number for the coolant pump?",
+          "answer": null,
+          "ended_by": "length",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-400",
+                "query": "coolant pump"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-4eaca69cd319d9b5a187478cab921c53",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-4eaca69cd319d9b5a187478cab921c53"
+        },
+        {
+          "question": "Can we get a replacement coolant pump for a K-400 to the Denver depot this week?",
+          "answer": "\n\nThe Denver depot has both the coolant circulation pump assembly (KI-CP-40817) and mechanical seal kit (KI-SK-40233) in stock. Both parts have 1 day lead time, so they can be delivered to Denver this week. \n\nRetrieved sources:  \nKI-CP-40817, KI-SK-40233",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-400",
+                "query": "coolant pump"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-CP-40817",
+                      "name": "Coolant circulation pump assembly",
+                      "products": [
+                        "K-400"
+                      ]
+                    },
+                    {
+                      "part_number": "KI-SK-40233",
+                      "name": "Coolant pump mechanical seal kit",
+                      "products": [
+                        "K-400"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-CP-40817"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 3,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Denver",
+                "part_number": "KI-SK-40233"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "depot": "Denver",
+                      "qty": 12,
+                      "lead_days": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-5357b11fba27bedb85fb516b730a9224",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-5357b11fba27bedb85fb516b730a9224"
+        },
+        {
+          "question": "Is the K-600 high-pressure sensor available at the Portland depot?",
+          "answer": "\n\nThe part number for the K-600 high-pressure sensor is **KI-HS-60233**. However, \"Portland\" is not a valid Kestrel depot. Available depots are **Denver, Phoenix, and Chicago**. Check stock at these locations instead.\n\nRetrieved sources:  \nNo relevant service bulletins found for this query.",
+          "ended_by": "stop",
+          "turns": 3,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_find_part",
+              "arguments": {
+                "product": "K-600",
+                "query": "high-pressure sensor"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "results": [
+                    {
+                      "part_number": "KI-HS-60233",
+                      "name": "High-pressure sensor (refrigerant discharge)",
+                      "products": [
+                        "K-600"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "kestrel_check_stock",
+              "arguments": {
+                "depot": "Portland",
+                "part_number": "KI-HS-60233"
+              },
+              "result": {
+                "category": "bad_request",
+                "retryable": false,
+                "detail": "unknown depot 'Portland'; Kestrel depots are Denver, Phoenix, Chicago",
+                "data": null
+              }
+            }
+          ],
+          "trace_id": "tr-22b9fb4bc0d17ad7d98c815bd1338f71",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-22b9fb4bc0d17ad7d98c815bd1338f71"
+        },
+        {
+          "question": "A K-400 is showing fault F-21. What should the technician do?",
+          "answer": "\n\nThe fault F-21 (coolant loop pressure low) on the K-400 indicates a low-pressure issue in the coolant loop. According to bulletin SB-2024-102, the technician should:  \n1. Verify coolant loop pressure during start-up and under load.  \n2. Inspect the coolant pump assembly **KI-CP-40817** and seal kit **KI-SK-40233** (per SB-2024-117) for wear or leaks.  \n3. Ensure the system is fully charged with coolant and check for blockages.  \n\nIf parts are needed, use `kestrel_find_part` with the model and symptom.  \n\nRetrieved sources: SB-2024-102, SB-2024-117",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_search_bulletins",
+              "arguments": {
+                "product": "K-400",
+                "query": "F-21"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "passages": [
+                    {
+                      "source": "SB-2024-117",
+                      "section": "Applies to",
+                      "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+                      "score": 0.392
+                    },
+                    {
+                      "source": "SB-2024-102",
+                      "section": "Symptom",
+                      "text": "Controller raises fault F-21 (coolant loop pressure low) during start-up or under load.",
+                      "score": 0.385
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-48446e4d3d4307f700447aa91dd6da40",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-48446e4d3d4307f700447aa91dd6da40"
+        },
+        {
+          "question": "What's the service interval on a Kestrel K-900?",
+          "answer": "\n\nThe service interval for the Kestrel K-900 is not covered by available service bulletins. The search returned no relevant passages. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_search_bulletins",
+              "arguments": {
+                "product": "K-900",
+                "query": "service interval"
+              },
+              "result": {
+                "category": "no_results",
+                "retryable": false,
+                "detail": "no bulletin passage matched 'service interval' for product 'K-900'",
+                "data": {
+                  "passages": []
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-54798ff417dbdc6d294f41a782009f2d",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-54798ff417dbdc6d294f41a782009f2d"
+        },
+        {
+          "question": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
+          "answer": "\n\nShipping from Denver to Boulder takes 1 day. \n\nRetrieved sources:",
+          "ended_by": "stop",
+          "turns": 2,
+          "tools_offered": [
+            "discover_tools",
+            "filter_tools_by_tags",
+            "list_tags",
+            "select_tools",
+            "kestrel_find_part",
+            "kestrel_check_stock",
+            "kestrel_search_bulletins",
+            "kestrel_estimate_delivery"
+          ],
+          "tool_calls": [
+            {
+              "name": "kestrel_estimate_delivery",
+              "arguments": {
+                "origin_depot": "Denver",
+                "destination": "Boulder"
+              },
+              "result": {
+                "category": "ok",
+                "retryable": false,
+                "detail": "",
+                "data": {
+                  "origin_depot": "Denver",
+                  "destination": "Boulder",
+                  "transit_days": 1
+                }
+              }
+            }
+          ],
+          "trace_id": "tr-0b7c2052b696ab52f156f3d8c4d99433",
+          "trace_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/traces?workspace=user-zkz8t-app&selectedEvaluationId=tr-0b7c2052b696ab52f156f3d8c4d99433"
+        }
+      ],
+      "regression": {
+        "PASS": 6,
+        "FAIL": 0,
+        "SKIP": 0
+      },
+      "evaluation_id": "dfc2a53a703540fb870a572fc2afed37",
+      "evaluation_url": "https://rh-ai.apps.ocp.6hs5h.sandbox1714.opentlc.com/mlflow/#/experiments/2/evaluation-runs?workspace=user-zkz8t-app&selectedRunUuid=dfc2a53a703540fb870a572fc2afed37",
+      "executed_html": "executed-notebooks/participant-2/module-07.html"
+    }
+  ]
+}

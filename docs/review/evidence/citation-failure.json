@@ -1,0 +1,39 @@
+{
+  "source_commit": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee",
+  "module": 7,
+  "case": "m5",
+  "participant": 1,
+  "finding": "Correct cause stated but its supporting bulletin was not cited",
+  "answer": "\n\nThe fault F-21 (coolant loop pressure low) on K-400 chillers indicates a potential issue with the coolant pump assembly (KI-CP-40817) or seal kit (KI-SK-40233) as identified in bulletin SB-2024-117. The technician should:  \n1. Inspect the coolant pump assembly and seal kit for wear, damage, or leaks.  \n2. Verify coolant levels and ensure the system is free of air pockets.  \n3. Replace faulty components with the specified part numbers if necessary.  \n\nFor stock availability of KI-CP-40817 or KI-SK-40233, provide a depot name for further checks.",
+  "tool_calls": [
+    {
+      "name": "kestrel_search_bulletins",
+      "arguments": {
+        "product": "K-400",
+        "query": "F-21"
+      },
+      "result": {
+        "category": "ok",
+        "retryable": false,
+        "detail": "",
+        "data": {
+          "passages": [
+            {
+              "source": "SB-2024-117",
+              "section": "Applies to",
+              "text": "K-400 chillers fitted with coolant pump assembly KI-CP-40817 and seal kit KI-SK-40233.",
+              "score": 0.392
+            },
+            {
+              "source": "SB-2024-102",
+              "section": "Symptom",
+              "text": "Controller raises fault F-21 (coolant loop pressure low) during start-up or under load.",
+              "score": 0.385
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "resolution_candidate": "5e9341173370f6be15f9b50196246e1e474998e4"
+}

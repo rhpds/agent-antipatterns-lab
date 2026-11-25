@@ -1,0 +1,25 @@
+{
+  "source_commit": "5cee4f633358c7fca4312e6c4e42ae9f2d85c427",
+  "module": 5,
+  "participant": 1,
+  "finding": "Broad module 4 guidance suppressed the approved unsupported-cause starting demonstration",
+  "observed_answer": "\n\nThe fault code F-21 is not a part number and cannot be used to retrieve a replacement part. The technician should consult the K-400 fault code manual or contact Kestrel Industrial support for specific diagnostic guidance. No part number was found for this query.",
+  "observed_tools": [
+    {
+      "name": "find_part",
+      "arguments": {
+        "query": "F-21",
+        "product": "K-400"
+      },
+      "result": {
+        "category": "no_results",
+        "retryable": false,
+        "detail": "no part matched 'F-21'",
+        "data": {
+          "results": []
+        }
+      }
+    }
+  ],
+  "resolution_candidate": "94e6ea5563c77853b8b6ae83db66ee5b032f6eee"
+}
