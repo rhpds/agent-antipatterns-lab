@@ -34,13 +34,13 @@ A stock check for a depot that doesn't exist comes back looking like "no stock",
 
 `+run_tool+` catches every error and returns `+{"results": []}+`. A wrong argument, an unknown tool, a part number that isn't Kestrel's and a data file it can't read all come back looking like an empty search.
 
-`+check_stock+` doesn't recognise Portland, so `+depot_name+` is `+None+` and the `+if depot_name and ...+` line never filters by depot. It returns stock from every depot. The K-600 sensor has no stock at any depot, so the list comes back empty. Ask about a part that is in stock, such as the K-400 coolant pump, and the result for Portland would hold Denver's and Chicago's stock.
+`+check_stock+` doesn't recognise Portland, so `+depot_name+` is `+None+` and the `+if depot_name and ...+` line never filters by depot. It returns stock from every depot. The K-600 sensor has no stock at any depot, so the list comes back empty. Ask about a part that is in stock, such as the K-400 coolant pump assembly, `+KI-CP-40817+`, and the result for Portland would hold Denver's and Chicago's stock.
 
 Either way, the model can't tell "nothing in stock" from "that depot doesn't exist".
 
 ====
 
-*Your read:* compare the Denver answer with the first Portland answer from step 1. In the lab's test runs they're almost word for word the same. What tells you the Denver one is true and the Portland one wasn't?
+*Your read:* after step 5, compare the Denver answer with the first Portland answer from step 1. In the lab's test runs they're almost word for word the same. Going by the *tools run* column, what tells you the Denver one is true and the Portland one wasn't?
 
 .Check your answer
 [%collapsible]
@@ -52,7 +52,7 @@ The tool result. For Denver, `+check_stock+` returned `+no_results+` from a depo
 
 == How you know it worked
 
-`+check_stock+` returns `+bad_request+` naming Denver, Phoenix and Chicago, and the answer says Portland isn't a Kestrel depot. It must not say the sensor is out of stock or unavailable there.
+`+check_stock+` returns `+bad_request+` naming Denver, Phoenix and Chicago, and the answer says Portland isn't a depot. In the lab's test runs, it said Portland "is not a valid depot". The answer must not say the sensor is out of stock or unavailable there.
 
 == Diagrams
 
