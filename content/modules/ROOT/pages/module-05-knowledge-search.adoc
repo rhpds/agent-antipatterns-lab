@@ -66,13 +66,13 @@ flowchart LR
 [%collapsible]
 ====
 
-If step 2's search, or the agent's `+search_bulletins+` call in step 4, comes back with `+upstream_unavailable+` and "knowledge store unreachable", the agent can't reach the database. It may still be starting, so wait a minute and run the cell again. If that doesn't help, open a terminal (_File > New > Terminal_), run `+cd ~/agent-antipatterns-lab/agent+`, then `+env | grep PG+`, and check that `+PGHOST+`, `+PGPORT+`, `+PGDATABASE+`, `+PGUSER+` and `+PGPASSWORD+` are all set. Your workbench sets them when it starts. If one is missing, the database wasn't set up for your project, and you can't fix that from the notebook.
+If step 2's search, or the agent's `+search_bulletins+` call in step 4, comes back with `+upstream_unavailable+` and "knowledge store unreachable", the agent can't reach the database. It may still be starting, so wait a minute and run the cell again. If that doesn't help, open a terminal (_File > New > Terminal_), run `+cd ~/agent-antipatterns-lab/agent+`, then `+env | grep PG+`, and check that `+PGHOST+`, `+PGPORT+`, `+PGDATABASE+`, `+PGUSER+` and `+PGPASSWORD+` are all set. Your workbench sets them when it starts. If one is missing, the database wasn't set up for your project, and you can't fix that from the notebook. Ask whoever runs your lab session for help.
 
-If the F-21 search returns `+no_results+`, the bulletins aren't loaded. In the same terminal and folder, run `+python ingest_corpus.py+`. link:{lab-source-url}/agent/ingest_corpus.py[`+ingest_corpus.py+`^] loads the bulletins into the database, and it should print "ingested 12 passages from 5 bulletins". Then run the cell again.
+If step 2's search for "fault F-21" returns `+no_results+`, the bulletins aren't loaded. In the same terminal and folder, run `+python ingest_corpus.py+`. link:{lab-source-url}/agent/ingest_corpus.py[`+ingest_corpus.py+`^] loads the bulletins into the database, and it should print "ingested 12 passages from 5 bulletins". Then run the cell again. If only the agent's search in step 4 returns `+no_results+`, the query it wrote may be the cause. Run step 2's cell: if that finds passages, the bulletins are loaded, so run step 4 again.
 
 If step 4's tool results show `+find_part+` and no `+search_bulletins+`, the agent doesn't have the new tool yet. Run step 3's first cell again, then step 4.
 
-After the fix, you should see a passage from SB-2024-102 in step 4's tool results and SB-2024-102 in the answer's sources. Your answer's wording may differ from the one described in step 4. Check it against the passages the same way, because finding a passage doesn't prove the answer used it.
+After the fix, you should see a passage from SB-2024-102 in step 4's tool results and SB-2024-102 in the answer's sources. Your answer's wording may differ from the one described in step 4. Check it against the passages the same way, because finding a passage doesn't prove the answer used it. If your agent's query differs, so will its passages. If the _Action_ passage comes back, the answer may include the bleed and the 2.1 bar check. Do the same check with the passages your run got: which parts of the answer come from them, and which don't?
 
 For K-900, `+search_bulletins+` should return `+no_results+`, and the answer should say the bulletins don't cover the question, with no made-up interval.
 
