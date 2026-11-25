@@ -34,8 +34,8 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('= A lesson\n', result)
         self.assertIn('== Read this', result)
         # Repository links open in a new tab: GitHub won't load inside Showroom's frame.
-        self.assertIn('link:{lab-source-url}/agent/config.toml["config",window=_blank]', result)
-        self.assertIn('["`+tools.py+`",window=_blank]', result)
+        self.assertIn('link:{lab-source-url}/agent/config.toml[config^]', result)
+        self.assertIn('[`+tools.py+`^]', result)
         self.assertIn('[source,python]', result)
         self.assertIn('raise RuntimeError("must never execute")\n%cd ../agent\n!python agent.py', result)
         self.assertIn('[mermaid]\n', result)
@@ -63,7 +63,7 @@ class ShowroomMirrorTests(unittest.TestCase):
         for source in sources:
             with self.subTest(source=source.name):
                 result = self.generator.render(source)
-                self.assertIn(f'/notebooks/{source.name}["notebook source",window=_blank]', result)
+                self.assertIn(f'/notebooks/{source.name}[notebook source^]', result)
                 heading = ''.join(json.loads(source.read_text())['cells'][0]['source']).splitlines()[0]
                 self.assertIn(heading.replace('# ', '= ', 1) + '\n', result)
                 position = 0

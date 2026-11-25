@@ -2,6 +2,7 @@
 """Check the built HTML against all seven notebooks, including code and interactive markup."""
 import argparse
 import json
+import re
 from pathlib import Path
 import subprocess
 
@@ -39,6 +40,10 @@ def main():
                 # GitHub refuses to load inside Showroom's frame.
                 assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
         assert article.find("h1"), f"{source.name}: no page title"
+        # A repository link written as a code span must still render as code.
+        for name in re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown):
+            assert any(code.get_text() == name for a in article.select("a[href*='/blob/']") for code in a.select("code")), \
+                f"{source.name}: link text `{name}` lost its code formatting"
         has_label = "Prototype notebook." in markdown
         assert ("Prototype notebook." in article.get_text()) == has_label, f"{source.name}: draft label differs from the notebook"
         count += 1

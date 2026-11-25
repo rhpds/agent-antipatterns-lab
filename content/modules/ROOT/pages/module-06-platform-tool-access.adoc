@@ -11,7 +11,7 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: Open `notebooks/module-06-platform-tool-access.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-06-platform-tool-access.ipynb["notebook source",window=_blank] opens on GitHub in a new browser tab.
+NOTE: Open `notebooks/module-06-platform-tool-access.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-06-platform-tool-access.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
 ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
@@ -77,7 +77,7 @@ The lab's MCP Gateway serves the same tools from the platform. The lab runs MCP 
 print(lab.gateway_url() or "This environment has no lab MCP Gateway (LAB_GATEWAY_URL isn't set).")
 ----
 
-Open link:{lab-source-url}/agent/config.toml["`+config.toml+`",window=_blank], set `+gateway_url+` under `+[tools]+` to that address, and save. That's the only change to the agent. This cell confirms what it will use:
+Open link:{lab-source-url}/agent/config.toml[`+config.toml+`^], set `+gateway_url+` under `+[tools]+` to that address, and save. That's the only change to the agent. This cell confirms what it will use:
 
 [source,python]
 ----

@@ -61,7 +61,7 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{{lab-source-ref}}
 
-NOTE: Open `notebooks/{source.name}` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{{lab-source-url}}/notebooks/{source.name}["notebook source",window=_blank] opens on GitHub in a new browser tab.
+NOTE: Open `notebooks/{source.name}` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{{lab-source-url}}/notebooks/{source.name}[notebook source^] opens on GitHub in a new browser tab.
 """
     return introduction + "\n" + remainder.strip() + "\n"
 

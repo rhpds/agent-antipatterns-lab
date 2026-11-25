@@ -56,10 +56,14 @@ function Link(link)
     end
   end
   -- GitHub refuses to load inside Showroom's frame, so these open in a new tab.
-  -- The text keeps its inline markup (code spans), quoted so that a comma, an
-  -- equals sign or a bracket in it can't be read as link attributes.
+  -- The text keeps its inline markup (code spans). Asciidoctor reads a quoted
+  -- code span as curly quotes, so quote the text only when a comma, equals sign
+  -- or double quote would otherwise be read as link attributes.
   local text = pandoc.write(pandoc.Pandoc({pandoc.Plain(link.content)}), 'asciidoc')
-  text = text:gsub('%s+$', ''):gsub('"', '\\"')
-  return pandoc.RawInline('asciidoc',
-    'link:{lab-source-url}/' .. table.concat(parts, '/') .. '["' .. text .. '",window=_blank]')
+  text = text:gsub('%s+$', ''):gsub(']', '\\]')
+  local target = 'link:{lab-source-url}/' .. table.concat(parts, '/')
+  if text:find('[,="]') then
+    return pandoc.RawInline('asciidoc', target .. '["' .. text:gsub('"', '\\"') .. '",window=_blank]')
+  end
+  return pandoc.RawInline('asciidoc', target .. '[' .. text .. '^]')
 end
