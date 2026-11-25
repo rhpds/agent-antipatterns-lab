@@ -1,5 +1,23 @@
 (function () {
   'use strict';
+  // Mermaid draws diagrams after the page loads and scales them down to the
+  // pane's width, which leaves the text too small to read in Showroom's narrow
+  // instructions pane. Give each diagram its natural size instead; the
+  // container scrolls sideways when it's wider than the pane.
+  function naturalSize(svg) {
+    if (svg.dataset.labSized) return;
+    var box = svg.viewBox && svg.viewBox.baseVal;
+    if (!box || !box.width) return;
+    svg.style.width = box.width + 'px';
+    svg.style.height = box.height + 'px';
+    svg.dataset.labSized = 'true';
+  }
+  function sizeAll() {
+    document.querySelectorAll('.doc .mermaid svg').forEach(naturalSize);
+  }
+  new MutationObserver(sizeAll).observe(document.documentElement, { childList: true, subtree: true });
+  sizeAll();
+
   // Click a diagram to see it full screen; click again or press Escape to close.
   function close() {
     var open = document.querySelector('.lab-diagram-overlay');
@@ -14,7 +32,10 @@
     overlay.className = 'lab-diagram-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-label', 'Diagram, full screen. Click or press Escape to close.');
-    overlay.appendChild(svg.cloneNode(true));
+    var copy = svg.cloneNode(true);
+    copy.style.width = '';
+    copy.style.height = '';
+    overlay.appendChild(copy);
     document.body.appendChild(overlay);
   });
   document.addEventListener('keydown', function (event) {

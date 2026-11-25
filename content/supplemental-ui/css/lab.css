@@ -11,13 +11,14 @@
    sideways, instead of shrinking until the text can't be read. Click one to
    see it full screen. */
 .doc .mermaid {
+  display: block;
+  width: 100%;
   overflow-x: auto;
   cursor: zoom-in;
 }
 .doc .mermaid svg {
+  /* lab.js sets the natural width once Mermaid has drawn the diagram. */
   max-width: none !important;
-  width: auto !important;
-  height: auto;
 }
 .lab-diagram-overlay {
   position: fixed;
