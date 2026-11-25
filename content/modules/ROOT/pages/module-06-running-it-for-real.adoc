@@ -86,7 +86,7 @@ flowchart TB
 
 == Where to go next
 
-In this lab each tool is a Python function inside the agent's own code, in `+tools.py+`. The one tool that needs a credential, `+search_bulletins+`, reads its database password from the workbench's environment. Adding or withdrawing a tool means changing every agent that uses it. On a shared platform, governed tool access puts one place in charge of which tools each agent may see and call. That's the "Who can see what?" row of the checklist.
+In this lab each tool is a Python function inside the agent's own code, listed in `+tools.py+`. The one tool that needs a credential, `+search_bulletins+`, reads its database password from the workbench's environment. Adding or withdrawing a tool means changing every agent that uses it. On a shared platform, governed tool access puts one place in charge of which tools each agent may see and call. That's the "Who can see what?" row of the checklist.
 
 MCP, the Model Context Protocol, is a standard way for an agent to find and call tools that run outside it. MCP Gateway, part of Red Hat Connectivity Link, is one way to provide governed tool access on OpenShift: agents reach their tools through the gateway, and the platform sets which tools each one is offered. This lab has no hands-on step for it. When you're ready to try it, read the link:https://docs.redhat.com/en/documentation/red_hat_connectivity_link/latest/html/mcp_gateway/index[MCP gateway documentation^].
 
