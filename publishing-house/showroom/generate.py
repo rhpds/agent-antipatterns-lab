@@ -61,7 +61,7 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{{lab-source-ref}}
 
-NOTE: This page mirrors the link:{{lab-source-url}}/notebooks/{source.name}[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+NOTE: Open `notebooks/{source.name}` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{{lab-source-url}}/notebooks/{source.name}[notebook source^] opens on GitHub in a new browser tab.
 """
     return introduction + "\n" + remainder.strip() + "\n"
 

@@ -55,6 +55,8 @@ function Link(link)
       table.insert(parts, part)
     end
   end
-  link.target = '{lab-source-url}/' .. table.concat(parts, '/')
-  return link
+  -- GitHub refuses to load inside Showroom's frame, so these open in a new tab (the ^).
+  local text = pandoc.utils.stringify(link.content):gsub(']', '\\]')
+  return pandoc.RawInline('asciidoc',
+    'link:{lab-source-url}/' .. table.concat(parts, '/') .. '[' .. text .. '^]')
 end

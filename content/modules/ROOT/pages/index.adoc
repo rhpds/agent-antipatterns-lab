@@ -2,11 +2,15 @@
 
 == Lab overview
 
-Build a field service agent for Kestrel Industrial, a fictional chiller manufacturer, one layer at a time. Diagnose each failure from the request and response payloads or execution trace, apply the fix, and check the evidence again.
+You'll build a field service agent for Kestrel Industrial, a fictional maker of industrial cooling equipment. The agent helps service engineers find parts, check stock and delivery times, and look up service bulletins.
 
-These pages mirror the seven Jupyter notebooks, with their explanations, questions, diagrams and code cells in order. You can review the lab here without provisioning an environment. To execute the cells, open the corresponding notebook in the lab's JupyterLab workbench.
+The agent you start with has problems that don't show up as errors. Module 1 shows you how to see inside it. In the modules after that, you find what's wrong from the evidence: the request sent to the model, the response that came back, what a tool returned, and the trace in MLflow. Then you apply the fix and check the evidence again.
 
-The notebook wording is a working draft. These pages show code without executing it and omit saved outputs. Evidence tables, model responses and links to a particular environment appear when the notebook runs; descriptions of those results state what to inspect during the lab.
+== How to work through the lab
+
+Each module has a Jupyter notebook in your workbench. Open the *Notebook* tab on the right, where module 1's notebook opens. Run the cells in order and answer the questions as you go. This side shows the same steps and code so you can read along, but the code only runs in the notebook.
+
+To start a module over, open a terminal in the workbench (*File > New > Terminal*), go to the `agent-antipatterns-lab` folder and run `python agent/reset.py <module number>`. Your edits are saved before the reset.
 
 == Modules
 

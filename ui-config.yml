@@ -9,6 +9,10 @@ view_switcher:
   default_mode: split
 
 tabs:
+  # The participant's workbench, opened on module 1. RHDP names the project
+  # <username>-app, and its usernames are user-<guid> (automation/gitops/README.md).
+  - name: Notebook
+    url: 'https://rh-ai.${DOMAIN}/notebook/user-${GUID}-app/kestrel-agent/lab/tree/agent-antipatterns-lab/notebooks/module-01-what-you-are-building.ipynb'
   - name: ">_ terminal"
     path: /terminal
     port: 443
@@ -16,4 +20,4 @@ tabs:
     url: 'https://console-openshift-console.${DOMAIN}'
   - name: OpenShift AI
     url: 'https://rhods-dashboard-redhat-ods-applications.${DOMAIN}'
-  # Workbench and MLflow tabs go here once their routes exist on the CI cluster.
+  # An MLflow tab can go here once its route is settled.
