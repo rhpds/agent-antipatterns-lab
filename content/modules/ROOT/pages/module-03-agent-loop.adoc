@@ -11,64 +11,19 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: Open `notebooks/module-03-agent-loop.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-03-agent-loop.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook, `notebooks/module-03-agent-loop.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-03-agent-loop.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
-____
+With tool calls working, the agent now calls the same tool on every turn until the turn cap stops it. You find out why from the trace, apply the supplied fix to the loop, and check that the run stops on its own.
 
-Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
+== What you'll do in the notebook
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+[arabic]
+. Watch it loop
+. Find what went wrong, from the evidence
+. Fix the loop
+. Confirm it stops
 
-== Start from module 3
-
-This puts the agent in the state module 3 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python reset.py 3
-----
-
-Module 3 starts on endpoint B (module 2's repoint is applied), so tool calls now fire.
-
-== 1. Watch it loop
-
-The question needs two steps: `+find_part+` for the pump, then `+check_stock+` with the part number it returns.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m3
-lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
-----
-
-Note how many turns it took and how the run ended, compared with module 2.
-
-== 2. Find what went wrong, from the evidence
-
-Open the trace. Count the `+model_call_N+` spans, and read the tool spans in order.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-lab.trace_link()
-lab.tool_results()
-----
-
-The same tool, with the same arguments, on every turn, until the cap in `+config.toml+` (`+max_turns+`) stopped it. The model isn't repeating itself for no reason: something is wrong with what the loop gives back to it.
-
-Open link:{lab-source-url}/agent/agent.py[`+agent.py+`^] and read `+run_agent+`. Find two defects: one in what happens to a tool's result, and one in how the loop decides to stop.
+== Questions to think about
 
 .Check your answer
 [%collapsible]
@@ -80,20 +35,15 @@ Open link:{lab-source-url}/agent/agent.py[`+agent.py+`^] and read `+run_agent+`.
 
 ====
 
-== 3. Fix the loop
+== How you know it worked
 
-Apply the supplied fix, then read what changed:
+The run ended on the model's own stop condition, well under the cap. In the trace: `+find_part+` once, then `+check_stock+` for each part it returned (the pump and its seal kit come back together, so expect two `+check_stock+` calls in one turn), and every result in the messages the model saw.
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!cp solutions/module-03/agent.py .
-!git diff --stat -- agent.py
-!git diff -- agent.py | head -80
-----
+== Diagrams
 
-Each tool result is now appended with the `+tool_call_id+` it answers, and the loop branches on `+finish_reason+`: continue on `+tool_calls+`, return on `+stop+`. The turn cap stays, as a safety net.
+.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+[%collapsible]
+====
 
 [mermaid]
 ....
@@ -107,18 +57,8 @@ flowchart TD
   C -. "safety net" .-> CAP["Turn cap reached: stop and say so"]
 ....
 
-== 4. Confirm it stops
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m3
-lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
-lab.trace_link()
-----
-
-*This is the module's success signal:* the run ended on the model's own stop condition, well under the cap. In the trace: `+find_part+` once, then `+check_stock+` for each part it returned (the pump and its seal kit come back together, so expect two `+check_stock+` calls in one turn), and every result in the messages the model saw.
+====
 
 == If the result differs
 

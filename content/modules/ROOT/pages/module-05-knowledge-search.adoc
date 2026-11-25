@@ -11,72 +11,28 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: Open `notebooks/module-05-knowledge-search.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook, `notebooks/module-05-knowledge-search.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
-____
+The agent answers a maintenance question from its own guesses. You give it a search tool over Kestrel's service bulletins, check that its answer follows the bulletin it found, and see what it does when the bulletins don't cover a question.
 
-Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
+== What you'll do in the notebook
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+[arabic]
+. An answer the model can't know
+. The knowledge it could use
+. Register the search tool
+. Ask again
+. Ask something the bulletins don't cover
 
-== Start from module 5
+== How you know it worked
 
-This puts the agent in the state module 5 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+`+search_bulletins+` was called, passages came back from SB-2024-102, and the answer follows the passage ("coolant loop pressure low") rather than the model's guess.
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python reset.py 5
-----
+== Diagrams
 
-== 1. An answer the model can't know
-
-Fault F-21 is documented only in Kestrel's service bulletins, which no model has seen.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m5
-lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
-lab.trace_link()
-----
-
-A specific, plausible answer. Module 4's contract doesn't catch it, because no tool failed. In the trace, look for a retrieval step: there isn't one, because the agent has no way to search yet.
-
-== 2. The knowledge it could use
-
-The bulletins are already loaded into a PostgreSQL database with pgvector in your project. Query it directly, outside the agent:
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python retrieval.py "fault F-21"
-----
-
-Each passage carries its `+source+`, the bulletin it came from. That's what makes an answer checkable.
-
-== 3. Register the search tool
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!cp solutions/module-05/tools.py solutions/module-05/agent.py .
-!git diff --stat -- tools.py agent.py
-----
-
-`+search_bulletins+` is declared like the other tools and returns passages with their sources using module 4's contract. The supplied agent instructs the model to cite those source IDs and to acknowledge a search miss instead of inventing an answer.
+.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+[%collapsible]
+====
 
 [mermaid]
 ....
@@ -89,35 +45,8 @@ flowchart LR
   M --> ANS["An answer that matches a passage"]
 ....
 
-== 4. Ask again
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m5
-lab.tool_results()
-lab.trace_link()
-----
-
-*This is the module's success signal:* `+search_bulletins+` was called, passages came back from SB-2024-102, and the answer follows the passage ("coolant loop pressure low") rather than the model's guess.
-
-== 5. Ask something the bulletins don't cover
-
-There is no Kestrel K-900.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m5-miss
-lab.tool_results()
-lab.evidence(columns=("question", "tools run", "answer"), last=3)
-----
-
-The search returns `+no_results+`, and the agent says so instead of inventing. Compare it with the first run of this module, which invented.
-
-Grounding makes an answer checkable; it doesn't make it correct. Nothing yet checks that the retrieved passage actually answers the question. Module 7 comes back to that.
+====
 
 == If the result differs
 

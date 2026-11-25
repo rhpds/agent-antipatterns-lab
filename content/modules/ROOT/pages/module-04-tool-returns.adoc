@@ -11,56 +11,18 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: Open `notebooks/module-04-tool-returns.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-04-tool-returns.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook, `notebooks/module-04-tool-returns.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-04-tool-returns.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
-____
+A stock check for a depot that doesn't exist comes back looking like "no stock", and the agent answers with confidence. You find where the tool hides the failure, give tool results a shape that says what went wrong, and check that the agent reports it.
 
-Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
+== What you'll do in the notebook
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+[arabic]
+. A clean-looking run
+. Give failure a shape
+. Run it again
 
-== Start from module 4
-
-This puts the agent in the state module 4 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python reset.py 4
-----
-
-== 1. A clean-looking run
-
-Portland is not one of Kestrel's depots.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m4
-lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
-----
-
-Fluent, authoritative, and reporting no problem. Now check the evidence rather than the answer.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-lab.trace_link()
-lab.tool_results()
-----
-
-The tool was called, returned quickly, and the run ended cleanly on `+stop+`. What the tool actually returned is a valid object with an empty results list and no sign that anything went wrong.
+== Questions to think about
 
 *Your read:* what else could have produced exactly that response? Open `+run_tool+` in link:{lab-source-url}/agent/tools.py[`+tools.py+`^] and see what it does with an exception, and what `+check_stock+` does with a depot it doesn't recognise.
 
@@ -72,21 +34,15 @@ The tool was called, returned quickly, and the run ended cleanly on `+stop+`. Wh
 
 ====
 
-== 2. Give failure a shape
+== How you know it worked
 
-Apply the supplied error contract:
+A `+bad_request+` that names the real depots, instead of a confident answer. Two more, to see the other categories: a real depot with no stock, and a question the data does cover.
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!cp solutions/module-04/tools.py solutions/module-04/agent.py .
-!git diff --stat -- tools.py agent.py
-----
+== Diagrams
 
-The supplied agent also tells the model how to interpret the categories and to use returned part numbers for dependent stock checks. A structured tool error needs to be reflected in the answer.
-
-Every tool return now carries a `+category+` (`+ok+`, `+no_results+`, `+bad_request+`, `+upstream_unavailable+`), whether a retry could help, and a detail the model can use. `+check_stock+` rejects an unknown depot as `+bad_request+`.
+.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+[%collapsible]
+====
 
 [mermaid]
 ....
@@ -106,29 +62,8 @@ flowchart TB
   Before ~~~ After
 ....
 
-== 3. Run it again
 
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py --q m4
-lab.tool_results()
-lab.trace_link()
-----
-
-*This is the module's success signal:* a `+bad_request+` that names the real depots, instead of a confident answer. Two more, to see the other categories: a real depot with no stock, and a question the data does cover.
-
-.Notebook cell (runs in the Notebook tab)
-[.notebook-cell]
-[source,python]
-----
-!python agent.py "Is the K-600 high-pressure sensor available at the Denver depot?"
-!python agent.py --q m3
-lab.evidence(columns=("question", "ended by", "tools run", "answer"), last=3)
-----
-
-The *tools run* column shows each call's category. In each trace, the tool span's outputs carry the same `+category+`, `+retryable+` and `+detail+`.
+====
 
 == If the result differs
 
