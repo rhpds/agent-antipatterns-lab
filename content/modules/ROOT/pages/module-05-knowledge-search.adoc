@@ -13,20 +13,32 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-05-knowledge-search.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-The agent answers a maintenance question from its own guesses. You give it a search tool over Kestrel's service bulletins, check that its answer follows the bulletin it found, and see what it does when the bulletins don't cover a question.
+The agent answers a maintenance question by guessing. You give it a search tool over Kestrel's service bulletins, check its answer against the passages the search found, and see what it does when the bulletins don't cover a question.
 
 == What you'll do in the notebook
 
 [arabic]
 . An answer the model can't know
-. The knowledge it could use
-. Register the search tool
+. The knowledge it could use (stretch goal)
+. Give the agent the search tool
 . Ask again
 . Ask something the bulletins don't cover
 
+== Questions to think about
+
+*Your read:* put the answer next to the passages. Which parts of the answer come from a passage, and which don't?
+
+.Check your answer
+[%collapsible]
+====
+
+The fault's name, "coolant loop pressure low", comes from SB-2024-102's _Symptom_ passage. The pump assembly KI-CP-40817 and seal kit KI-SK-40233 come from SB-2024-117's _Applies to_ passage, which lists the K-400s that seal bulletin covers and says nothing about F-21. Advice such as verifying coolant levels comes from no passage at all.
+
+====
+
 == How you know it worked
 
-`+search_bulletins+` was called, passages came back from SB-2024-102, and the answer follows the passage ("coolant loop pressure low") rather than the model's guess.
+`+search_bulletins+` was called, a passage from SB-2024-102 came back, the answer names the fault as that passage does ("coolant loop pressure low"), and it lists its sources.
 
 == Diagrams
 
@@ -38,11 +50,11 @@ The agent answers a maintenance question from its own guesses. You give it a sea
 ....
 flowchart LR
   Q["The F-21 question"] --> M["Model"]
-  M -- "search_bulletins: fault F-21" --> T["Retrieval tool"]
+  M -- "search_bulletins: a query the model writes" --> T["Retrieval tool"]
   T --> DB[("pgvector: Kestrel service bulletins")]
   DB --> T
   T -- "passages with their source ids, in module 4's contract" --> M
-  M --> ANS["An answer that matches a passage"]
+  M --> ANS["An answer that lists its sources"]
 ....
 
 
@@ -54,6 +66,14 @@ flowchart LR
 [%collapsible]
 ====
 
-If the direct retrieval command cannot reach PostgreSQL, stop and check environment readiness; do not substitute a guessed answer. If F-21 returns no passage, confirm that your project has the bulletin corpus and the expected database settings before continuing. After the fix, require a retrieved passage from `+SB-2024-102+`, its source ID in the answer, and the documented “coolant loop pressure low” cause. Retrieval alone does not prove the answer used it. For K-900, require `+search_bulletins+` to return `+no_results+` and the answer to acknowledge the gap without supplying an invented interval.
+If step 2's search, or the agent's `+search_bulletins+` call in step 4, comes back with `+upstream_unavailable+` and "knowledge store unreachable", the agent can't reach the database. It may still be starting, so wait a minute and run the cell again. If that doesn't help, open a terminal (_File > New > Terminal_), run `+cd ~/agent-antipatterns-lab/agent+`, then `+env | grep PG+`, and check that `+PGHOST+`, `+PGPORT+`, `+PGDATABASE+`, `+PGUSER+` and `+PGPASSWORD+` are all set. Your workbench sets them when it starts. If one is missing, the database wasn't set up for your project, and you can't fix that from the notebook. Ask whoever runs your lab session for help.
+
+If step 2's search for "fault F-21" returns `+no_results+`, the bulletins aren't loaded. In the same terminal and folder, run `+python ingest_corpus.py+`. link:{lab-source-url}/agent/ingest_corpus.py[`+ingest_corpus.py+`^] loads the bulletins into the database, and it should print "ingested 12 passages from 5 bulletins". Then run the cell again. If only the agent's search in step 4 returns `+no_results+`, the query it wrote may be the cause. Run step 2's cell: if that finds passages, the bulletins are loaded, so run step 4 again.
+
+If step 4's tool results show `+find_part+` and no `+search_bulletins+`, the agent doesn't have the new tool yet. Run step 3's first cell again, then step 4.
+
+After the fix, you should see a passage from SB-2024-102 in step 4's tool results and SB-2024-102 in the answer's sources. Your answer's wording may differ from the one described in step 4. Check it against the passages the same way, because finding a passage doesn't prove the answer used it. If your agent's query differs, so will its passages. If the _Action_ passage comes back, the answer may include the bleed and the 2.1 bar check. Do the same check with the passages your run got: which parts of the answer come from them, and which don't?
+
+For K-900, `+search_bulletins+` should return `+no_results+`, and the answer should say the bulletins don't cover the question, with no made-up interval.
 
 ====
