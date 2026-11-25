@@ -46,6 +46,15 @@ def mlflow_home():
     return uri.rstrip("/") if uri.startswith(("http://", "https://")) else None
 
 
+def endpoint():
+    """The model endpoint config.toml points at, written so the notebook doesn't turn it into a
+    link: it's an address inside the cluster, which a browser can't open."""
+    url = config()["model"]["base_url"]
+    host = urlparse(url).netloc
+    name = host.split(".")[0].removesuffix("-predictor")
+    return f"{name} (inside the cluster at {host}{urlparse(url).path}; a browser can't open it)"
+
+
 def apps_domain():
     """The cluster's apps domain, read from the MLflow address (https://rh-ai.<apps domain>/mlflow)."""
     host = urlparse(mlflow_home() or "").hostname or ""
