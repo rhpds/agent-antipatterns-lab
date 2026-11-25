@@ -45,7 +45,7 @@ function Link(link)
     return pandoc.RawInline('asciidoc', 'xref:' .. target:gsub('%.ipynb$', '.adoc') ..
       '[' .. pandoc.utils.stringify(link.content) .. ']')
   end
-  -- Notebook-relative repository links must remain useful without a running workbench.
+  -- Notebook-relative repository links open the file in the participant's own workbench.
   local parts = {'notebooks'}
   for part in target:gmatch('[^/]+') do
     if part == '..' then
@@ -55,13 +55,13 @@ function Link(link)
       table.insert(parts, part)
     end
   end
-  -- GitHub refuses to load inside Showroom's frame, so these open in a new tab.
+  -- These open in a new tab, so the guide stays beside the Notebook tab.
   -- The text keeps its inline markup (code spans). Asciidoctor reads a quoted
   -- code span as curly quotes, so quote the text only when a comma, equals sign
   -- or double quote would otherwise be read as link attributes.
   local text = pandoc.write(pandoc.Pandoc({pandoc.Plain(link.content)}), 'asciidoc')
   text = text:gsub('%s+$', ''):gsub(']', '\\]')
-  local target = 'link:{lab-source-url}/' .. table.concat(parts, '/')
+  local target = 'link:{lab-workbench-url}/' .. table.concat(parts, '/')
   if text:find('[,="]') then
     return pandoc.RawInline('asciidoc', target .. '["' .. text:gsub('"', '\\"') .. '",window=_blank]')
   end

@@ -43,8 +43,10 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('= A lesson\n', result)
         self.assertIn('What this module is about', result)
         self.assertNotIn('Prototype notebook', result)
-        # Repository links open in a new tab: GitHub won't load inside Showroom's frame.
-        self.assertIn('link:{lab-source-url}/agent/config.toml[config^]', result)
+        # Repository links open the file in the participant's workbench, in a new tab.
+        self.assertIn('link:{lab-workbench-url}/agent/config.toml[config^]', result)
+        self.assertIn('link:{lab-workbench-url}/agent/tools.py[`+tools.py+`^]', result)
+        self.assertNotIn('github.com', result)
         self.assertIn('[`+tools.py+`^]', result)
         self.assertIn("== What you'll do in the notebook", result)
         self.assertIn('. Run it\n. Fix it', result)
@@ -89,7 +91,10 @@ class ShowroomMirrorTests(unittest.TestCase):
         for source in sources:
             with self.subTest(source=source.name):
                 result = self.generator.render(source)
-                self.assertIn(f'/notebooks/{source.name}[notebook source^]', result)
+                self.assertIn(f"link:{{lab-workbench-url}}/notebooks/{source.name}[Open this module's notebook^]", result)
+                self.assertIn(':lab-workbench-url: https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app'
+                              '/kestrel-agent/lab/tree/agent-antipatterns-lab\n', result)
+                self.assertNotIn('github.com', result)
                 cells = json.loads(source.read_text())['cells']
                 heading = ''.join(cells[0]['source']).splitlines()[0]
                 self.assertIn(heading.replace('# ', '= ', 1) + '\n', result)

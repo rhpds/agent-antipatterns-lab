@@ -4,19 +4,33 @@ import argparse
 import json
 import re
 from pathlib import Path
-import subprocess
 
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def workbench_url():
+    """The workbench URL the guides link to, built from content/antora.yml's default attributes.
+    Showroom replaces those with each participant's user and cluster domain."""
+    antora = (ROOT / "content/antora.yml").read_text()
+
+    def default(name):
+        match = re.search(rf"^\s+{name}: '([^']+)'$", antora, re.MULTILINE)
+        assert match, f"content/antora.yml: no default for {name}"
+        return match.group(1).removesuffix("@")
+    return (f"https://rh-ai.{default('openshift_cluster_ingress_domain')}/notebook/{default('user')}-app"
+            "/kestrel-agent/lab/tree/agent-antipatterns-lab")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site-dir", type=Path, default=ROOT / "www")
-    parser.add_argument("--source-ref", default=subprocess.check_output(
-        ["git", "branch", "--show-current"], cwd=ROOT, text=True).strip())
+    # The guides link to the participant's workbench, not to a branch on GitHub, so no ref is
+    # checked. The option stays so existing build commands keep working.
+    parser.add_argument("--source-ref", help="Ignored")
     args = parser.parse_args()
+    workbench = workbench_url()
     count = 0
     for source in sorted((ROOT / "notebooks").glob("module-*.ipynb")):
         notebook = json.loads(source.read_text())
@@ -42,26 +56,31 @@ def main():
         assert text.count("Your read:") == questions, f"{source.name}: questions differ from the notebook"
         if "**This is the module's success signal:**" in markdown:
             assert article.find(id="_how_you_know_it_worked"), f"{source.name}: no 'How you know it worked'"
-        expected_url = f"https://github.com/rhpds/agent-antipatterns-lab/blob/{args.source_ref}/notebooks/{source.name}"
-        assert article.find("a", href=expected_url), f"{source.name}: wrong notebook source link"
+        expected_url = f"{workbench}/notebooks/{source.name}"
+        notebook_link = article.find("a", href=expected_url)
+        assert notebook_link and notebook_link.get_text().replace("\u2019", "'") == "Open this module's notebook", \
+            f"{source.name}: wrong notebook link"
         for link in article.select("a[href]"):
             href = link["href"]
-            assert "{lab-source" not in href and not href.startswith("../agent/"), f"{source.name}: unresolved link {href}"
-            if "/blob/" in href:
-                assert f"/blob/{args.source_ref}/" in href, f"{source.name}: wrong source branch in {href}"
-                # GitHub refuses to load inside Showroom's frame.
+            assert "{" not in href and not href.startswith("../"), f"{source.name}: unresolved link {href}"
+            assert "github.com/rhpds/agent-antipatterns-lab" not in href, f"{source.name}: {href} still points to GitHub"
+            if href.startswith(workbench):
+                # Each file link opens a file that exists in the lab folder.
+                path = href[len(workbench) + 1:]
+                assert (ROOT / path).exists(), f"{source.name}: {href} names a file the lab doesn't have"
+                # A new tab keeps the guide beside the Notebook tab.
                 assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
         # A repository link written as a code span must still render as code.
         code_named = set(re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown))
-        for link in article.select("a[href*='/blob/']"):
-            if link.get_text() in code_named:
+        for link in article.select("a[href]"):
+            if link["href"].startswith(workbench) and link.get_text() in code_named:
                 assert link.select("code"), f"{source.name}: link text `{link.get_text()}` lost its code formatting"
         assert article.find("h1"), f"{source.name}: no page title"
         assert "Prototype notebook." not in article.get_text(), f"{source.name}: draft label on the guide"
         count += 1
         print(f"Verified {source.name}: {len(steps)} steps, {len(article.select('.mermaid'))} diagrams")
     assert count == 7, f"Expected seven modules, found {count}"
-    print("All seven module guides match their notebooks' steps, questions, diagrams and source links.")
+    print("All seven module guides match their notebooks' steps, questions, diagrams and workbench links.")
 
 
 if __name__ == "__main__":
