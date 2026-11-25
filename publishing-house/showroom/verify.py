@@ -60,8 +60,8 @@ def main():
         assert "Prototype notebook." not in article.get_text(), f"{source.name}: draft label on the guide"
         count += 1
         print(f"Verified {source.name}: {len(steps)} steps, {len(article.select('.mermaid'))} diagrams")
-    assert count == 7, f"Expected seven modules, found {count}"
-    print("All seven module guides match their notebooks' steps, questions, diagrams and source links.")
+    assert count == 6, f"Expected six modules, found {count}"
+    print("All six module guides match their notebooks' steps, questions, diagrams and source links.")
 
 
 if __name__ == "__main__":

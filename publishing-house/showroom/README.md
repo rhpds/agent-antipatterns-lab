@@ -1,6 +1,6 @@
 # Showroom guides for the module notebooks
 
-Edit the seven `notebooks/module-*.ipynb` files, then regenerate their Showroom pages. Do not edit the generated module pages directly. The overview (`content/modules/ROOT/pages/index.adoc`) remains authored AsciiDoc.
+Edit the six `notebooks/module-*.ipynb` files, then regenerate their Showroom pages. Do not edit the generated module pages directly. The overview (`content/modules/ROOT/pages/index.adoc`) remains authored AsciiDoc.
 
 ## Generate and check
 

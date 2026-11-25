@@ -2,13 +2,13 @@
 
 == Lab overview
 
-You'll build a field service agent for Kestrel Industrial, a fictional maker of industrial cooling equipment. The agent helps service engineers find parts, check stock and delivery times, and look up service bulletins.
+You'll build a field service agent for Kestrel Industrial, a fictional maker of industrial cooling equipment. The agent helps service engineers find parts, check stock and look up service bulletins.
 
 The agent you start with has problems that don't show up as errors. Module 1 shows you how to see inside it. In the modules after that, you find what's wrong from the evidence: the request sent to the model, the response that came back, what a tool returned, and the trace in MLflow. Then you apply the fix and check the evidence again.
 
 == What's running in your lab
 
-Everything runs on one OpenShift cluster with Red Hat OpenShift AI. Your workbench and database are in your own project. The model endpoints, MLflow and the tool gateway are shared by everyone in the session.
+Everything runs on one OpenShift cluster with Red Hat OpenShift AI. Your workbench and database are in your own project. The model endpoints and MLflow are shared by everyone in the session.
 
 [mermaid]
 ....
@@ -21,13 +21,11 @@ flowchart LR
     A["Model endpoint qwen3-8b-a (vLLM)"]
     B["Model endpoint qwen3-8b-b (vLLM)"]
     ML["MLflow: traces and evaluations"]
-    GW["MCP Gateway and the lab's tool server"]
   end
   WB -- "asks the model" --> A
   WB -- "asks the model" --> B
   WB -- "sends a trace of each run" --> ML
   WB -- "searches bulletins, module 5" --> PG
-  WB -- "gets its tools, module 6" --> GW
 ....
 
 [cols="1,3"]
@@ -44,13 +42,10 @@ flowchart LR
 |Two endpoints serve the same model, Qwen3-8B, on the cluster's GPUs. vLLM is the open-source inference server behind each one. The agent's `config.toml` says which endpoint it calls, and module 2 compares the two.
 
 |MLflow
-|Records a trace of every agent run in your own workspace, so you can see each request to the model and each tool call. Module 7 also records a regression baseline there.
+|Records a trace of every agent run in your own workspace, so you can see each request to the model and each tool call. Module 6 can also record its regression run there as an evaluation.
 
 |PostgreSQL with pgvector
 |A database in your project holding Kestrel's service bulletins. The search tool in module 5 queries it.
-
-|MCP Gateway
-|A gateway on the platform that offers tools to agents. Module 6 moves the agent's tools behind it.
 
 |Showroom and the OpenShift console
 |These instructions and the tabs on the right. The console shows how each model endpoint is configured.
@@ -73,5 +68,4 @@ The *>_ terminal* tab on the right is a separate command line, and the lab doesn
 * xref:module-03-agent-loop.adoc[Module 3: The agent loop, stop conditions and turn control]
 * xref:module-04-tool-returns.adoc[Module 4: Tool returns that tell the truth]
 * xref:module-05-knowledge-search.adoc[Module 5: Giving the agent knowledge it can search]
-* xref:module-06-platform-tool-access.adoc[Module 6: Connecting tools through the platform]
-* xref:module-07-running-it-for-real.adoc[Module 7: Running it for real, verification and field positioning]
+* xref:module-06-running-it-for-real.adoc[Module 6: Running it for real]

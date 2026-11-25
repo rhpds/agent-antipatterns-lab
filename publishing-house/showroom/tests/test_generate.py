@@ -83,9 +83,9 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertNotIn('PRIVATE_SAVED_OUTPUT', result)
         self.assertNotIn('In[42]', result)
 
-    def test_real_seven_modules_get_a_guide(self):
+    def test_real_six_modules_get_a_guide(self):
         sources = sorted((ROOT / 'notebooks').glob('module-*.ipynb'))
-        self.assertEqual(len(sources), 7)
+        self.assertEqual(len(sources), 6)
         for source in sources:
             with self.subTest(source=source.name):
                 result = self.generator.render(source)
@@ -109,7 +109,7 @@ class ShowroomMirrorTests(unittest.TestCase):
             checked = subprocess.run([*command, '--check'], capture_output=True, text=True)
             self.assertEqual(checked.returncode, 0, checked.stdout + checked.stderr)
             pages = sorted(output.glob('module-*.adoc'))
-            self.assertEqual(len(pages), 7)
+            self.assertEqual(len(pages), 6)
             pages[0].write_text('deliberately stale\n')
             pages[1].unlink()
             checked = subprocess.run([*command, '--check'], capture_output=True, text=True)
