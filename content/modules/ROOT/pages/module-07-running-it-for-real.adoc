@@ -24,7 +24,7 @@ You run the lab's regression questions against the fixed agent and record the re
 
 == How you know it worked
 
-All six regression cases pass, with 0 FAIL and 0 SKIP.
+All six regression cases PASS, with 0 FAIL and 0 SKIP.
 
 == Diagrams
 

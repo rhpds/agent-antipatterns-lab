@@ -2,7 +2,7 @@
 
 Build a field service agent for Kestrel Industrial, a fictional chiller manufacturer. Diagnose failures from model request and response payloads, tool results and execution traces, then apply and verify each fix.
 
-The lab runs in a JupyterLab workbench on Red Hat OpenShift AI. It uses locally served Qwen model endpoints, a pgvector knowledge store, MLflow and MCP Gateway. The notebooks are the lesson source. Each Showroom page is a short guide generated from its notebook: what the module covers, its steps, its questions and answers, how you know it worked, and its diagrams. Showroom pages carry no code.
+The lab runs in a JupyterLab workbench on Red Hat OpenShift AI. It uses locally served Qwen model endpoints, a pgvector knowledge store, MLflow and MCP Gateway. The notebooks are the lesson source. Each Showroom page is a short guide generated from its notebook: what the module covers, its steps, how you know it worked, its diagrams and, where the module has them, its questions and answers. Showroom pages carry no code.
 
 ## Start the lab
 
