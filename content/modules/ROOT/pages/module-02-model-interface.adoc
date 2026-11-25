@@ -24,8 +24,8 @@ The agent's tool calls never run. You try a stronger prompt to rule out the inst
 . Predict
 . One identical request to both endpoints
 . The same evidence in MLflow (stretch goal)
-. Point the agent at endpoint B
-. Run it on endpoint B
+. Change the agent's endpoint
+. Run the agent again
 
 == Questions to think about
 
@@ -61,7 +61,7 @@ Everything matches except one argument: endpoint A has `+--tool-call-parser=pyth
 
 == How you know it worked
 
-In the last row of the table, model call 1's `+finish_reason+` is `+tool_calls+` and it asks for `+find_part+`, and the first `+find_part+` call's results include `+KI-CP-40817+`, the coolant circulation pump assembly. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run. The run still ends with `+Stopped after 6 turns without a final answer.+` That's module 3's failure, not a problem with your change.
+In the last row of the table, model call 1's `+finish_reason+` is `+tool_calls+` and it asks for `+find_part+`, and the first `+find_part+` call's results include `+KI-CP-40817+`, the coolant circulation pump assembly. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run. The run still ends with `+Stopped after 6 turns without a final answer.+` Module 3 fixes that.
 
 == Diagrams
 
