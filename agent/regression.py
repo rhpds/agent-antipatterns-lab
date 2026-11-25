@@ -4,7 +4,7 @@
     python regression.py --name my-baseline # also record it in MLflow as a named evaluation run
 
 Each case is judged from the run record (tool calls, stop reason, error categories),
-not from the wording of the answer. With tracing on, the run is also recorded in MLflow as
+using fixed checks, including source-citation and failed-check markers in the answer; no LLM judges the result. With tracing on, the run is also recorded in MLflow as
 an evaluation: one row per case, with its trace and the same PASS, FAIL or SKIP and reason,
 so a later run can be compared with this one. A case that cannot apply yet (for example the
 retrieval cases before module 5) is reported SKIP; nothing blocks the rest.
@@ -34,12 +34,22 @@ def categories(summary):
     return [t["result"].get("category") for t in summary["tool_calls"]]
 
 
+def successful_data(call):
+    """Read both the early module envelope and the module 4 error contract."""
+    result = call["result"]
+    if result.get("category") not in (None, "ok"):
+        return {}
+    return result.get("data") or result
+
+
 # Each check returns (status, reason). Status is PASS, FAIL or SKIP.
 
 def check_m1(s, cap):
-    if not s["tool_calls"]:
-        return "FAIL", "no tool_calls: the model's tool call never fired (module 2)"
-    return "PASS", f"tool called: {[t['name'] for t in s['tool_calls']]}"
+    parts = {p.get("part_number") for t in called(s, "find_part")
+             for p in successful_data(t).get("results", [])}
+    if "KI-CP-40817" not in parts:
+        return "FAIL", "find_part did not return the K-400 pump KI-CP-40817 (module 2)"
+    return "PASS", "find_part returned the K-400 pump KI-CP-40817"
 
 
 def check_m3(s, cap):
@@ -48,8 +58,19 @@ def check_m3(s, cap):
         return "FAIL", f"hit the iteration cap ({cap} turns); loop did not use tool results (module 3)"
     if s["ended_by"] != "stop":
         return "FAIL", f"ended by {s['ended_by']!r}, not the model's stop condition"
-    if not (called(s, "find_part") and called(s, "check_stock")):
-        return "FAIL", f"expected find_part then check_stock, saw {names}"
+    found = set()
+    checked = set()
+    for tool in s["tool_calls"]:
+        if tool["name"].endswith("find_part"):
+            found.update(p.get("part_number") for p in successful_data(tool).get("results", []))
+        elif tool["name"].endswith("check_stock"):
+            part = tool["arguments"].get("part_number")
+            if part in found and tool["arguments"].get("depot") == "Denver" and any(
+                    r.get("depot") == "Denver" and r.get("qty", 0) > 0
+                    for r in successful_data(tool).get("results", [])):
+                checked.add(part)
+    if "KI-CP-40817" not in checked:
+        return "FAIL", f"expected the looked-up K-400 pump's positive Denver stock, saw {names}"
     return "PASS", f"{s['turns']} turns (cap {cap}), ended on stop, tools {names}"
 
 
@@ -57,7 +78,15 @@ def check_m4(s, cap):
     cats = categories(s)
     if not called(s, "check_stock"):
         return "FAIL", "check_stock was never called"
-    if "bad_request" in cats:
+    if any(t["result"].get("category") == "bad_request" and
+           t["arguments"].get("depot") == "Portland" and
+           "Portland" in t["result"].get("detail", "")
+           for t in called(s, "check_stock")):
+        answer = s["answer"].lower()
+        if not any(marker in answer for marker in (
+                "unknown", "invalid", "not a depot", "not a valid", "not recognized", "not recognised",
+                "could not", "couldn't", "cannot", "can't", "unable", "does not exist", "doesn't exist")):
+            return "FAIL", "bad_request was recorded but the answer did not explain that stock could not be checked"
         return "PASS", f"failure surfaced with a category: {cats}"
     return "FAIL", f"unknown depot returned no error category (saw {cats}): swallowed failure (module 4)"
 
@@ -67,15 +96,19 @@ def check_m5(s, cap):
         return "SKIP", "search_bulletins is not registered (module 5)"
     hits = [t for t in called(s, "search_bulletins") if t["result"].get("category") == "ok"]
     sources = {p["source"] for t in hits for p in t["result"]["data"]["passages"]}
-    if "SB-2024-102" in sources:
-        return "PASS", f"retrieval returned passages from {sorted(sources)}"
-    return "FAIL", f"no passage from SB-2024-102 retrieved (saw {sorted(sources)})"
+    if "SB-2024-102" not in sources:
+        return "FAIL", f"no passage from SB-2024-102 retrieved (saw {sorted(sources)})"
+    if "SB-2024-102" not in s["answer"]:
+        return "FAIL", "SB-2024-102 was retrieved but the answer omitted its source citation"
+    return "PASS", f"answer cites retrieved bulletin SB-2024-102 (sources {sorted(sources)})"
 
 
 def check_m5_miss(s, cap):
     if not offered(s, "search_bulletins"):
         return "SKIP", "search_bulletins is not registered (module 5)"
-    if "no_results" in categories(s):
+    if any(t["result"].get("category") == "no_results" and
+           (t["result"].get("data") or {}).get("passages") == []
+           for t in called(s, "search_bulletins")):
         return "PASS", "retrieval returned no_results (an explicit gap)"
     return "FAIL", f"expected no_results, saw {categories(s)}"
 
@@ -83,9 +116,21 @@ def check_m5_miss(s, cap):
 def check_m6(s, cap):
     if not offered(s, "estimate_delivery"):
         return "SKIP", "estimate_delivery is not in the tool catalog (module 6)"
-    if called(s, "estimate_delivery"):
-        return "PASS", "estimate_delivery was discovered and used"
-    return "FAIL", "estimate_delivery was available but not called"
+    if any(successful_data(t).get("transit_days") == 1 and
+           successful_data(t).get("origin_depot") == "Denver" and
+           successful_data(t).get("destination") == "Boulder"
+           for t in called(s, "estimate_delivery")):
+        return "PASS", "estimate_delivery returned one day from Denver to Boulder"
+    return "FAIL", "estimate_delivery did not return a successful one-day Denver-to-Boulder result"
+
+
+def judge(check, summary, cap):
+    """A case's verdict. A run the model cut off (it ran out of room before finishing its
+    answer) never passes, whatever its check found."""
+    if summary.get("ended_by") == "length":
+        return "FAIL", ("the run was cut off before it finished its answer (the model ran out of "
+                        "room); run the set again")
+    return check(summary, cap)
 
 
 CASES = [
@@ -132,7 +177,7 @@ def main(argv=None):
             # Persist the same trace link as an ordinary CLI run, so the notebook's
             # evidence table can open each regression case's actual trace.
             tracing.report(summary)
-            status, reason = check(summary, cap)
+            status, reason = judge(check, summary, cap)
         except Exception as exc:  # a broken case must not stop the others
             status, reason = "FAIL", f"run raised {type(exc).__name__}: {exc}"
         rows.append((key, title, status, reason))
@@ -146,7 +191,7 @@ def main(argv=None):
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     RUNS_DIR.mkdir(exist_ok=True)
     report = RUNS_DIR / f"regression-{stamp}.md"
-    lines = [f"# Regression run {stamp}", "", f"Endpoint: {config['model']['base_url']}", "",
+    lines = [f"# Regression run {stamp}", "", f"Endpoint: {config['model']['base_url'].split('://', 1)[-1]} (inside the cluster)", "",
              "| Case | Check | Result | Evidence |", "|---|---|---|---|"]
     lines += [f"| {k} | {t} | {s} | {r} |" for k, t, s, r in rows]
     report.write_text("\n".join(lines) + "\n\n" + CHECKLIST)

@@ -46,6 +46,15 @@ def mlflow_home():
     return uri.rstrip("/") if uri.startswith(("http://", "https://")) else None
 
 
+def endpoint():
+    """The model endpoint config.toml points at, written so the notebook doesn't turn it into a
+    link: it's an address inside the cluster, which a browser can't open."""
+    url = config()["model"]["base_url"]
+    host = urlparse(url).netloc
+    name = host.split(".")[0].removesuffix("-predictor")
+    return f"{name} (inside the cluster at {host}{urlparse(url).path}; a browser can't open it)"
+
+
 def apps_domain():
     """The cluster's apps domain, read from the MLflow address (https://rh-ai.<apps domain>/mlflow)."""
     host = urlparse(mlflow_home() or "").hostname or ""
@@ -185,6 +194,46 @@ def evidence(columns=("endpoint", "turns", "ended by", "tools run", "answer"), l
         values = "".join(f"<td>{html.escape(str(COLUMNS[c](r, s)))}</td>" for c in columns)
         rows.append(f"<tr><td>{cell}</td>{values}</tr>")
     display(HTML(f"<table><tr>{head}</tr>{''.join(rows)}</table>"))
+
+
+def show_code(file, name):
+    """Show one top-level function, class or name (such as TOOL_DEFINITIONS), or one method
+    as "Class.method", from a file in agent/, with its line numbers, so a learner can read it
+    without leaving the notebook. It reads the file as it is now, so it shows their edits."""
+    import ast
+    path = AGENT / file
+    try:
+        source = path.read_text()
+        tree = ast.parse(source)
+    except OSError:
+        return display(Markdown(f"There's no `{file}` in the agent's folder. Check the file name."))
+    except SyntaxError as error:
+        return display(Markdown(f"`{file}` has a Python error on line {error.lineno}, so it can't be "
+                                f"shown here. Open [`{file}`](../agent/{file}) to fix it."))
+
+    def names(node):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            return [node.name]
+        targets = node.targets if isinstance(node, ast.Assign) else [getattr(node, "target", None)]
+        return [t.id for t in targets if isinstance(t, ast.Name)]
+
+    owner, _, member = name.rpartition(".")
+    scope = tree.body
+    if owner:
+        scope = next((n.body for n in tree.body if isinstance(n, ast.ClassDef) and n.name == owner), [])
+    found = [n for n in scope if member in names(n)]
+    if not found:
+        return display(Markdown(f"`{name}` isn't in `{file}` any more. Open [`{file}`](../agent/{file}) "
+                                "to look for it."))
+    node, lines = found[0], source.splitlines()
+    start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
+    # Take the comment lines right above it too: they explain it.
+    while start > 1 and lines[start - 2].lstrip().startswith("#"):
+        start -= 1
+    width = len(str(node.end_lineno))
+    body = "\n".join(f"{n:>{width}}  {lines[n - 1]}" for n in range(start, node.end_lineno + 1))
+    more = f" (`{file}` defines `{name}` {len(found)} times; this is the first.)" if len(found) > 1 else ""
+    display(Markdown(f"`{file}`, lines {start} to {node.end_lineno}:{more}\n\n````python\n{body}\n````"))
 
 
 def latest():

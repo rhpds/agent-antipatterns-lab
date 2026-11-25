@@ -11,48 +11,27 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-06-platform-tool-access.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+NOTE: You work through this module in its notebook, `notebooks/module-06-platform-tool-access.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-06-platform-tool-access.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
-____
+So far the agent's tools are written into its own code. You point the agent at an MCP gateway on the platform, then add a new tool there without changing the agent.
 
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+== What you'll do in the notebook
 
-== Start from module 6
+[arabic]
+. How the agent gets its tools today
+. Point the agent at the gateway
+. Nothing changes about what the agent does
+. A new tool, without touching the agent
 
-This puts the agent in the state module 6 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+== How you know it worked
 
-[source,python]
-----
-!python reset.py 6
-----
+The agent discovered and used `+estimate_delivery+`, a tool it didn't have a moment ago, and answered "1 day". The tool catalogue is now a property of the platform, versioned and changed independently of the agent's releases.
 
-== 1. How the agent gets its tools today
+== Diagrams
 
-Every tool carries its own address and credential, written into the agent's configuration:
-
-[source,python]
-----
-import json
-tools = lab.config()["tools"]
-print("gateway_url:", repr(tools.get("gateway_url")))
-print(json.dumps({k: v for k, v in tools.items() if k != "gateway_url"}, indent=2))
-----
-
-Run module 3's question on the agent's own tools, to compare with later:
-
-[source,python]
-----
-!python agent.py --q m3
-lab.evidence(columns=("turns", "ended by", "tools run"))
-----
-
-Adding a tool today means editing the agent, rebuilding its image, redeploying it, and doing that again in every environment it runs in. Tool changes are application releases.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
+[%collapsible]
+====
 
 [mermaid]
 ....
@@ -68,75 +47,19 @@ flowchart TB
   Today ~~~ Platform
 ....
 
-== 2. Point the agent at the gateway
 
-The lab's MCP Gateway serves the same tools from the platform. The lab runs MCP Gateway 0.7.1 (Technology Preview); version 1.0 is generally available in Red Hat Connectivity Link 1.5. Its address:
+====
 
-[source,python]
-----
-print(lab.gateway_url() or "This environment has no lab MCP Gateway (LAB_GATEWAY_URL isn't set).")
-----
+== If the result differs
 
-Open link:{lab-source-url}/agent/config.toml[`+config.toml+`], set `+gateway_url+` under `+[tools]+` to that address, and save. That's the only change to the agent. This cell confirms what it will use:
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
+[%collapsible]
+====
 
-[source,python]
-----
-print("gateway_url:", repr(lab.config()["tools"].get("gateway_url")))
-----
+If `+LAB_GATEWAY_URL+` is absent or a cell prints “Set gateway_url first”, stop, correct the environment or configuration, and repeat the confirmation cell. Those messages mean the gateway step did not run. For HTTP 401/403, check the workbench's assigned identity and permissions; participant steps use that identity, not cluster-admin credentials.
 
-== 3. Nothing changes about what the agent does
+Compare the pump's stock facts through both paths: the part number must come from `+find_part+`, and `+KI-CP-40817+` at Denver must return quantity 3 and lead time 1 day. The model may also check the seal kit, so turn counts and extra valid calls can differ. A placeholder such as `+KI-XX-00000+` is a failed chain.
 
-[source,python]
-----
-if lab.config()["tools"].get("gateway_url"):
-    lab.sh("python agent.py --q m3")
-    lab.evidence(columns=("turns", "ended by", "tools run"))
-else:
-    print("gateway_url is empty, so the agent still uses its own tools.")
-----
+After registration, rerun tool discovery if the new tool is not yet listed; the server caches registrations briefly. Do not continue until `+estimate_delivery+` appears. Its successful Denver-to-Boulder result must contain `+transit_days: 1+`, and the answer must report one day.
 
-Same turns, same results as the run on the agent's own tools above; the tool names now carry the gateway's `+kestrel_+` prefix. The agent asked the gateway for its tool list at the start of the run instead of carrying one. Here is that list:
-
-[source,python]
-----
-if lab.config()["tools"].get("gateway_url"):
-    lab.tool_list()
-else:
-    print("Set gateway_url first.")
-----
-
-== 4. A new tool, without touching the agent
-
-Ask the delivery question before anything changes. There's no delivery tool in the list above, so watch what the agent does without one:
-
-[source,python]
-----
-if lab.config()["tools"].get("gateway_url"):
-    lab.sh("python agent.py --q m6")
-    lab.tool_results()
-else:
-    print("Set gateway_url first.")
-----
-
-Now register `+estimate_delivery+` at the gateway. It's a platform operation: one ConfigMap in your own project, which the lab's tool server reads. Nothing in the agent changes, and it isn't rebuilt or restarted. Only your catalog changes; other participants' don't.
-
-[source,python]
-----
-lab.register_tool("estimate_delivery")
-if lab.config()["tools"].get("gateway_url"):
-    lab.tool_list()
-----
-
-Ask again:
-
-[source,python]
-----
-if lab.config()["tools"].get("gateway_url"):
-    lab.sh("python agent.py --q m6")
-    lab.tool_results()
-    lab.trace_link()
-else:
-    print("Set gateway_url first.")
-----
-
-*This is the module's success signal:* the agent discovered and used `+estimate_delivery+`, a tool it didn't have a moment ago, and answered "1 day". The tool catalogue is now a property of the platform, versioned and changed independently of the agent's releases.
+====

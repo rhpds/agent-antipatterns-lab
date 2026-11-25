@@ -11,156 +11,93 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-02-model-interface.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+NOTE: You work through this module in its notebook, `notebooks/module-02-model-interface.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-02-model-interface.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
-____
+The agent's tool calls never run. You try a stronger prompt to rule out the instructions, send one identical request to both model endpoints, and find the serving setting that makes the difference. Then you point the agent at the endpoint that's set up correctly.
 
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+== What you'll do in the notebook
 
-== Start from module 2
+[arabic]
+. Module 1's failure, again
+. A stronger prompt
+. What did the model actually return?
+. Predict
+. One identical request to both endpoints
+. The same evidence in MLflow (stretch goal)
+. Change the agent's endpoint
+. Run the agent again
 
-This puts the agent in the state module 2 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+== Questions to think about
 
-[source,python]
-----
-!python reset.py 2
-----
-
-== 1. Module 1's failure, again
-
-[source,python]
-----
-!python agent.py --q m1
-lab.evidence(columns=("endpoint", "prompt", "finish_reason (call 1)", "tool_calls (call 1)", "answer"))
-----
-
-== 2. A stronger prompt
-
-Every request the agent sends starts with a *system prompt*: instructions the model reads before the question. The agent's is `+system_prompt+` in `+config.toml+`, and as the lab ships it, it says:
-
-____
-You are a field service parts assistant for Kestrel Industrial, a manufacturer of industrial process chillers (K-200, K-400, K-600). Help service engineers find the right part and check whether they can get it. Be concise.
-____
-
-The *stronger prompt* is `+system_prompt_strong+`: the same text with three sentences added that tell the model plainly to use its tools:
-
-____
-You MUST use the available tools to look up part numbers, stock and other facts. Never answer from memory. Always call a tool first.
-____
-
-`+python agent.py --strong-prompt+` sends that version instead. Nothing else in the request changes: the same question, the same tools, the same endpoint. Making the instructions more forceful is the first fix most people reach for when an agent won't use its tools.
-
-The next cell shows the added sentences as they are in your `+config.toml+`, and the one after runs the agent with the stronger prompt.
-
-[source,python]
-----
-agent = lab.config()["agent"]
-default, strong = agent["system_prompt"], agent["system_prompt_strong"]
-added = strong[len(default):].strip() if strong.startswith(default) else strong
-lab.display(lab.Markdown(f"**Added in the stronger prompt:**\n\n> {added}"))
-----
-
-[source,python]
-----
-!python agent.py --q m1 --strong-prompt
-lab.evidence(columns=("endpoint", "prompt", "finish_reason (call 1)", "tool_calls (call 1)", "answer"))
-----
-
-The `+prompt+` column comes from each run's saved request, so it shows what was actually sent.
-
-*Your read:* you changed one thing, the instructions, and made them as plain as they can be. If the model had been ignoring its instructions, which columns would have changed? Did they? So is the problem in what the model was told?
-
-== 3. What did the model actually return?
-
-[source,python]
-----
-lab.content()
-----
-
-The model did make the call: it's in the text above, as `+<tool_call>{...}</tool_call>+`. It never reached `+tool_calls+`, and nothing reported an error.
-
-*Your read:* what sits between the model and your agent that should have turned that text into `+tool_calls+`?
-
-== 4. Predict
-
-The lab runs a second endpoint, `+qwen3-8b-b+`: the same model with the same weights. If the identical request went to it, what would you expect `+finish_reason+`, `+tool_calls+` and `+content+` to hold? Keep your guess in mind; the next cell sends that request to both endpoints, with the default prompt.
-
-== 5. One identical request to both endpoints
-
-[source,python]
-----
-!COLUMNS=110 python compare_endpoints.py
-----
-
-Same model, same weights, same request. Only the endpoint differs, so the difference is in how each endpoint is served. Each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Open both and find what differs:
-
-[source,python]
-----
-lab.links(("Endpoint A's ServingRuntime (qwen3-8b-a)", lab.serving_runtime_url("qwen3-8b-a")),
-          ("Endpoint B's ServingRuntime (qwen3-8b-b)", lab.serving_runtime_url("qwen3-8b-b")))
-----
+*Your read:* if the default prompt was too weak, the stronger one should change the `+finish_reason (call 1)+` and `+tool_calls (call 1)+` columns from the first row of the step 2 table to the second. Compare the two rows. Did those columns change? So is the problem in what the model was told?
 
 .Check your answer
 [%collapsible]
 ====
 
-Everything matches except one argument, `+--tool-call-parser+`.
+No. Both rows show `+stop+` and `+null+`, and the same answer: the model wrote the same tool call as text both times. The stronger instructions changed nothing the agent could act on, so the prompt isn't the problem.
 
 ====
 
-=== What the tool-call parser does
+*Your read:* what sits between the model and your agent that should have turned the `+<tool_call>+` text in `+content+` into `+tool_calls+`?
 
-Here is what sits between the request and the response inside one endpoint:
+.Check your answer
+[%collapsible]
+====
+
+The vLLM server the model runs on. It reads the model's text and fills in `+tool_calls+` when it recognises a tool call. Steps 4 and 5 find which part of it gets this wrong.
+
+====
+
+*Your read:* which argument differs between endpoint A's ServingRuntime and endpoint B's?
+
+.Check your answer
+[%collapsible]
+====
+
+Everything matches except one argument: endpoint A has `+--tool-call-parser=pythonic+` and endpoint B has `+--tool-call-parser=hermes+`. Qwen3 writes its tool calls as `+<tool_call>{...}</tool_call>+`, the form the `+hermes+` parser reads. The `+pythonic+` parser looks for calls written like Python function calls, so on endpoint A it finds none.
+
+====
+
+== How you know it worked
+
+In the last row of the table, model call 1's `+finish_reason+` is `+tool_calls+` and it asks for `+find_part+`, and the first `+find_part+` call's results include `+KI-CP-40817+`, the coolant circulation pump assembly. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run. The run still ends with `+Stopped after 6 turns without a final answer.+` Module 3 fixes that.
+
+== Diagrams
+
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
+[%collapsible]
+====
 
 [mermaid]
 ....
-flowchart LR
+flowchart TB
   A["agent.py"] -- "messages and tools" --> API
   subgraph E["One endpoint: a vLLM server"]
-    API["OpenAI-compatible API, /v1/chat/completions"] --> CT["Chat template: messages and tool definitions become the text the model reads"]
-    CT --> MOD["Qwen3-8B writes text, including any tool call"]
-    MOD --> RP["Reasoning parser: moves the model's thinking into its own field"]
-    RP --> TP{"Tool-call parser: does it recognise the call?"}
+    API["OpenAI-compatible API: /v1/chat/completions"] --> CT["Chat template: messages and tool definitions become text"]
+    CT --> MOD["Qwen3-8B writes text, tool call included"]
+    MOD --> RP["Reasoning parser: moves the thinking to its own field"]
+    RP --> TP{"Tool-call parser: recognises the call?"}
   end
-  TP -- "yes" --> OK["tool_calls holds the call, finish_reason is tool_calls"]
-  TP -- "no" --> NO["the call stays in content, tool_calls is null, finish_reason is stop"]
+  TP -- "yes" --> OK["tool_calls: the call. finish_reason: tool_calls"]
+  TP -- "no" --> NO["Call left in content. tool_calls: null. finish_reason: stop"]
 ....
 
-The *tool-call parser* reads the model's text and turns a tool call it recognises into `+tool_calls+`. On endpoint A it doesn't match this model's output, so it finds nothing and returns the text as an ordinary answer, with no error. Each stage is one argument on the ServingRuntime, as you just saw (`+--tool-call-parser+`, `+--reasoning-parser+` and the rest).
 
-== 6. The same evidence in MLflow
+====
 
-Each run above is a trace, tagged with its `+endpoint+`, `+prompt+` and `+question+`. In the trace list, add those tags as columns to see the table above in MLflow. Open a trace and select `+model_call_1+`: its inputs hold the full messages, system prompt included, and its outputs hold `+finish_reason+`, `+tool_calls+` and `+content+`. Each run's name in the tables above links to its own trace.
+== If the result differs
 
-[source,python]
-----
-lab.links(("Every trace in this experiment", lab.experiment_url()))
-----
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
+[%collapsible]
+====
 
-== 7. Repoint
+If the last row still shows `+qwen3-8b-a+` in the `+endpoint+` column, look at the `+Endpoint:+` line the agent printed. If it doesn't name `+qwen3-8b-b+`, save `+config.toml+`, rerun the step 7 cell, then rerun step 8. Don't change the system prompt again. Step 2 showed the prompt isn't the problem.
 
-Open link:{lab-source-url}/agent/config.toml[`+config.toml+`] in the editor, change `+qwen3-8b-a-predictor+` to `+qwen3-8b-b-predictor+` on the `+base_url+` line, and save. Change the file, not an environment variable: the file survives a workbench restart. This cell confirms what the agent will call:
+If endpoint B also leaves `+<tool_call>+` in `+content+`, or a cell times out or can't reach an endpoint, the shared model endpoint has a problem. You can't fix that from your workbench, so ask the lab staff for help.
 
-[source,python]
-----
-print(lab.config()["model"]["base_url"])
-----
+If the stronger prompt gives exactly the same text as the default, that's expected. Check the `+prompt+` column to confirm the stronger prompt was sent. What matters is that neither run produced a `+tool_calls+` entry the agent could run.
 
-== 8. Run it on the validated endpoint
+On endpoint B, `+find_part+` should return `+KI-CP-40817+`. If it does, and the agent then calls it again and again, that's the failure module 3 fixes.
 
-[source,python]
-----
-!python agent.py --q m1
-lab.evidence(columns=("endpoint", "prompt", "finish_reason (call 1)", "tool_calls (call 1)", "turns"))
-lab.trace_link()
-----
-
-Look at the last row: `+finish_reason+` and `+tool_calls+` on model call 1. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run.
-
-If the run used several turns, each calling `+find_part+` again, that's module 3's failure arriving early.
+====

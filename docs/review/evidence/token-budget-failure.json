@@ -1,0 +1,15 @@
+{
+  "source_commit": "5cee4f633358c7fca4312e6c4e42ae9f2d85c427",
+  "participant": 2,
+  "module": 7,
+  "case": "m1",
+  "configured_max_tokens": 1024,
+  "finish_reason": "length",
+  "content": null,
+  "usage": {
+    "prompt_tokens": 1108,
+    "total_tokens": 2132,
+    "completion_tokens": 1024,
+    "prompt_tokens_details": null
+  }
+}

@@ -1,6 +1,7 @@
 """Exercise the rendered contract, not notebook execution or a mock exporter."""
 import importlib.util
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -20,54 +21,83 @@ class ShowroomMirrorTests(unittest.TestCase):
         cls.generator = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.generator)
 
-    def test_mirror_keeps_order_code_diagrams_answers_and_links(self):
-        notebook = nbformat.v4.new_notebook(cells=[
-            nbformat.v4.new_markdown_cell('# A lesson\n\n## Read this\n\n[config](../agent/config.toml)'),
-            nbformat.v4.new_code_cell('raise RuntimeError("must never execute")\n%cd ../agent\n!python agent.py'),
-            nbformat.v4.new_markdown_cell('```mermaid\nflowchart LR\n A --> B\n```'),
-            nbformat.v4.new_markdown_cell('<details><summary>Check your answer</summary>\n\n1. First answer.\n2. Second answer.\n</details>'),
-        ])
+    def render_cells(self, *cells):
         with tempfile.TemporaryDirectory(dir=ROOT / '.cache') as temp:
             source = Path(temp) / 'module-01-example.ipynb'
-            nbformat.write(notebook, source)
-            result = self.generator.render(source)
+            nbformat.write(nbformat.v4.new_notebook(cells=list(cells)), source)
+            return self.generator.render(source)
+
+    def test_guide_has_intro_steps_questions_done_diagrams_and_no_code(self):
+        md, code = nbformat.v4.new_markdown_cell, nbformat.v4.new_code_cell
+        result = self.render_cells(
+            md('# A lesson\n\n> **Prototype notebook.** draft\n\nWhat this module is about, with [config](../agent/config.toml) and [`tools.py`](../agent/tools.py).'),
+            code('raise RuntimeError("must never execute")\n%cd ../agent'),
+            md('## Start from module 1\n\nReset first.'),
+            md('## 1. Run it\n\nSome step text.'),
+            md('**Your read:** what happened?'),
+            md('<details><summary>Check your answer</summary>\n\n1. First answer.\n2. Second answer.\n</details>'),
+            md('## 2. Fix it\n\n```mermaid\nflowchart LR\n A --> B\n```'),
+            md("**This is the module's success signal:** the run stops."),
+            md('## If the result differs\n\nCheck the reset.'),
+        )
         self.assertIn('= A lesson\n', result)
-        self.assertIn('== Read this', result)
-        self.assertIn('{lab-source-url}/agent/config.toml[config]', result)
-        self.assertIn('[source,python]', result)
-        self.assertIn('raise RuntimeError("must never execute")\n%cd ../agent\n!python agent.py', result)
-        self.assertIn('[mermaid]\n', result)
-        self.assertIn('flowchart LR\n A --> B', result)
-        self.assertIn('.Check your answer\n[%collapsible]\n====', result)
+        self.assertIn('What this module is about', result)
+        self.assertNotIn('Prototype notebook', result)
+        # Repository links open in a new tab: GitHub won't load inside Showroom's frame.
+        self.assertIn('link:{lab-source-url}/agent/config.toml[config^]', result)
+        self.assertIn('[`+tools.py+`^]', result)
+        self.assertIn("== What you'll do in the notebook", result)
+        self.assertIn('. Run it\n. Fix it', result)
+        self.assertNotIn('Start from module 1', result)
+        self.assertIn('*Your read:* what happened?', result)
+        self.assertIn('.Check your answer\n[%collapsible]', result)
         self.assertLess(result.index('First answer.'), result.index('Second answer.'))
-        self.assertLess(result.index('== Read this'), result.index('raise RuntimeError'))
-        self.assertLess(result.index('raise RuntimeError'), result.index('[mermaid]'))
+        self.assertIn('== How you know it worked\n\nThe run stops.', result)
+        self.assertIn('[mermaid]\n', result)
+        self.assertLess(result.index('== Diagrams'), result.index('[mermaid]'))
+        self.assertIn('== If the result differs', result)
+        self.assertLess(result.index('== If the result differs'), result.index('Check the reset.'))
+        self.assertIn('[%collapsible]\n====\n\nCheck the reset.', result)
+        # The notebook holds the code; the guide never copies it.
+        self.assertNotIn('RuntimeError', result)
+        self.assertNotIn('[source,python]', result)
         self.assertNotIn('<details>', result)
+
+    def test_unsafe_markdown_fails_instead_of_slipping_through(self):
+        md = nbformat.v4.new_markdown_cell
+        for cells, message in (
+            ([md('# T'), md('## 1. Step'), md('<details><summary>A</summary>\n\nOrphan answer.\n</details>')],
+             'must follow'),
+            ([md('# T'), md('**Your read:** q?'), md('<details><summary>A</summary>\n\n```python\nx = 1\n```\n</details>')],
+             'must not contain code'),
+            ([md('# T'), md('~~~\ncode\n~~~')], 'plain ``` fences'),
+        ):
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(ValueError, message):
+                    self.render_cells(*cells)
 
     def test_saved_outputs_are_never_published(self):
         cell = nbformat.v4.new_code_cell('print("run in JupyterLab")', execution_count=42)
         cell.outputs = [nbformat.v4.new_output('stream', name='stdout', text='PRIVATE_SAVED_OUTPUT')]
-        with tempfile.TemporaryDirectory(dir=ROOT / '.cache') as temp:
-            source = Path(temp) / 'module-01-example.ipynb'
-            nbformat.write(nbformat.v4.new_notebook(cells=[nbformat.v4.new_markdown_cell('# Title'), cell]), source)
-            result = self.generator.render(source)
+        result = self.render_cells(nbformat.v4.new_markdown_cell('# Title'), cell)
         self.assertNotIn('PRIVATE_SAVED_OUTPUT', result)
         self.assertNotIn('In[42]', result)
-        self.assertIn('print("run in JupyterLab")', result)
 
-    def test_real_seven_modules_include_every_code_cell_in_order(self):
+    def test_real_seven_modules_get_a_guide(self):
         sources = sorted((ROOT / 'notebooks').glob('module-*.ipynb'))
         self.assertEqual(len(sources), 7)
         for source in sources:
             with self.subTest(source=source.name):
                 result = self.generator.render(source)
-                self.assertIn(f'/notebooks/{source.name}[', result)
-                self.assertIn('Prototype notebook.', result)
-                position = 0
-                for cell in json.loads(source.read_text())['cells']:
-                    if cell['cell_type'] == 'code' and ''.join(cell['source']).strip():
-                        code = ''.join(cell['source']).rstrip()
-                        position = result.index(code, position) + len(code)
+                self.assertIn(f'/notebooks/{source.name}[notebook source^]', result)
+                cells = json.loads(source.read_text())['cells']
+                heading = ''.join(cells[0]['source']).splitlines()[0]
+                self.assertIn(heading.replace('# ', '= ', 1) + '\n', result)
+                steps = [line for c in cells if c['cell_type'] == 'markdown'
+                         for line in ''.join(c['source']).splitlines() if re.match(r'## \d+\. ', line)]
+                for line in steps:
+                    self.assertIn('. ' + line.split('. ', 1)[1].strip(), result)
+                self.assertNotIn('[source,python]', result)
                 self.assertNotIn('link:../agent/', result)
 
     def test_check_detects_drift_and_does_not_write(self):

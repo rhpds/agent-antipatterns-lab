@@ -2,11 +2,69 @@
 
 == Lab overview
 
-Build a field service agent for Kestrel Industrial, a fictional chiller manufacturer, one layer at a time. Diagnose each failure from the request and response payloads or execution trace, apply the fix, and check the evidence again.
+You'll build a field service agent for Kestrel Industrial, a fictional maker of industrial cooling equipment. The agent helps service engineers find parts, check stock and delivery times, and look up service bulletins.
 
-These pages mirror the seven Jupyter notebooks, with their explanations, questions, diagrams and code cells in order. You can review the lab here without provisioning an environment. To execute the cells, open the corresponding notebook in the lab's JupyterLab workbench.
+The agent you start with has problems that don't show up as errors. Module 1 shows you how to see inside it. In the modules after that, you find what's wrong from the evidence: the request sent to the model, the response that came back, what a tool returned, and the trace in MLflow. Then you apply the fix and check the evidence again.
 
-The notebook wording is a working draft. These pages show code without executing it and omit saved outputs. Evidence tables, model responses and links to a particular environment appear when the notebook runs; descriptions of those results state what to inspect during the lab.
+== What's running in your lab
+
+Everything runs on one OpenShift cluster with Red Hat OpenShift AI. Your workbench and database are in your own project. The model endpoints, MLflow and the tool gateway are shared by everyone in the session.
+
+[mermaid]
+....
+flowchart LR
+  subgraph Yours["Your project"]
+    WB["Workbench: JupyterLab, the notebooks and the agent"]
+    PG[("PostgreSQL with pgvector: service bulletins")]
+  end
+  subgraph Shared["Shared by everyone in the session"]
+    A["Model endpoint qwen3-8b-a (vLLM)"]
+    B["Model endpoint qwen3-8b-b (vLLM)"]
+    ML["MLflow: traces and evaluations"]
+    GW["MCP Gateway and the lab's tool server"]
+  end
+  WB -- "asks the model" --> A
+  WB -- "asks the model" --> B
+  WB -- "sends a trace of each run" --> ML
+  WB -- "searches bulletins, module 5" --> PG
+  WB -- "gets its tools, module 6" --> GW
+....
+
+[cols="1,3"]
+|===
+|Component |What it does here
+
+|Red Hat OpenShift AI
+|The platform the lab runs on. Its dashboard opens your workbench.
+
+|Workbench
+|A JupyterLab container in your project. The notebooks and your copy of the agent's code live here, and the agent runs here.
+
+|Model serving with vLLM
+|Two endpoints serve the same model, Qwen3-8B, on the cluster's GPUs. vLLM is the open-source inference server behind each one. The agent's `config.toml` says which endpoint it calls, and module 2 compares the two.
+
+|MLflow
+|Records a trace of every agent run in your own workspace, so you can see each request to the model and each tool call. Module 7 also records a regression baseline there.
+
+|PostgreSQL with pgvector
+|A database in your project holding Kestrel's service bulletins. The search tool in module 5 queries it.
+
+|MCP Gateway
+|A gateway on the platform that offers tools to agents. Module 6 moves the agent's tools behind it.
+
+|Showroom and the OpenShift console
+|These instructions and the tabs on the right. The console shows how each model endpoint is configured.
+|===
+
+== How to work through the lab
+
+Each module has a Jupyter notebook in your workbench. Open the *Notebook* tab on the right, where module 1's notebook opens. To open a later module, use the file browser on the left of JupyterLab: `agent-antipatterns-lab`, then `notebooks`. Run the cells in order. Questions marked *Your read* are for you to think about; you don't type an answer, and each has a collapsed block below it with the answer to check against. Each page on this side is a short guide to its module: what it covers, its steps, how you know it worked and, where the module has them, questions to think about. The code and its results are in the notebook.
+
+Each notebook starts with a cell that puts the agent in that module's starting state. To start a module over, run that cell again. Your edits are saved in `agent/.reset-backup/` first.
+
+Steps marked _stretch goal_ are optional. Skip them if you're short of time; nothing later depends on them.
+
+The *>_ terminal* tab on the right is a separate command line, and the lab doesn't use it. Everything runs in the notebook.
 
 == Modules
 

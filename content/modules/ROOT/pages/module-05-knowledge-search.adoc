@@ -11,94 +11,69 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+NOTE: You work through this module in its notebook, `notebooks/module-05-knowledge-search.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
-____
+The agent answers a maintenance question by guessing. You give it a search tool over Kestrel's service bulletins, check its answer against the passages the search found, and see what it does when the bulletins don't cover a question.
 
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+== What you'll do in the notebook
 
-== Start from module 5
+[arabic]
+. An answer the model can't know
+. The knowledge it could use (stretch goal)
+. Give the agent the search tool
+. Ask again
+. Ask something the bulletins don't cover
 
-This puts the agent in the state module 5 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+== Questions to think about
 
-[source,python]
-----
-!python reset.py 5
-----
+*Your read:* put the answer next to the passages. Which parts of the answer come from a passage, and which don't?
 
-== 1. An answer the model can't know
+.Check your answer
+[%collapsible]
+====
 
-Fault F-21 is documented only in Kestrel's service bulletins, which no model has seen.
+The fault's name, "coolant loop pressure low", comes from SB-2024-102's _Symptom_ passage. The pump assembly KI-CP-40817 and seal kit KI-SK-40233 come from SB-2024-117's _Applies to_ passage, which lists the K-400s that seal bulletin covers and says nothing about F-21. Advice such as verifying coolant levels comes from no passage at all.
 
-[source,python]
-----
-!python agent.py --q m5
-lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
-lab.trace_link()
-----
+====
 
-A specific, plausible answer. Module 4's contract doesn't catch it, because no tool failed. In the trace, look for a retrieval step: there isn't one, because the agent has no way to search yet.
+== How you know it worked
 
-== 2. The knowledge it could use
+`+search_bulletins+` was called, a passage from SB-2024-102 came back, the answer names the fault as that passage does ("coolant loop pressure low"), and it lists its sources.
 
-The bulletins are already loaded into a PostgreSQL database with pgvector in your project. Query it directly, outside the agent:
+== Diagrams
 
-[source,python]
-----
-!python retrieval.py "fault F-21"
-----
-
-Each passage carries its `+source+`, the bulletin it came from. That's what makes an answer checkable.
-
-== 3. Register the search tool
-
-[source,python]
-----
-!cp solutions/module-05/tools.py solutions/module-05/agent.py .
-!git diff --stat -- tools.py agent.py
-----
-
-`+search_bulletins+` is declared like the other tools, and returns passages with their sources using module 4's contract.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
+[%collapsible]
+====
 
 [mermaid]
 ....
 flowchart LR
   Q["The F-21 question"] --> M["Model"]
-  M -- "search_bulletins: fault F-21" --> T["Retrieval tool"]
+  M -- "search_bulletins: a query the model writes" --> T["Retrieval tool"]
   T --> DB[("pgvector: Kestrel service bulletins")]
   DB --> T
   T -- "passages with their source ids, in module 4's contract" --> M
-  M --> ANS["An answer that matches a passage"]
+  M --> ANS["An answer that lists its sources"]
 ....
 
-== 4. Ask again
 
-[source,python]
-----
-!python agent.py --q m5
-lab.tool_results()
-lab.trace_link()
-----
+====
 
-*This is the module's success signal:* `+search_bulletins+` was called, passages came back from SB-2024-102, and the answer follows the passage ("coolant loop pressure low") rather than the model's guess.
+== If the result differs
 
-== 5. Ask something the bulletins don't cover
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
+[%collapsible]
+====
 
-There is no Kestrel K-900.
+If step 2's search, or the agent's `+search_bulletins+` call in step 4, comes back with `+upstream_unavailable+` and "knowledge store unreachable", the agent can't reach the database. It may still be starting, so wait a minute and run the cell again. If that doesn't help, open a terminal (_File > New > Terminal_), run `+cd ~/agent-antipatterns-lab/agent+`, then `+env | grep PG+`, and check that `+PGHOST+`, `+PGPORT+`, `+PGDATABASE+`, `+PGUSER+` and `+PGPASSWORD+` are all set. Your workbench sets them when it starts. If one is missing, the database wasn't set up for your project, and you can't fix that from the notebook. Ask whoever runs your lab session for help.
 
-[source,python]
-----
-!python agent.py --q m5-miss
-lab.tool_results()
-lab.evidence(columns=("question", "tools run", "answer"), last=3)
-----
+If step 2's search for "fault F-21" returns `+no_results+`, the bulletins aren't loaded. In the same terminal and folder, run `+python ingest_corpus.py+`. link:{lab-source-url}/agent/ingest_corpus.py[`+ingest_corpus.py+`^] loads the bulletins into the database, and it should print "ingested 12 passages from 5 bulletins". Then run the cell again. If only the agent's search in step 4 returns `+no_results+`, the query it wrote may be the cause. Run step 2's cell: if that finds passages, the bulletins are loaded, so run step 4 again.
 
-The search returns `+no_results+`, and the agent says so instead of inventing. Compare it with the first run of this module, which invented.
+If step 4's tool results show `+find_part+` and no `+search_bulletins+`, the agent doesn't have the new tool yet. Run step 3's first cell again, then step 4.
 
-Grounding makes an answer checkable; it doesn't make it correct. Nothing yet checks that the retrieved passage actually answers the question. Module 7 comes back to that.
+After the fix, you should see a passage from SB-2024-102 in step 4's tool results and SB-2024-102 in the answer's sources. Your answer's wording may differ from the one described in step 4. Check it against the passages the same way, because finding a passage doesn't prove the answer used it. If your agent's query differs, so will its passages. If the _Action_ passage comes back, the answer may include the bleed and the 2.1 bar check. Do the same check with the passages your run got: which parts of the answer come from them, and which don't?
+
+For K-900, `+search_bulletins+` should return `+no_results+`, and the answer should say the bulletins don't cover the question, with no made-up interval.
+
+====

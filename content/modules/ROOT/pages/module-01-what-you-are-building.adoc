@@ -11,93 +11,71 @@ endif::[]
 endif::[]
 :lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
 
-NOTE: This page mirrors the link:{lab-source-url}/notebooks/module-01-what-you-are-building.ipynb[Jupyter notebook]. You can review the lesson here without a running lab. Code cells are shown in order and run in JupyterLab, not on this page. Saved outputs are excluded; evidence tables, model responses and environment-specific links appear when you execute the notebook.
+NOTE: You work through this module in its notebook, `notebooks/module-01-what-you-are-building.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-01-what-you-are-building.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
-____
+You run the prototype agent once and look inside it in two ways: the raw request and response of each model call, and the run's trace in MLflow. Every later module uses these two kinds of evidence.
 
-[source,python]
-----
-import labnb as lab
-%cd ../agent
-----
+Some cells end with a question to think through before you go on. There's nothing to type or hand in, and the answer is in a collapsed block right under the question.
 
-== Start from module 1
+== What you'll do in the notebook
 
-This puts the agent in the state module 1 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+[arabic]
+. Meet the agent
+. Run it once
+. Read the payload
+. Your first trace
+. The rule for the rest of the lab
 
-[source,python]
-----
-!python reset.py 1
-----
+== Questions to think about
 
-== 1. Meet the agent
+*Your read:* look at the answer. Did the agent look anything up? Did anything report a problem? To check, read the `+tool_calls (call 1)+` and `+turns+` columns, not the answer text.
 
-The agent answers field service questions for Kestrel Industrial (a fictional chiller maker). Three files matter: link:{lab-source-url}/agent/tools.py[`+tools.py+`] (the tools the model is offered), link:{lab-source-url}/agent/agent.py[`+agent.py+`] (the loop) and link:{lab-source-url}/agent/config.toml[`+config.toml+`] (which model endpoint it calls). Each run leaves two kinds of evidence: the raw payloads under `+agent/runs/+`, and a trace in MLflow.
+.Check your answer
+[%collapsible]
+====
+
+No, it looked nothing up. `+tool_calls (call 1)+` is `+null+` or `+[]+`, which means the model asked for no tool, and 1 turn means the agent called the model only once. The answer names `+find_part+`, but that's text the model wrote, not a tool the agent ran. Nothing reported a problem either: there's no error, and the run ended normally. Problems like this don't show up as errors, which is why the lab reads the evidence. Step 3 shows where the tool call went.
+
+====
+
+== How you know it worked
+
+The text the model wrote, `+content+`, appears in two places: the saved payload and the `+model_call_1+` outputs in the MLflow trace. It's the same in both.
+
+== Diagrams
+
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
+[%collapsible]
+====
 
 [mermaid]
 ....
-flowchart TB
+flowchart LR
   Q["Your question"] --> A["agent.py: the loop"]
-  A <-- "request and response" --> M["Model endpoint qwen3-8b-a, served by vLLM"]
-  A <-- "tool calls and results" --> T["tools.py: find_part, check_stock"]
+  A -- "question and tool list" --> M["Model: qwen3-8b-a on vLLM"]
+  M -- "an answer, or a tool_calls request" --> A
+  A -- "runs the requested tool" --> T["tools.py: find_part, check_stock"]
+  T -- "result" --> A
   A --> ANS["The answer it prints"]
   A -. "payloads" .-> R["agent/runs/"]
   A -. "one trace per run" .-> F["MLflow"]
 ....
 
-The endpoint the lab starts on is set in `+config.toml+`. Don't change it yet:
 
-[source,python]
-----
-print(lab.config()["model"]["base_url"])
-----
+====
 
-== 2. Run it once
+== If the result differs
 
-The question needs a part number that only `+find_part+` knows, because Kestrel's parts aren't in any model's training data.
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
+[%collapsible]
+====
 
-[source,python]
-----
-!python agent.py --q m1
-lab.evidence(columns=("endpoint", "finish_reason (call 1)", "tool_calls (call 1)", "turns", "answer"))
-----
+If the answer holds a real part number, or `+tool_calls (call 1)+` names a tool, the agent isn't on the endpoint module 1 starts on. Check that the endpoint cell printed `+qwen3-8b-a+`. If it didn't, run the reset cell at the top of the notebook again, then the cells after it.
 
-Look at the answer. Did the agent look anything up? Did anything report a problem?
+If the agent cell ends in an error instead of an answer, such as a timeout or a connection error, it couldn't reach the model endpoint. That's a problem with the lab environment, not the failure this module shows. Wait a minute and run the cell again.
 
-== 3. Read the payload
+If the agent printed "No trace recorded: MLflow couldn't be reached", your payloads are still saved, so steps 2 and 3 still work, but the trace link says "not available yet". Run the agent cell again to get a trace.
 
-The payload is exactly what went to the endpoint and what came back.
+The table, the `+content+` cell and the trace link only show runs made since the notebook's kernel started. If you restarted the kernel, or the workbench restarted, they say "No runs in this notebook yet", "No runs yet" or "not available yet", even though your earlier run is saved. Run the first code cell again, then the agent cell and the cells after it.
 
-[source,python]
-----
-!python payloads.py
-----
-
-[source,python]
-----
-lab.content()
-----
-
-The request offered the tools. The response's `+tool_calls+` is empty, `+finish_reason+` is `+stop+`, and `+content+` holds the call the model meant to make, as text. Don't diagnose why yet; module 2 does.
-
-== 4. Your first trace
-
-MLflow keeps one *trace* per run. A trace is a tree of *spans*, one per step:
-
-* `+agent_run+` is the whole run. Its outputs say how the run ended and how many tools it called.
-* `+model_call_1+` is one request to the model. Its *Inputs* hold the messages and the tools offered; its *Outputs* hold `+finish_reason+`, `+tool_calls+` and `+content+`.
-* A tool the agent actually runs gets its own span underneath. This run should have none.
-
-Open the trace and click each span. Compare what it shows with the payload above.
-
-[source,python]
-----
-lab.trace_link()
-lab.links(("Every trace in this experiment", lab.experiment_url()))
-----
-
-== 5. The rule for the rest of the lab
-
-The answer is a claim; the evidence is somewhere else. From here on, every module ends by checking the evidence: the payload in this module and the next, and the trace from module 3 on, where turn counts, tool sequences and error categories are what matter.
+====

@@ -31,7 +31,7 @@ The Ansible `healthcheck.yml` and `e2e.yml` playbooks invoke the same entry poin
 
 Each invocation writes `report.json` and `review.md`, plus uniquely named pytest JUnit XML when tests run. Missing configuration and unavailable services fail. Module rows require both participants' module checks, readiness and matching rendered documentation. Required incomplete or failed checks cannot produce a ready verdict.
 
-The review index links all seven notebooks at the selected commit and their local Showroom HTML mirrors. Build the preview before opening those links. A local build or downloadable CI preview is not proof that a Showroom instance is published.
+The review index links all seven notebooks at the selected commit and their local Showroom guide pages. Build the preview before opening those links. A local build or downloadable CI preview is not proof that a Showroom instance is published.
 
 The full run also verifies the test-to-main release PR and effective branch protection. Until that PR and its required approval/check policy exist, the overall result remains unsuccessful even if individual modules pass. Keep the commit fixed through validation and review; changes require rerunning the checks and renewing approval.
 

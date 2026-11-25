@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Check the built HTML against all seven notebooks, including code and interactive markup."""
+"""Check each built module guide against its notebook: steps, questions, diagrams, links, and no copied code."""
 import argparse
 import json
+import re
 from pathlib import Path
 import subprocess
 
@@ -23,12 +24,24 @@ def main():
         page = BeautifulSoup(html, "html.parser")
         article = page.select_one("article.doc")
         assert article is not None, f"{source.name}: no document body"
-        expected_code = ["".join(c["source"]).rstrip() for c in notebook["cells"] if c["cell_type"] == "code"]
-        actual_code = [c.get_text() for c in article.select("code.language-python")]
-        assert actual_code == expected_code, f"{source.name}: code cells differ or are out of order"
-        markdown = "\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "markdown")
+        cells = [c for c in notebook["cells"] if c["cell_type"] == "markdown"]
+        markdown = "\n".join("".join(c["source"]) for c in cells)
+        # A guide, not a copy: the code lives only in the notebook.
+        assert not article.select(".listingblock, .literalblock"), f"{source.name}: the guide copies notebook code"
+        steps = re.findall(r"^## \d+\. (.+)$", markdown, re.MULTILINE)
+        # Asciidoctor curls apostrophes; compare the plain text.
+        listed = [li.get_text(" ", strip=True).replace("\u2019", "'") for li in article.select(".olist li")]
+        assert [s.strip() for s in steps] == listed[:len(steps)], f"{source.name}: steps differ from the notebook"
         assert len(article.select(".mermaid")) == markdown.count("```mermaid"), f"{source.name}: missing diagrams"
-        assert len(article.select("details > summary")) == markdown.count("<details>"), f"{source.name}: missing answer reveals"
+        answers = markdown.count("<details")
+        diagrams = 1 if "```mermaid" in markdown else 0
+        differs = 1 if "## If the result differs" in markdown else 0
+        assert len(article.select("details > summary")) == answers + diagrams + differs, f"{source.name}: missing reveals"
+        text = article.get_text(" ")
+        questions = len(re.findall(r"^\*\*Your read:\*\*", markdown, re.MULTILINE))
+        assert text.count("Your read:") == questions, f"{source.name}: questions differ from the notebook"
+        if "**This is the module's success signal:**" in markdown:
+            assert article.find(id="_how_you_know_it_worked"), f"{source.name}: no 'How you know it worked'"
         expected_url = f"https://github.com/rhpds/agent-antipatterns-lab/blob/{args.source_ref}/notebooks/{source.name}"
         assert article.find("a", href=expected_url), f"{source.name}: wrong notebook source link"
         for link in article.select("a[href]"):
@@ -36,12 +49,19 @@ def main():
             assert "{lab-source" not in href and not href.startswith("../agent/"), f"{source.name}: unresolved link {href}"
             if "/blob/" in href:
                 assert f"/blob/{args.source_ref}/" in href, f"{source.name}: wrong source branch in {href}"
+                # GitHub refuses to load inside Showroom's frame.
+                assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
+        # A repository link written as a code span must still render as code.
+        code_named = set(re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown))
+        for link in article.select("a[href*='/blob/']"):
+            if link.get_text() in code_named:
+                assert link.select("code"), f"{source.name}: link text `{link.get_text()}` lost its code formatting"
         assert article.find("h1"), f"{source.name}: no page title"
-        assert "Prototype notebook." in article.get_text(), f"{source.name}: draft label lost"
+        assert "Prototype notebook." not in article.get_text(), f"{source.name}: draft label on the guide"
         count += 1
-        print(f"Verified {source.name}: {len(actual_code)} code cells, {len(article.select('.mermaid'))} diagrams")
+        print(f"Verified {source.name}: {len(steps)} steps, {len(article.select('.mermaid'))} diagrams")
     assert count == 7, f"Expected seven modules, found {count}"
-    print("All seven HTML mirrors preserve code, diagrams, answer reveals and source links.")
+    print("All seven module guides match their notebooks' steps, questions, diagrams and source links.")
 
 
 if __name__ == "__main__":
