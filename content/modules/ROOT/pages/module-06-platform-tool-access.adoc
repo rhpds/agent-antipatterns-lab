@@ -70,7 +70,7 @@ flowchart TB
 
 If the address cell in step 2 says this environment has no lab MCP Gateway, your workbench wasn't set up with one. You can't fix that from the notebook, so ask for help.
 
-If the check in step 2 prints `+gateway_url: ''+`, `+config.toml+` isn't saved with the address. Save it and run that cell again. If the cell fails with an error about TOML, the address is missing its quotes. Until that check shows the address, the later cells print "Set gateway_url first." and run nothing, and nothing gets registered.
+If the check in step 2 prints `+gateway_url: ''+`, `+config.toml+` isn't saved with the address. Save it and run that cell again. If the cell fails with an error about TOML, the address is missing its quotes. Until that check shows the address, the later cells say `+gateway_url+` isn't set and run nothing, and nothing gets registered.
 
 If a run fails with HTTP 401 or 403, the gateway didn't accept the login your workbench sends. The notebook's steps use your workbench's own identity, not an admin login. That's an environment problem, not something in the agent, so ask for help.
 
