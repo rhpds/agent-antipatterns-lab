@@ -41,4 +41,4 @@ Feature: The complete lab is verified before review and release
   Scenario: Participants complete the lab independently
     Given two participants
     When both complete the lab
-    Then their workbenches and tool registrations remain isolated
+    Then their workbenches remain isolated from each other

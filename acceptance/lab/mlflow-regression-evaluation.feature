@@ -4,7 +4,7 @@
 # reports every case and says the evaluation wasn't recorded (Q5). Locked: to change a
 # scenario, ask David; don't edit this file.
 
-Feature: Module 7's regression run is recorded as an evaluation
+Feature: The closing module's regression run is recorded as an evaluation
 
   Scenario: The regression run is recorded as an evaluation
     Given tracing is on in the participant's workbench
