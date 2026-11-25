@@ -76,4 +76,6 @@ If the agent printed "No trace recorded: MLflow couldn't be reached", your paylo
 
 The table, the `+content+` cell and the trace link only show runs made since the notebook's kernel started. If you restarted the kernel, or the workbench restarted, they say "No runs in this notebook yet", "No runs yet" or "not available yet", even though your earlier run is saved. Run the first code cell again, then the agent cell and the cells after it.
 
+If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell.
+
 ====
