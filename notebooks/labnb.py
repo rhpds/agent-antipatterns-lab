@@ -197,25 +197,43 @@ def evidence(columns=("endpoint", "turns", "ended by", "tools run", "answer"), l
 
 
 def show_code(file, name):
-    """Show one function (or one top-level name, such as TOOL_DEFINITIONS) from a file in
-    agent/, with its line numbers, so a learner can read it without leaving the notebook.
-    It reads the file as it is now, so it shows any edit the learner has made."""
+    """Show one top-level function, class or name (such as TOOL_DEFINITIONS), or one method
+    as "Class.method", from a file in agent/, with its line numbers, so a learner can read it
+    without leaving the notebook. It reads the file as it is now, so it shows their edits."""
     import ast
     path = AGENT / file
-    source = path.read_text()
-    lines = source.splitlines()
-    for node in ast.walk(ast.parse(source)):
-        named = getattr(node, "name", None) or next(
-            (t.id for t in getattr(node, "targets", []) if isinstance(t, ast.Name)), None)
-        if named == name and hasattr(node, "end_lineno"):
-            start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
-            # Take the comment lines right above it too: they explain it.
-            while start > 1 and lines[start - 2].lstrip().startswith("#"):
-                start -= 1
-            width = len(str(node.end_lineno))
-            body = "\n".join(f"{n:>{width}}  {lines[n - 1]}" for n in range(start, node.end_lineno + 1))
-            return display(Markdown(f"`{file}`, lines {start} to {node.end_lineno}:\n\n```python\n{body}\n```"))
-    display(Markdown(f"`{name}` isn't in `{file}` any more. Open [`{file}`](../agent/{file}) to look for it."))
+    try:
+        source = path.read_text()
+        tree = ast.parse(source)
+    except OSError:
+        return display(Markdown(f"There's no `{file}` in the agent's folder. Check the file name."))
+    except SyntaxError as error:
+        return display(Markdown(f"`{file}` has a Python error on line {error.lineno}, so it can't be "
+                                f"shown here. Open [`{file}`](../agent/{file}) to fix it."))
+
+    def names(node):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            return [node.name]
+        targets = node.targets if isinstance(node, ast.Assign) else [getattr(node, "target", None)]
+        return [t.id for t in targets if isinstance(t, ast.Name)]
+
+    owner, _, member = name.rpartition(".")
+    scope = tree.body
+    if owner:
+        scope = next((n.body for n in tree.body if isinstance(n, ast.ClassDef) and n.name == owner), [])
+    found = [n for n in scope if member in names(n)]
+    if not found:
+        return display(Markdown(f"`{name}` isn't in `{file}` any more. Open [`{file}`](../agent/{file}) "
+                                "to look for it."))
+    node, lines = found[0], source.splitlines()
+    start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
+    # Take the comment lines right above it too: they explain it.
+    while start > 1 and lines[start - 2].lstrip().startswith("#"):
+        start -= 1
+    width = len(str(node.end_lineno))
+    body = "\n".join(f"{n:>{width}}  {lines[n - 1]}" for n in range(start, node.end_lineno + 1))
+    more = f" (`{file}` defines `{name}` {len(found)} times; this is the first.)" if len(found) > 1 else ""
+    display(Markdown(f"`{file}`, lines {start} to {node.end_lineno}:{more}\n\n````python\n{body}\n````"))
 
 
 def latest():
