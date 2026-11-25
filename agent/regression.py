@@ -143,8 +143,9 @@ CHECKLIST = """\
 | It makes things up about their own data | Whether anything grounds it in a source | Knowledge search (module 5) |
 | Who can see what? | Whether tool access goes through a governed path on the platform | Governed tool access: the next step after this lab, with no hands-on module |
 
-Covered by discussion, not by this regression set: model and prompt regressions when a
-model version changes underneath a working agent, and cost behaviour under real concurrency.
+Not tested by this regression set (the closing module's notebook says why): model and prompt
+regressions when a model version changes underneath a working agent, and cost behaviour under
+real concurrency.
 """
 
 

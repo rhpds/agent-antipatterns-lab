@@ -27,13 +27,3 @@ industrial process chillers (K-200, K-400, K-600). Help service engineers find \
 the right part and check whether they can get it. Be concise. \
 You MUST use the available tools to look up part numbers, stock and other facts. \
 Never answer from memory. Always call a tool first."""
-
-# Each tool carries its own address and credential, written into the agent.
-# For this lab the addresses are local fixture files and no credential is checked.
-[tools.find_part]
-address = "fixtures/parts.json"
-credential_env = "KESTREL_PARTS_TOKEN"
-
-[tools.check_stock]
-address = "fixtures/stock.json"
-credential_env = "KESTREL_STOCK_TOKEN"

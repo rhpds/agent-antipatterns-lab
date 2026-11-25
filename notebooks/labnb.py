@@ -296,8 +296,10 @@ def regression(name=None):
     command = ["python", "regression.py"] + (["--name", name] if name else [])
     done = subprocess.run(command, cwd=AGENT, capture_output=True, text=True)
     output = done.stdout + done.stderr
+    # Each case's trace link is printed before its verdict, so it reads as the previous
+    # case's. Leave those out: every case's trace is in the evaluation run, linked below.
     keep = [line for line in output.splitlines()
-            if "View run" not in line and not line.startswith("Evaluation in MLflow:")]
+            if "View run" not in line and not line.startswith(("Evaluation in MLflow:", "Trace in MLflow:"))]
     print("\n".join(keep))
     global _seen_experiment
     seen = re.search(r"/experiments/(\w+)/(?:runs|evaluation-runs)\b", output)

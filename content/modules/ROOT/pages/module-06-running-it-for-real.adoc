@@ -13,7 +13,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-06-running-it-for-real.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-06-running-it-for-real.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-You run the regression set against the agent with every fix in place. It asks one question for each failure you fixed in modules 1 to 5, and checks what the agent did each time. You read each verdict and its reason, then take away a checklist for the field: when a customer says their agent misbehaves, it tells you which layer to look at first. The module takes about 10 minutes.
+You run the regression set against the agent with every fix in place. It asks one question for each failure you fixed in modules 2 to 5, and checks what the agent did each time. You read each verdict and its reason, then take away a checklist for the field: when a customer says their agent misbehaves, it tells you which layer to look at first. The module takes about 15 minutes, including a wait of several minutes while the regression set runs.
 
 == What you'll do in the notebook
 
@@ -35,7 +35,7 @@ The answer. The search found the right bulletin, and the model left the citation
 
 ====
 
-*Your read:* before you open the report, think back over modules 2 to 5. A customer says their agent told them it ordered a part, but no order was ever placed. Which layer do you look at first?
+*Your read:* before you open the report, think back over modules 2 to 5. A customer's agent has a tool that places orders, which yours doesn't. The customer says the agent told them it ordered a part, but no order was ever placed. Which layer do you look at first?
 
 .Check your answer
 [%collapsible]
@@ -53,11 +53,13 @@ Tool returns (module 4). It's the "confidently reports work it did not do" row: 
 |Who can see what? |Whether tool access goes through a governed path on the platform |Governed tool access: the next step after this lab, with no hands-on module
 |===
 
+The last row is a question, not a complaint. The notebook explains it after the report.
+
 ====
 
 == How you know it worked
 
-All five cases PASS, and the last line reads `+5 passed, 0 failed, 0 skipped+`.
+All five cases PASS, and the count line reads `+5 passed, 0 failed, 0 skipped+`.
 
 == Diagrams
 
@@ -82,6 +84,14 @@ flowchart TB
 
 ====
 
+== Where to go next
+
+In this lab each tool is a Python function inside the agent's own code, in `+tools.py+`. The one tool that needs a credential, `+search_bulletins+`, reads its database password from the workbench's environment. Adding or withdrawing a tool means changing every agent that uses it. On a shared platform, governed tool access puts one place in charge of which tools each agent may see and call. That's the "Who can see what?" row of the checklist.
+
+MCP, the Model Context Protocol, is a standard way for an agent to find and call tools that run outside it. MCP Gateway, part of Red Hat Connectivity Link, is one way to provide governed tool access on OpenShift: agents reach their tools through the gateway, and the platform sets which tools each one is offered. This lab has no hands-on step for it. When you're ready to try it, read the link:https://docs.redhat.com/en/documentation/red_hat_connectivity_link/latest/html/mcp_gateway/index[MCP gateway documentation^].
+
+That's the end of the lab. You fixed four failures, one in each of modules 2 to 5, and the regression set shows the fixes still hold. The checklist in the report is the part to take with you.
+
 == If the result differs
 
 .Open this if your result doesn't match what the notebook expects. It lists likely causes.
@@ -92,7 +102,7 @@ Success is 5 PASS, 0 FAIL, 0 SKIP. A cell that finishes without an error doesn't
 
 If a case fails because its run was cut off, the model used up its allowance of 4,096 tokens for one model call before it finished its answer. The allowance counts the model's reasoning as well as its answer. Run the set again.
 
-If `+m1+` or `+m3+` fails, check which model endpoint the agent calls: add a cell and run `+print(lab.endpoint())+`. It should start with `+qwen3-8b-b+`, the endpoint module 2 moved the agent to. If it doesn't, run the reset cell again, then the regression cell.
+If `+m1+` or `+m3+` fails, check which model endpoint the agent calls. Select the regression cell and click the plus-sign button in the notebook's toolbar, _Insert a cell below_. Type `+print(lab.endpoint())+` in the new cell and run it. It should start with `+qwen3-8b-b+`, the endpoint module 2 moved the agent to. If it doesn't, run the reset cell again, then the regression cell.
 
 If `+m5+` or `+m5-miss+` shows SKIP, the agent wasn't offered `+search_bulletins+`, module 5's search tool. Run the reset cell again, then the regression cell.
 

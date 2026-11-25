@@ -38,6 +38,7 @@ class ShowroomMirrorTests(unittest.TestCase):
             md('<details><summary>Check your answer</summary>\n\n1. First answer.\n2. Second answer.\n</details>'),
             md('## 2. Fix it\n\n```mermaid\nflowchart LR\n A --> B\n```'),
             md("**This is the module's success signal:** the run stops."),
+            md('## Where to go next\n\nRead the [product docs](https://docs.example.com/guide).'),
             md('## If the result differs\n\nCheck the reset.'),
         )
         self.assertIn('= A lesson\n', result)
@@ -55,6 +56,10 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('== How you know it worked\n\nThe run stops.', result)
         self.assertIn('[mermaid]\n', result)
         self.assertLess(result.index('== Diagrams'), result.index('[mermaid]'))
+        # "Where to go next" stands as it is, before the troubleshooting, and other sites
+        # open in a new tab too.
+        self.assertIn('== Where to go next\n\nRead the link:https://docs.example.com/guide[product docs^].', result)
+        self.assertLess(result.index('== Where to go next'), result.index('== If the result differs'))
         self.assertIn('== If the result differs', result)
         self.assertLess(result.index('== If the result differs'), result.index('Check the reset.'))
         self.assertIn('[%collapsible]\n====\n\nCheck the reset.', result)
@@ -71,6 +76,7 @@ class ShowroomMirrorTests(unittest.TestCase):
             ([md('# T'), md('**Your read:** q?'), md('<details><summary>A</summary>\n\n```python\nx = 1\n```\n</details>')],
              'must not contain code'),
             ([md('# T'), md('~~~\ncode\n~~~')], 'plain ``` fences'),
+            ([md('# T'), md('## Where to go next\n\n```bash\nls\n```')], "out of 'Where to go next'"),
         ):
             with self.subTest(message=message):
                 with self.assertRaisesRegex(ValueError, message):
