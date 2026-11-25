@@ -4,7 +4,7 @@
 
 You'll build a field service agent for Kestrel Industrial, a fictional maker of industrial cooling equipment. The agent helps service engineers find parts, check stock and delivery times, and look up service bulletins.
 
-The agent you start with has problems that don't show up as errors. Module 1 shows you how to see inside it. In the modules after that, you find what's wrong from the evidence: the request sent to the model, the response that came back, what a tool returned, and the trace in MLflow. Then you apply the fix and check the evidence again.
+The agent you start with has problems that don't show up as errors. Module 1 shows you how to see inside it. In the modules after that, you find what's wrong by looking at what the agent actually did: the request sent to the model, the response that came back, what a tool returned, and the trace in MLflow. Then you apply the fix and look at the same things again.
 
 == What's running in your lab
 

@@ -13,7 +13,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-01-what-you-are-building.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-01-what-you-are-building.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-You run the prototype agent once and look inside it in two ways: the raw request and response of each model call, and the run's trace in MLflow. Every later module uses these two kinds of evidence.
+You run the prototype agent once and look inside it in two ways: the raw request and response of each model call, and the run's trace in MLflow. Every later module comes back to these two: the payload and the trace.
 
 Some cells end with a question to think through before you go on. There's nothing to type or hand in, and the answer is in a collapsed block right under the question.
 
@@ -34,7 +34,7 @@ Some cells end with a question to think through before you go on. There's nothin
 [%collapsible]
 ====
 
-No, it looked nothing up. `+tool_calls (call 1)+` is `+null+` or `+[]+`, which means the model asked for no tool, and 1 turn means the agent called the model only once. The answer names `+find_part+`, but that's text the model wrote, not a tool the agent ran. Nothing reported a problem either: there's no error, and the run ended normally. Problems like this don't show up as errors, which is why the lab reads the evidence. Step 3 shows where the tool call went.
+No, it looked nothing up. `+tool_calls (call 1)+` is `+null+` or `+[]+`, which means the model asked for no tool, and 1 turn means the agent called the model only once. The answer names `+find_part+`, but that's text the model wrote, not a tool the agent ran. Nothing reported a problem either: there's no error, and the run ended normally. Problems like this don't show up as errors, which is why the lab checks what the agent actually did. Step 3 shows where the tool call went.
 
 ====
 
