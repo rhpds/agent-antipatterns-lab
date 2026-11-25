@@ -13,14 +13,38 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-07-running-it-for-real.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-07-running-it-for-real.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-You run the lab's regression questions against the fixed agent and record the results in MLflow as a baseline. A later change to the model, the prompt or the tools can then be checked against it. You also take away a checklist that maps a symptom a customer describes to the layer to look at first.
+You run the regression set, one question for each failure you fixed in modules 1 to 6, against the assembled agent, and record the results in MLflow as a baseline. A later change to the model, the prompt or the tools can then be checked against it. You also take away a checklist for the field: when a customer says their agent misbehaves, it tells you which layer to look at first.
 
 == What you'll do in the notebook
 
 [arabic]
 . Run the regression set
 . Check the evidence, not the answers
-. The baseline
+. The baseline in MLflow
+. Compare a second run with the baseline (stretch goal)
+. Symptom to layer
+
+== Questions to think about
+
+*Your read:* a customer says their agent told them it ordered a part, but no order was ever placed. Which layer do you look at first?
+
+.Check your answer
+[%collapsible]
+====
+
+Tool returns (module 4). It's the "confidently reports work it did not do" row: check whether the ordering tool's result can say that it failed. In module 4, an unknown depot came back looking like "no stock" until the tool returned `+bad_request+`. Here's the whole checklist:
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|A customer says... |Look first at |Layer
+|The agent ignores its tools |How the model is served (tool-call parser), not the prompt |Model interface (module 2)
+|It loops, or runs are expensive |Whether the loop appends tool results and reads the stop condition |Agent loop (module 3)
+|It confidently reports work it did not do |Whether tool returns can express failure |Tool returns (module 4)
+|It makes things up about their own data |Whether anything grounds it in a source |Knowledge search (module 5)
+|Who can see what? |Whether tool access goes through a governed path |Platform tool access (module 6)
+|===
+
+====
 
 == How you know it worked
 
@@ -34,19 +58,16 @@ All six regression cases PASS, with 0 FAIL and 0 SKIP.
 
 [mermaid]
 ....
-flowchart LR
-  subgraph Cases["Cases"]
+flowchart TB
+  subgraph Cases["Six cases"]
     direction TB
-    C1["m1: the part number"]
-    C3["m3: the Denver chain"]
-    C4["m4: the Portland depot"]
-    C5["m5: F-21 and the K-900"]
-    C6["m6: delivery time"]
+    C1["m1: the part number"] ~~~ C3["m3: the Denver chain"] ~~~ C4["m4: the Portland depot"]
+    C5["m5: fault F-21"] ~~~ C5M["m5-miss: the K-900"] ~~~ C6["m6: delivery time"]
   end
   Cases --> AG["The assembled agent"]
-  AG --> REC["Run records: tool calls, stop reason, categories"]
-  REC --> J{"Fixed checks: records and answer markers"}
-  J --> REP["Report, and a named baseline run in MLflow"]
+  AG --> REC["Run records: tools run, results, how each run ended"]
+  REC --> J{"Fixed checks in regression.py"}
+  J --> REP["Report, and an evaluation run in MLflow"]
 ....
 
 
@@ -58,8 +79,18 @@ flowchart LR
 [%collapsible]
 ====
 
-For the assembled lab, the success signal is *6 PASS, 0 FAIL, 0 SKIP*. SKIP is useful while building earlier modules; it is incomplete acceptance here. A command that finishes or exits successfully does not mean its cases passed. Read each row and reason. A response ending on `+length+` exhausted its output budget, which includes model reasoning; it is an incomplete case, not proof of a parser failure. The current allowance is 4,096 tokens per model call, so its worst-case token use and latency are higher than the earlier 1,024-token setting. Concurrency capacity has not been measured.
+Success is 6 PASS, 0 FAIL, 0 SKIP. A cell that finishes without an error doesn't mean its cases passed, so read each case's verdict and reason.
 
-If the delivery case is skipped, confirm `+gateway_url+` and the project registration from module 6. For tool-call or loop failures, inspect `+base_url+`, the selected solution and the saved requests. For F-21, verify both retrieval and the answer's source citation. If MLflow is unavailable, the terminal report still records every case, but the baseline has not been recorded: restore access and rerun before comparing evaluations. In MLflow, confirm six case rows, their trace links and assessments, and the same counts as the local report. These fixed checks do not establish general answer quality, concurrency capacity or a fresh deployment.
+If `+m6+` shows SKIP, the agent wasn't offered the delivery tool. Run the gateway cell under _Start from module 7_ again and look for `+kestrel_estimate_delivery+` in its list. If it's missing, register it as that section describes, then run the regression set again.
+
+If a case fails because its run was cut off, the model used up its allowance of 4,096 tokens for one model call before it finished its answer. The allowance counts the model's reasoning as well as its answer. Run the set again.
+
+If `+m1+` or `+m3+` fails, check which model endpoint the agent calls: add a cell and run `+print(lab.endpoint())+`. It should start with `+qwen3-8b-b+`, the endpoint module 2 moved the agent to. If it doesn't, run the reset cell and the gateway cell again.
+
+For any other FAIL, the reason says what the check didn't find. Open that case's trace from the table in step 2 to see what the agent did instead. For `+m5+`, the reason tells you whether SB-2024-102 wasn't retrieved at all, or was retrieved but left out of the answer.
+
+If the regression cell's link says the evaluation run isn't available, read the run's last lines. If they say the evaluation wasn't recorded in MLflow, every result is still in the report. Run the set again once MLflow is reachable, before you compare runs.
+
+If a rerun gives different results, check the endpoint as above, and check that `+gateway_url+` in `+config.toml+` still holds the gateway address. `+config.toml+` keeps its contents when the workbench restarts. The reset cell puts it back to module 7's start, and the gateway cell after it sets the address again.
 
 ====
