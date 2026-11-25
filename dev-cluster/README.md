@@ -24,10 +24,10 @@ export KUBECONFIG=~/.kube/sno.kubeconfig
 ```
 
 Components: `mock-target`, `mlflow`, `nemoguardrails`, `evalhub`,
-`guardrailsorchestrator`, `mcp-gateway`.
+`guardrailsorchestrator`.
 
 `mock-target` is a ~30-line stdlib-only OpenAI-compatible HTTP server used as
-a stand-in target for Garak, NeMo Guardrails, and MCP Gateway testing, so this
+a stand-in target for Garak and NeMo Guardrails testing, so this
 scaffolding never has to touch the real (and separately broken)
 `vllm-toolcall-test` CPU-vLLM experiment.
 
@@ -60,48 +60,3 @@ Found the hard way during 2026-08-19 verification — full narrative in
   live/timed — collections like `quality`/`avid` pull in probes (e.g.
   `atkgen.Tox`) that run their own local attack-generator model per turn and
   take 100-235s/turn on CPU.
-- **Don't use these MCP manifests on an OpenShift AI 3.5 cluster.** They attach the
-  extension to OpenShift AI's own `data-science-gateway`. There, its filter runs first on every
-  request and returned 404 for MLflow, the dashboard and workbenches (2026-11-02). The
-  `bootstrap-infra` chart gives MCP Gateway a Gateway of its own instead.
-- **MCP Gateway** needed nine separate fixes to get a working end-to-end
-  request through — see the comments in `manifests/mcp-*.yaml` for the "why"
-  behind each one:
-  1. Backends must live in `openshift-ingress` or `redhat-ods-applications`
-     (the shared Gateway's namespace allow-list) — not an arbitrary project.
-  2. Kuadrant CR must be created by hand to bootstrap Authorino/Limitador.
-  3. `MCPGatewayExtension` → Gateway needs a `ReferenceGrant` in
-     `openshift-ingress`.
-  4. `MCPGatewayExtension` needs `spec.publicHost` set — this Gateway's
-     listener has no hostname of its own.
-  5. Session-store Secret needs the `mcp.kuadrant.io/secret=true` label and a
-     **real Redis** connection string (`memory://` panics the broker).
-  6. Redis needs to run on port 8081, not 6379 — `redhat-ods-applications`'s
-     default NetworkPolicy only opens a fixed port list. Also needs
-     `--protected-mode no`.
-  7. That same NetworkPolicy also blocks the broker's own gRPC ext_proc port
-     (50051) — this is what actually causes end-to-end requests to hang and
-     504 with `ext_proc_error_per-message_timeout_exceeded`, even after every
-     CR reports Ready. Check the *Gateway's* Envoy access log
-     (`openshift-ingress`), not the broker pod's log — the broker never sees
-     the request.
-  8. Upstream MCP servers must implement the `ping` method or the broker
-     marks them unhealthy and silently drops their tools.
-  9. Tools need an `id` field alongside `name` (broker-specific extension
-     beyond the vanilla MCP spec); `MCPServerRegistration.userSpecificList`
-     requires `spec.prefix` to be set.
-
-  Identity-based tool filtering (Round 2's actual demo) works via a
-  mechanism worth knowing about directly: the Gateway's own OAuth proxy
-  forwards the caller's Kubernetes identity to upstream MCP servers as
-  `X-Auth-Request-User`. `mock-mcp-server.py` uses that header to return a
-  different tool list per caller — no custom AuthPolicy needed for the
-  simple case.
-
-## Known limitation
-
-The `redhat-ods-applications` Secret this creates
-(`rh1-mcp-session-store`) triggered a permission prompt under Claude Code's
-auto-mode classifier the first time (secret write to a shared namespace not
-explicitly named in the request) — expect that same prompt if you drive this
-through an agent rather than running the script directly.
