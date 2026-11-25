@@ -13,9 +13,9 @@ project:
     response payloads on the inference endpoint or from the execution trace, and closes
     with the build step that prevents it: a serving runtime configured so tool calls
     are parsed at all, a loop that stops on the model''s reported stop condition,
-    tool returns that surface failure instead of hiding it, a searchable service-bulletin
-    corpus, and tool access through the platform so tools can be added without redeploying
-    the agent.'
+    tool returns that surface failure instead of hiding it, and a searchable service-bulletin
+    corpus. A short closing module re-runs every earlier failure against the assembled
+    agent and turns the build into a symptom-to-layer checklist.'
   jira_ticket: RHDPCD-1073
   workflow_id: ae352eec-d9fb-4849-b96e-cf7a6a4cf4dc
 spec:
@@ -33,8 +33,6 @@ spec:
     so that failed tool calls surface instead of becoming confident empty answers.
   - Integrate a searchable knowledge source so the agent grounds its answers in retrieved
     content rather than in model memory.
-  - Configure an agent to reach its tools through MCP Gateway so that tools can be
-    added or changed without modifying or redeploying the agent.
   - Verify the assembled agent end to end against the failure cases from every earlier
     step before treating it as more than a prototype.
   modules:
@@ -59,12 +57,8 @@ spec:
     duration_min: 14
     status: in_progress
   - id: module-06
-    title: Connecting tools through the platform
-    duration_min: 10
-    status: in_progress
-  - id: module-07
     title: 'Running it for real: verification and field positioning'
-    duration_min: 17
+    duration_min: 10
     status: in_progress
   environment:
     platform: ocp
@@ -104,35 +98,31 @@ spec:
       fractions entirely and keeps the failure domain per-endpoint. Published benchmarks
       show Qwen3-8B sustaining 256 concurrent requests on a single A10G with no dropped
       requests; L40S is materially faster with native FP8, so 30 concurrent participants
-      across three replicas carries substantial headroom.'
-    non_ga_products:
-    - MCP Gateway - Tech Preview via Red Hat Connectivity Link (operator v0.7.1, Red
-      Hat provided). Version 1.0 is GA in Red Hat Connectivity Link 1.5; the lab moves
-      to it once a 1.0 build installs from the lab's catalog
-    non_ga_access_plan: 'One non-GA dependency, down from three in the rejected version.
-      Removing the guardrails and adversarial-scanning rounds took EvalHub and Garak
-      off the design entirely.
-
-      MCP Gateway is a Red Hat Connectivity Link component, not part of Red Hat OpenShift
-      AI, and installs through the normal Red Hat operator catalog, so no separate entitlement, early-access programme or non-standard
-      registry is required. It is supporting rather than load-bearing: module 6 teaches
-      governed tool access as a build step and carries no assessed outcome that fails
-      without it. Documented fallback if it regresses before the event is tool scoping
-      at the MCP server or registry level plus RBAC, which demonstrates the same principle
-      without the gateway dependency.
+      across three replicas carries substantial headroom. To be confirmed: Red Hat''s
+      validated-models matrix lists L4, A100-40, H100 and H200 for this model, and
+      L40S does not appear in it. Check before the event hardware order is final.'
+    non_ga_products: []
+    non_ga_access_plan: 'None needed. No non-GA dependency is confirmed, down from three
+      in the rejected version. Tool calling on the serving path is to be confirmed: Red
+      Hat AI Inference 3.5 calls it Developer Preview, and the OpenShift AI path has no
+      support statement of its own. Removing the guardrails and adversarial-scanning
+      rounds took EvalHub and Garak off the design. Both are GA as of OpenShift AI 3.5,
+      so scope, not maturity, keeps them out. MCP Gateway, the last confirmed one, left
+      on 2026-11-25 with the module that used it, so Red Hat Connectivity Link is no
+      longer installed either. The closing module names governed tool access through
+      MCP Gateway as a next step, with no hands-on work and nothing deployed for it.
 
       The vector store for module 5 is settled and adds no non-GA dependency: PostgreSQL
       with the pgvector extension, deployed as a plain Deployment via GitOps and queried
       directly by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector
       as a remote vector store provider, so the lab shows a participant the direction
-      the platform is going. The RHOAI built-in pgvector provider integration is EA2
-      as of 3.5 and is deliberately not used, because querying Postgres directly needs
+      the platform is going. The RHOAI built-in pgvector provider integration is Technology
+      Preview (since 3.2, still listed in 3.5) and is deliberately not used, because querying Postgres directly needs
       nothing pre-GA and remains forward-compatible with that integration.'
     external_services:
     # Model weights come from Red Hat's ModelCar image on registry.redhat.io;
     # huggingface.co is only the fallback when modelServing.storageUri is unset.
     - registry.redhat.io
-    - registry.access.redhat.com
     - docker.io
     - huggingface.co
     - github.com
@@ -167,10 +157,9 @@ approval_checklist:
       turn count ending well below the iteration cap on the model''s own stop condition,
       a swallowed failure surfacing as a categorized error, an answer traceable to
       a retrieved passage alongside an out-of-corpus question returning an explicit
-      miss, and a tool catalog served through the gateway for the agent''s identity.
-      Module 1 establishes payload and trace access; module 7 re-runs every earlier
-      failure case against the assembled agent and produces a takeaway artifact rather
-      than a system state.'
+      miss. Module 1 establishes payload and trace access; module 6 re-runs every
+      earlier failure case against the assembled agent, reports each as PASS or FAIL,
+      and produces a takeaway artifact rather than a system state.'
     catalog_gap: 'Rewritten 2026-09-02 after the topic-alignment rejection, and verified
       against the published repositories rather than catalog metadata alone.
 
@@ -191,12 +180,13 @@ approval_checklist:
       AgentOps in Production (agentops-in-prod-showroom, duplicated in rhai-features-workshop)
       scored 99 percent against the rejected design with observability, metrics, tracing
       and evaluation modules. All of that is removed; MLflow appears as the instrument
-      for reading a trace, and in module 7 as the place the regression baseline is
-      recorded and compared (decision 0005). The lab teaches no observability or
-      evaluation practice: no judge, no metric design, no monitoring. AgentOps in Action (agentops-in-action-workshop)
+      for reading a trace, and in module 6''s optional stretch goal as the place the
+      regression run can be recorded as an evaluation (decision 0005). The lab teaches
+      no observability or evaluation practice: no judge, no metric design, no monitoring,
+      no baseline comparison. AgentOps in Action (agentops-in-action-workshop)
       owns identity-aware authorization and adversarial testing in the neighbouring
-      slot; guardrails and adversarial scanning are removed and module 6 carries no
-      assessed outcome. Retrieval is bounded to one module because LB1782, showroom-agentic-ai-llamastack
+      slot; guardrails and adversarial scanning are removed, and governed tool access
+      is named in the closing module as a next step with no hands-on work. Retrieval is bounded to one module because LB1782, showroom-agentic-ai-llamastack
       and enterprise-rag-intel-continuum each own it in depth. Red Hat AI Inference
       (redhat-ai-inference) owns serving lifecycle, benchmarking and scale in the
       Inference slot, which is why this design is framed as building an agent rather
@@ -210,10 +200,10 @@ approval_checklist:
       The top match is 99 percent, the same headline figure the previous design carried,
       but against a different asset and for a different reason. Previously it was
       an agent-operations lab whose entire subject this design was duplicating. Now
-      it is a 360-minute Llama Stack lab that shares retrieval and MCP connection,
-      both of which are bounded here to one short module each, and that does not teach
-      serving configuration at all. The score should be read alongside that check:
-      RCARS relevance is AI-generated, its summary for the top match asserts vLLM
+      it is a 360-minute Llama Stack lab that shares retrieval, which is bounded here
+      to one short module, and that does not teach serving configuration at all. It
+      also shared MCP connection until the MCP Gateway module was cut on 2026-11-25.
+      The score should be read alongside that check: RCARS relevance is AI-generated, its summary for the top match asserts vLLM
       tool-call configuration coverage, and the repository shows no such module. The
       second match, VLLM Playground at 90, is the genuine overlap and is bounded explicitly
       in the module 2 outline.'
@@ -223,9 +213,9 @@ approval_checklist:
       that layer failing in a way that raises no error, is diagnosed from the evidence
       rather than the answer, and closes with the build step that prevents it: a serving
       runtime whose parser matches the model, a loop that stops on the model''s reported
-      stop condition, tool returns that can express failure, a searchable knowledge
-      source, and tool access routed through the platform. The order is forced by
-      dependency for the early modules and by weight for the later ones.'
+      stop condition, tool returns that can express failure, and a searchable knowledge
+      source. The order is forced by dependency. A short closing module verifies the
+      assembled agent against every earlier failure and maps symptoms to layers.'
     module_summaries:
     - title: What you are building, and how to see inside it
       overview: Participants meet the agent they will build and establish the habit
@@ -257,19 +247,14 @@ approval_checklist:
         a pre-populated corpus so answers come from retrieved passages with source
         identifiers. Because the error contract already exists, a retrieval miss returns
         an explicit gap instead of an invention.
-    - title: Connecting tools through the platform
-      overview: 'Tools are hardcoded into the agent, so adding one means editing,
-        rebuilding and redeploying it in every environment. Participants point the
-        agent at MCP Gateway so it discovers tools at runtime, then register a new
-        tool at the gateway and watch the agent pick it up with no code change or
-        restart. Teaches connection only: no identity, filtering or authorization,
-        which the neighbouring lab owns.'
     - title: 'Running it for real: verification and field positioning'
-      overview: Every layer was verified alone and none against all the others. Participants
-        re-run the full set of earlier failure cases against the assembled agent,
-        record a baseline in MLflow, and convert the build into a symptom-to-layer
-        checklist for customer conversations, naming the two failure modes covered
-        by discussion rather than hands-on.
+      overview: Every layer was verified alone and none against all the others. In
+        a short closing module, participants run the five earlier failure cases once
+        against the assembled agent, read the PASS/FAIL table, and convert the build
+        into a symptom-to-layer checklist for customer conversations, naming the two
+        failure modes covered by discussion rather than hands-on. Recording the run
+        as an MLflow evaluation is a stretch goal. One paragraph names governed tool
+        access through MCP Gateway as the next step, with no hands-on work.
     rcars_overlap_pct: 99
     rcars_top_matches:
     - title: Agentic AI with Llama Stack and 3rd party Frameworks
@@ -284,9 +269,9 @@ approval_checklist:
         langfuse, langflow and workbench. There is no serving-configuration module,
         so it does not teach why a mismatched tool-call parser strands a call in the
         response body, which is this lab''s largest block. It is also 360 minutes
-        against this lab''s 120, and is built on Llama Stack, now renamed OGX and
-        being de-emphasized. Genuine overlap is retrieval and MCP connection, both
-        deliberately bounded here to one short module each.'
+        against this lab''s 120, and is built on Llama Stack, renamed OGX in
+        OpenShift AI 3.5. Genuine overlap is retrieval, deliberately bounded here
+        to one short module. MCP connection is no longer taught here.'
     - title: VLLM Playground
       ci_name: agd-v2.vllm-playground-aws.prod
       url: https://catalog.demo.redhat.com/catalog?item=agd-v2.vllm-playground-aws.prod
@@ -308,11 +293,11 @@ approval_checklist:
       url: https://catalog.demo.redhat.com/catalog?item=published.openshift-mcp-lab.prod
       relevance_score: 84
       why_it_fits: Covers MCP server operationalization and tool governance at the
-        registry level with least-privilege access control and RBAC. Module 6 here
-        is 10 minutes, carries one objective, and teaches only that routing tool access
-        through the platform decouples tool changes from agent releases. It deliberately
-        teaches no identity, filtering or authorization, which is this lab's boundary
-        against both this asset and the neighbouring Security/Governance lab.
+        registry level with least-privilege access control and RBAC. This lab no longer
+        teaches tool access through the platform at all. The closing module names governed
+        tool access through MCP Gateway as a next step in one paragraph, with no hands-on
+        work. It teaches no identity, filtering or authorization, which is this lab's
+        boundary against both this asset and the neighbouring Security/Governance lab.
     rejections:
     - id: 59e7f3be-4be9-4995-ad73-f3496017e65a
       text: This should not have been submitted yet. David Williams needs to update

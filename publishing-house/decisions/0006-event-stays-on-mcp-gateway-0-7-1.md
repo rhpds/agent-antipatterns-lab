@@ -1,6 +1,7 @@
 # 0006. The event stays on MCP Gateway 0.7.1
 
 - **Status:** Accepted
+- **Superseded:** the 2026-11-25 scope cut removed module 6 and MCP Gateway.
 - **Date:** 2026-11-02
 - **Decided by:** David ("Keep it at 0.7.1"), on the agent's recommendation in #75
 - **Affects:** module 6 (spec, notebook and content), `bootstrap-infra` (operator channels, wait job), `design.md` and `spec.yaml` maturity rows

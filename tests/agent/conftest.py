@@ -73,9 +73,6 @@ class Workdir:
         for f in (AGENT / "solutions" / module).glob("*.py"):
             shutil.copy(f, self.path / f.name)
 
-    def set_gateway(self, url):
-        self.config.write_text(self.config.read_text().replace('gateway_url = ""', f'gateway_url = "{url}"'))
-
     def run(self, *args, env=None, check=True):
         out = subprocess.run([sys.executable, *args], cwd=self.path, capture_output=True, text=True,
                              env={**self.env, **(env or {})}, timeout=120)

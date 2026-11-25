@@ -6,8 +6,8 @@ import sys
 import pytest
 
 from conftest import REPO
-from test_clone_branch import tool_server_ref, workbench_ref
-from test_module6_own_gateway import CHARTS, helm, of_kind, render
+from charts import CHARTS, helm, of_kind, render
+from test_clone_branch import workbench_ref
 
 PREFLIGHT = REPO / "automation/gitops/check-release.py"
 RHDP = CHARTS / "bootstrap-infra/values-rhdp.yaml"
@@ -27,7 +27,6 @@ def test_a_new_workshop_uses_deployable_lab_sources():
     assert "automation/gitops/bootstrap-infra/Chart.yaml" in old.stderr
     for ref in ("test", "dev", "rh1-2027-test-lb8000-2026-11-02"):
         assert workbench_ref(render("bootstrap-tenant", f"labRepoRef={ref}")) == ref
-        assert tool_server_ref(render("bootstrap-infra", f"labRepoRef={ref}")) == ref
 
 
 def test_each_participant_gets_their_own_workbench():
@@ -63,7 +62,7 @@ def test_rhdp_overlay_reuses_installed_operators_and_keeps_serving():
     docs = render("bootstrap-infra", "labRepoRef=test", files=[RHDP])
     packages = {d["spec"]["name"] for d in of_kind(docs, "Subscription")}
     assert not packages.intersection({"rhods-operator", "nfd", "gpu-operator-certified", "openshift-cert-manager-operator"})
-    assert packages == {"rhcl-operator", "mcp-gateway"}
+    assert not packages
     assert not of_kind(docs, "DataScienceCluster")
     assert not of_kind(docs, "ClusterPolicy")
     assert not of_kind(docs, "NodeFeatureDiscovery")
@@ -122,37 +121,15 @@ def test_runtime_clone_requires_a_branch_or_tag_even_when_commits_match():
     assert "labRepoRef" in out.stderr
 
 
-def test_tool_server_checkout_survives_init_container_retries(tmp_path):
-    """Scenario: A new workshop uses deployable lab sources"""
-    source = tmp_path / "source"
-    tools = source / "agent/solutions/module-05/tools.py"
-    tools.parent.mkdir(parents=True)
-    tools.write_text("SELECTED_RELEASE = True\n")
-    subprocess.run(["git", "init", "-b", "test", str(source)], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(source), "add", "."], check=True)
-    subprocess.run(["git", "-C", str(source), "-c", "user.name=Test", "-c",
-                    "user.email=test@example.com", "commit", "-m", "fixture"], check=True, capture_output=True)
-    docs = render("bootstrap-infra", "labRepoRef=test", f"mcpGateway.server.repo.url={source.as_uri()}")
-    deployment = next(d for d in of_kind(docs, "Deployment") if d["metadata"]["name"] == "mcp-server")
-    script = deployment["spec"]["template"]["spec"]["initContainers"][0]["args"][0]
-    volume = tmp_path / "src"
-    volume.mkdir()
-    # Simulate a previous interrupted clone without clearing the init volume.
-    (volume / "checkout.interrupted").mkdir()
-    script = script.replace("/src/", str(volume) + "/")
-    interrupted = subprocess.run(["bash", "-c", script.replace('--branch "test"', '--branch "unavailable"')],
-                                 capture_output=True, text=True)
-    assert interrupted.returncode != 0
-    assert not (volume / "repo").exists()
-    for _ in range(2):
-        result = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
-        assert result.returncode == 0, result.stderr
-        assert (volume / "repo/agent/tools.py").read_text() == tools.read_text()
-        actual = subprocess.check_output(["git", "-C", str(volume / "repo"), "rev-parse", "HEAD"], text=True)
-        expected = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True)
-        assert actual == expected
-    published = (volume / "repo").resolve()
-    failed_retry = subprocess.run(["bash", "-c", script.replace('--branch "test"', '--branch "unavailable"')],
-                                 capture_output=True, text=True)
-    assert failed_retry.returncode != 0
-    assert (volume / "repo").resolve() == published
+def test_the_charts_install_no_mcp_gateway():
+    """The lab has no MCP Gateway since the 2026-11-25 scope cut: neither chart installs it, its
+    operators or the lab's tool server, and the workbench gets no gateway address."""
+    infra = render("bootstrap-infra")
+    assert not [d for d in infra if "kuadrant.io" in d.get("apiVersion", "")]
+    assert not {d["spec"]["name"] for d in of_kind(infra, "Subscription")} & {"rhcl-operator", "mcp-gateway"}
+    assert not [d for d in of_kind(infra, "Deployment") if d["metadata"]["name"] == "mcp-server"]
+    tenant = render("bootstrap-tenant")
+    env = [e["name"] for nb in of_kind(tenant, "Notebook")
+           for c in nb["spec"]["template"]["spec"]["containers"] for e in c.get("env", [])]
+    assert "LAB_GATEWAY_URL" not in env
+    assert not [d for d in of_kind(tenant, "Role") if d["metadata"]["name"] == "lab-tool-registration"]

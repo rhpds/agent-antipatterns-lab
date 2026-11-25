@@ -68,16 +68,10 @@ Feature: Each module opens with its failure and closes with its fix
     When a participant asks for the service interval on a K-900
     Then the agent says it won't guess, rather than inventing an interval
 
-  Scenario: A tool added at the gateway is used without redeploying the agent
-    Given the agent reaches its tools through the gateway
-    When the delivery-estimate tool is registered at the gateway
-    And a participant asks when the Denver pump would reach Boulder
-    Then the agent calls the new tool and answers "1 day", with no agent files changed
-
   Scenario: The regression run checks every earlier case against the assembled agent
-    Given the agent with every module's fix and the gateway tool
+    Given the agent with every module's fix
     When a participant runs the regression set
-    Then all 6 cases pass
+    Then all 5 cases pass
     And on an earlier module's state it still reports each case without stopping
 
   Scenario: Resetting to a module's start keeps the participant's edits

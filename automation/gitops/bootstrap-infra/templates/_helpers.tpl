@@ -43,12 +43,6 @@ spec:
   sourceNamespace: openshift-marketplace
 {{- end }}
 
-{{/* MCP host: the shared RHOAI Gateway's in-cluster address unless publicHost is set. */}}
-{{- define "infra.gatewayHost" -}}
-{{- $gw := .Values.mcpGateway.gateway -}}
-{{- default (printf "%s-%s.%s.svc.cluster.local" $gw.name $gw.className $gw.namespace) .Values.mcpGateway.publicHost -}}
-{{- end }}
-
 {{/* True when the GPU model-serving pieces should render. */}}
 {{- define "infra.serving" -}}
 {{- if and .Values.gpu.enabled .Values.modelServing.enabled .Values.rhoai.enabled -}}true{{- end -}}

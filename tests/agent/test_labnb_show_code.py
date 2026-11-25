@@ -1,4 +1,7 @@
-"""The notebooks' lab.show_code() shows a function from agent/ with its line numbers."""
+"""The notebooks' lab.show_code() shows a function from agent/ with its line numbers, and
+lab.tool_results() shows each tool's arguments and result as indented JSON."""
+import html
+import json
 import sys
 import types
 
@@ -70,3 +73,17 @@ def test_only_top_level_names_and_named_methods_match(labnb, tmp_path, monkeypat
     assert "isn't in" in shown[-1]
     lab.show_code("m.py", "Z")
     assert "Y = Z = 4" in shown[-1]
+
+
+def test_tool_results_show_arguments_and_results_as_indented_json(labnb, tmp_path):
+    lab, shown = labnb
+    arguments = {"query": "coolant pump", "product": "K-400"}
+    result = {"results": [{"part_number": "KI-CP-40817", "name": "Coolant pump <assembly>"}]}
+    (tmp_path / "summary.json").write_text(json.dumps(
+        {"tool_calls": [{"name": "find_part", "arguments": arguments, "result": result}]}))
+    lab.tool_results(tmp_path)
+    text = shown[-1]
+    for value in (arguments, result):
+        block = html.escape(json.dumps(value, indent=2, ensure_ascii=False))
+        assert f">{block}</pre>" in text and "\n  " in block
+    assert "<code>{" not in text and text.count("<pre") == 2

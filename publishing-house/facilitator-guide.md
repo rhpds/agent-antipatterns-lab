@@ -4,13 +4,13 @@
 alone, so no step depends on a facilitator. The guide carries two things:
 
 - the discussion beats that benefit from a person present (module 1 framing,
-  module 7 customer conversation);
+  module 6 customer conversation);
 - the operational facts a facilitator needs to keep the room running.
 
 ## Discussion beats
 
 <!-- TODO(author): module 1 framing (the rule "the answer is a claim, the evidence is
-somewhere else"), and the module 7 symptom-to-layer discussion prompts. -->
+somewhere else"), and the module 6 symptom-to-layer discussion prompts. -->
 
 ## Operations
 
@@ -81,7 +81,7 @@ python reset.py 4      # the starting state of module 4
 - It restores the starter code, repoints `config.toml` at the validated endpoint for
   module 3 and later (module 2's change), and applies each earlier module's supplied
   solution.
-- Module 7 starts from module 6's starting state, because module 6's gateway change has
-  no supplied solution.
+- Module 6, the closing module, starts from the end of module 5: the starter code with
+  module 2's repoint and the supplied solutions for modules 3 to 5 applied.
 - The corpus and MLflow need no reset: the corpus is read-only, and traces only add up.
   Decision 0004 records the design.

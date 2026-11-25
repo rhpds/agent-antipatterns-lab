@@ -1,6 +1,6 @@
 # Showroom guides for the module notebooks
 
-Edit the seven `notebooks/module-*.ipynb` files, then regenerate their Showroom pages. Do not edit the generated module pages directly. The overview (`content/modules/ROOT/pages/index.adoc`) remains authored AsciiDoc.
+Edit the six `notebooks/module-*.ipynb` files, then regenerate their Showroom pages. Do not edit the generated module pages directly. The overview (`content/modules/ROOT/pages/index.adoc`) remains authored AsciiDoc.
 
 ## Generate and check
 
@@ -26,14 +26,9 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory www
 
 Open <http://127.0.0.1:8765/modules/index.html>. The site uses the existing Antora playbook and Showroom theme. Mermaid diagrams load the library configured in `site.yml`, so diagram rendering requires network access.
 
-Antora source links use the branch or tag from which Antora reads the pages. Local previews use your current branch. Plain AsciiDoc rendering outside Antora falls back to `dev`. To override the publishing branch:
+Each guide links to its notebook, and to the agent files its text names, in the participant's own workbench: `https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app/kestrel-agent/lab/tree/agent-antipatterns-lab/<path>`. The links open in a new tab. Showroom supplies `user` and `openshift_cluster_ingress_domain` from each environment's user data. A local or CI build uses the defaults in `content/antora.yml`, so its links point to a placeholder cluster; `verify.py` checks them against those defaults. Plain AsciiDoc rendering outside Antora uses fallbacks in each page's header.
 
-```bash
-npm run build --prefix publishing-house/showroom -- --attribute lab-source-ref=test
-.venv/bin/python publishing-house/showroom/verify.py --source-ref test
-```
-
-The Showroom build can also set the `lab-source-ref` AsciiDoc attribute for its deployment branch. CI checks out the pull request's exact head commit and uses that SHA in source links. Push builds use the pushed commit SHA.
+The build still accepts `--attribute lab-source-ref=<ref>` and `verify.py` still accepts `--source-ref`, so existing build commands run unchanged, but the guides no longer link to a branch.
 
 ## What goes into a guide
 
@@ -44,11 +39,12 @@ Each module page is a short guide to its notebook. The participant works in the 
 - every `**Your read:**` question, with its `<details>` answer as a collapsible block;
 - the `**This is the module's success signal:**` paragraph, as "How you know it worked";
 - the Mermaid diagrams, in one collapsible block, because a diagram can show the fix;
-- the `## If the result differs` section, also collapsed, because it lists likely causes.
+- a `## Where to go next` section, if the notebook has one, as it stands;
+- the `## If the result differs` section, collapsed like the diagrams, because it lists likely causes.
 
-Code cells, saved outputs, the reset section and blockquotes such as draft notices are left out. Relative links to agent files point to the repository files on GitHub and open in a new tab. Notebook attachments, raw cells, unsupported cell types, an answer reveal that doesn't follow its question, a reveal containing code, nested reveals, and `~~~` or longer fences all fail generation rather than slipping through.
+Code cells, saved outputs, the reset section, blockquotes such as draft notices, and the closing "Proceed to Module N: ..." line are left out. Relative links to agent files open the file in the participant's workbench. They open in a new tab, as do links to other websites. Notebook attachments, raw cells, unsupported cell types, an answer reveal that doesn't follow its question, a reveal containing code, nested reveals, and `~~~` or longer fences all fail generation rather than slipping through.
 
-So a notebook change shows up in its guide, keep those conventions when editing a notebook: an opening paragraph under the title, numbered step headings, the two bold labels above, and every `<details>` answer straight after its `**Your read:**` question, with no code inside it.
+So a notebook change shows up in its guide, keep those conventions when editing a notebook: an opening paragraph under the title, numbered step headings, the two bold labels above, and every `<details>` answer straight after its `**Your read:**` question, with no code inside it. Keep code and reveals out of `## Where to go next` and `## If the result differs`.
 
 ## Verification and CI
 
@@ -57,4 +53,4 @@ mkdir -p .cache
 .venv/bin/python -m unittest discover -s publishing-house/showroom/tests -v
 ```
 
-The `showroom-docs` GitHub Actions workflow runs on pull requests and pushes to `dev`, `test` and `main`. It tests conversion, checks committed pages for drift, builds Antora, verifies every built guide against its notebook (steps, questions, diagrams, links, and no copied code), and saves the `showroom-preview` artifact. This workflow builds documentation; it does not deploy a Showroom instance, promote a branch or advance Publishing House stages.
+The `showroom-docs` GitHub Actions workflow runs on pull requests and pushes to `dev`, `test` and `main`. It tests conversion, checks committed pages for drift, builds Antora, verifies every built guide against its notebook (steps, questions, diagrams, workbench links, and no copied code), and saves the `showroom-preview` artifact. This workflow builds documentation; it does not deploy a Showroom instance, promote a branch or advance Publishing House stages.

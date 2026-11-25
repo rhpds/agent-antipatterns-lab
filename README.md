@@ -2,7 +2,7 @@
 
 Build a field service agent for Kestrel Industrial, a fictional chiller manufacturer. Diagnose failures from model request and response payloads, tool results and execution traces, then apply and verify each fix.
 
-The lab runs in a JupyterLab workbench on Red Hat OpenShift AI. It uses locally served Qwen model endpoints, a pgvector knowledge store, MLflow and MCP Gateway. The notebooks are the lesson source. Each Showroom page is a short guide generated from its notebook: what the module covers, its steps, how you know it worked, its diagrams and, where the module has them, its questions and answers. Showroom pages carry no code.
+The lab runs in a JupyterLab workbench on Red Hat OpenShift AI. It uses locally served Qwen model endpoints, a pgvector knowledge store and MLflow. The notebooks are the lesson source. Each Showroom page is a short guide generated from its notebook: what the module covers, its steps, how you know it worked, its diagrams and, where the module has them, its questions and answers. Showroom pages carry no code.
 
 ## Start the lab
 
@@ -15,8 +15,7 @@ Open the Showroom URL supplied by your provisioned tenant, then launch its OpenS
 | 3 | [The agent loop](notebooks/module-03-agent-loop.ipynb) | Stop correctly and use dependent tool results |
 | 4 | [Tool returns](notebooks/module-04-tool-returns.ipynb) | Distinguish failures from empty results |
 | 5 | [Knowledge search](notebooks/module-05-knowledge-search.ipynb) | Ground answers in retrieved service bulletins |
-| 6 | [Platform tool access](notebooks/module-06-platform-tool-access.ipynb) | Reach and register tools through MCP Gateway |
-| 7 | [Verification](notebooks/module-07-running-it-for-real.ipynb) | Run the regression cases and inspect recorded evaluations |
+| 6 | [Running it for real](notebooks/module-06-running-it-for-real.ipynb) | Run the regression cases and read each verdict and the symptom-to-layer checklist |
 
 To resume at a module, run this from the repository root in the workbench:
 
@@ -28,7 +27,7 @@ Change `2` to the module you want to start. Reset saves participant edits under 
 
 ## Review without provisioning
 
-Start with the [module review index](docs/review/README.md). It links the modules 2 through 7 checklists, acceptance coverage and recorded execution evidence. Human content review remains open.
+Start with the [module review index](docs/review/README.md). It links the modules 2 through 6 checklists, acceptance coverage and recorded execution evidence. Human content review remains open.
 
 The `showroom-docs` check on a pull request provides a downloadable `showroom-preview` artifact. Open `modules/index.html` after extracting it. The preview contains each module's guide (steps, success signal, diagrams, and questions where the module has them); the lesson text and code are in the notebooks, and saved model outputs belong to the separate execution evidence. A passing preview build does not publish a Showroom instance.
 

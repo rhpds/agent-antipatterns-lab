@@ -19,6 +19,6 @@ tabs:
     port: 443
   - name: OpenShift Console
     url: 'https://console-openshift-console.${DOMAIN}'
-  - name: OpenShift AI
-    url: 'https://rhods-dashboard-redhat-ods-applications.${DOMAIN}'
+  # No OpenShift AI tab: it shares the Notebook tab's login, and Showroom loads
+  # every tab at once, so the two logins collided and the Notebook tab failed.
   # An MLflow tab can go here once its route is settled.

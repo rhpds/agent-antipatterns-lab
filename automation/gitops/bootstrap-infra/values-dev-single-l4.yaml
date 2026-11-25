@@ -7,18 +7,11 @@
 #
 # Usage: helm template ... -f values.yaml -f values-dev-single-l4.yaml
 
-# Clone the lab from the dev branch (#88).
-labRepoRef: dev
-
 operators:
   certManager:
     # The Dev CI base provision already installs cert-manager. A second
     # OperatorGroup in the same namespace breaks OLM.
     enabled: false
-
-mcpGateway:
-  # Module 6 only; enable once the platform is up.
-  enabled: false
 
 modelServing:
   # 16k context keeps the KV cache small enough for one L4 next to ~9GB of FP8 weights.

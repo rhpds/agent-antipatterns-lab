@@ -1,19 +1,17 @@
 // Generated from notebooks/module-03-agent-loop.ipynb; edit the notebook, then run:
 // python publishing-house/showroom/generate.py
 = Module 3: The agent loop, stop conditions and turn control
-ifndef::lab-source-ref[]
-ifdef::page-origin-refname[]
-:lab-source-ref: {page-origin-refname}
+ifndef::user[]
+:user: user-example
 endif::[]
-ifndef::page-origin-refname[]
-:lab-source-ref: dev
+ifndef::openshift_cluster_ingress_domain[]
+:openshift_cluster_ingress_domain: apps.cluster-example.dyn.redhatworkshops.io
 endif::[]
-endif::[]
-:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
+:lab-workbench-url: https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app/kestrel-agent/lab/tree/agent-antipatterns-lab
 
-NOTE: You work through this module in its notebook, `notebooks/module-03-agent-loop.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-03-agent-loop.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook. This page is your guide to it. link:{lab-workbench-url}/notebooks/module-03-agent-loop.ipynb[Open this module's notebook^] in a new browser tab, or find `notebooks/module-03-agent-loop.ipynb` in the *Notebook* tab on the right.
 
-Now that tool calls work, the agent calls the same tool on every turn until it hits the turn limit. That limit is `+max_turns+` in link:{lab-source-url}/agent/config.toml[`+config.toml+`^], the agent's settings file: the most model calls one run may make. The trace shows the pattern and the loop's code shows why. You apply the supplied fix and check that the run stops on its own.
+Now that tool calls work, the agent calls the same tool on every turn until it hits the turn limit. That limit is `+max_turns+` in link:{lab-workbench-url}/agent/config.toml[`+config.toml+`^], the agent's settings file: the most model calls one run may make. The trace shows the pattern and the loop's code shows why. You apply the supplied fix and check that the run stops on its own.
 
 == What you'll do in the notebook
 
@@ -25,7 +23,7 @@ Now that tool calls work, the agent calls the same tool on every turn until it h
 
 == Questions to think about
 
-*Your read:* read `+run_agent+` in link:{lab-source-url}/agent/agent.py[`+agent.py+`^] and find two defects: one in what happens to a tool's result, and one in how the loop decides to stop.
+*Your read:* read `+run_agent+` in link:{lab-workbench-url}/agent/agent.py[`+agent.py+`^] and find two defects: one in what happens to a tool's result, and one in how the loop decides to stop.
 
 .Check your answer
 [%collapsible]

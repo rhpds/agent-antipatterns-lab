@@ -59,36 +59,45 @@ SUCCESS = "**This is the module's success signal:**"
 QUESTION = "**Your read:**"
 DRAFT = "> **Prototype notebook.**"
 STEP = re.compile(r"^## (\d+)\. (.+)$")
+# The notebook's last line points to the next module; Antora's page navigation does that here.
+NEXT = re.compile(r"^Proceed to Module \d+: ")
 
 
 def guide(notebook, name):
     """The module's Showroom guide, as Markdown: what the module covers, its steps, the
     questions with their answers, how you know you're done, its diagrams and what to do if
-    the result differs. Everything comes from the notebook; no code is copied."""
+    the result differs, with any "Where to go next" before it. Everything comes from the
+    notebook; no code is copied."""
     cells = ["".join(c.source) if isinstance(c.source, list) else c.source
              for c in notebook.cells if c.cell_type == "markdown"]
     if not cells or not cells[0].startswith("# "):
         raise ValueError(f"{name}: the first cell must start with a level-one Markdown heading")
     title, _, opening = cells[0].partition("\n")
     intro = [b for b in blocks(opening, name) if not b.startswith(">")]
-    steps, questions, success, diagrams, differs = [], [], [], [], []
+    steps, questions, success, diagrams, differs, onward = [], [], [], [], [], []
     section, previous = None, None
     for cell in cells[1:]:
         for block in blocks(cell, name):
+            if NEXT.match(block):
+                section, previous = None, None
+                continue
             if block.startswith("## "):
                 step = STEP.match(block.splitlines()[0])
-                section = "differs" if block.startswith("## If the result differs") else "step" if step else None
+                section = ("differs" if block.startswith("## If the result differs")
+                           else "next" if block.startswith("## Where to go next")
+                           else "step" if step else None)
                 if step:
                     steps.append(step.group(2).strip())
                 rest = block.split("\n", 1)[1].strip() if "\n" in block else ""
-                if section == "differs" and rest:
-                    differs.append(rest)
+                if section in ("differs", "next") and rest:
+                    (differs if section == "differs" else onward).append(rest)
                 previous = None
                 continue
-            if section == "differs":
+            if section in ("differs", "next"):
                 if block.startswith(("<details", "```")):
-                    raise ValueError(f"{name}: keep reveals and code out of 'If the result differs'")
-                differs.append(block)
+                    heading = "If the result differs" if section == "differs" else "Where to go next"
+                    raise ValueError(f"{name}: keep reveals and code out of '{heading}'")
+                (differs if section == "differs" else onward).append(block)
             elif block.startswith("```mermaid"):
                 diagrams.append(block)
             elif block.startswith(QUESTION):
@@ -117,6 +126,8 @@ def guide(notebook, name):
         what = "the module's diagram" if len(diagrams) == 1 else f"the module's {len(diagrams)} diagrams"
         parts += ["## Diagrams", "", f"<details><summary>Show {what}. Open it after you've worked through the "
                   "steps, because it can show the fix.</summary>", "", "\n\n".join(diagrams), "", "</details>", ""]
+    if onward:
+        parts += ["## Where to go next", "", "\n\n".join(onward), ""]
     if differs:
         # Collapsed too: troubleshooting lists likely causes of the failure.
         parts += ["## If the result differs", "", "<details><summary>Open this if your result doesn't match "
@@ -137,17 +148,15 @@ def render(source):
     introduction = f"""// Generated from notebooks/{source.name}; edit the notebook, then run:
 // python publishing-house/showroom/generate.py
 {title}
-ifndef::lab-source-ref[]
-ifdef::page-origin-refname[]
-:lab-source-ref: {{page-origin-refname}}
+ifndef::user[]
+:user: user-example
 endif::[]
-ifndef::page-origin-refname[]
-:lab-source-ref: dev
+ifndef::openshift_cluster_ingress_domain[]
+:openshift_cluster_ingress_domain: apps.cluster-example.dyn.redhatworkshops.io
 endif::[]
-endif::[]
-:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{{lab-source-ref}}
+:lab-workbench-url: https://rh-ai.{{openshift_cluster_ingress_domain}}/notebook/{{user}}-app/kestrel-agent/lab/tree/agent-antipatterns-lab
 
-NOTE: You work through this module in its notebook, `notebooks/{source.name}`, in the *Notebook* tab on the right. This page is your guide to it. The link:{{lab-source-url}}/notebooks/{source.name}[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook. This page is your guide to it. link:{{lab-workbench-url}}/notebooks/{source.name}[Open this module's notebook^] in a new browser tab, or find `notebooks/{source.name}` in the *Notebook* tab on the right.
 """
     return introduction + "\n" + remainder.strip() + "\n"
 

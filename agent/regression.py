@@ -1,13 +1,15 @@
-"""Module 7: re-run every earlier failure case and report per case.
+"""Module 6, the closing module: re-run every earlier failure case and report per case.
 
     python regression.py                    # run the whole set against the agent as it is now
-    python regression.py --name my-baseline # also record it in MLflow as a named evaluation run
+    python regression.py --name my-run      # also record it in MLflow as a named evaluation run
 
-Each case is judged from the run record (tool calls, stop reason, error categories),
-using fixed checks, including source-citation and failed-check markers in the answer; no LLM judges the result. With tracing on, the run is also recorded in MLflow as
-an evaluation: one row per case, with its trace and the same PASS, FAIL or SKIP and reason,
-so a later run can be compared with this one. A case that cannot apply yet (for example the
-retrieval cases before module 5) is reported SKIP; nothing blocks the rest.
+There are five cases, one for each fix in modules 2 to 5. Each case is judged from the run
+record (tool calls, stop reason, error categories), using fixed checks, including
+source-citation and failed-check markers in the answer; no LLM judges the result. A run the
+model cut off before it finished its answer fails, whatever its check found. With tracing on,
+the run is also recorded in MLflow as an evaluation: one row per case, with its trace and the
+same PASS, FAIL or SKIP and reason. A case that cannot apply yet (for example the retrieval
+cases before module 5) is reported SKIP; nothing blocks the rest.
 Writes runs/regression-<time>.md, including the symptom-to-layer checklist.
 """
 import argparse
@@ -113,17 +115,6 @@ def check_m5_miss(s, cap):
     return "FAIL", f"expected no_results, saw {categories(s)}"
 
 
-def check_m6(s, cap):
-    if not offered(s, "estimate_delivery"):
-        return "SKIP", "estimate_delivery is not in the tool catalog (module 6)"
-    if any(successful_data(t).get("transit_days") == 1 and
-           successful_data(t).get("origin_depot") == "Denver" and
-           successful_data(t).get("destination") == "Boulder"
-           for t in called(s, "estimate_delivery")):
-        return "PASS", "estimate_delivery returned one day from Denver to Boulder"
-    return "FAIL", "estimate_delivery did not return a successful one-day Denver-to-Boulder result"
-
-
 def judge(check, summary, cap):
     """A case's verdict. A run the model cut off (it ran out of room before finishing its
     answer) never passes, whatever its check found."""
@@ -139,7 +130,6 @@ CASES = [
     ("m4", "Module 4: swallowed failure surfaces", check_m4),
     ("m5", "Module 5: answer grounded in a bulletin", check_m5),
     ("m5-miss", "Module 5: out-of-corpus is an explicit gap", check_m5_miss),
-    ("m6", "Module 6: runtime-discovered tool", check_m6),
 ]
 
 CHECKLIST = """\
@@ -151,16 +141,17 @@ CHECKLIST = """\
 | It loops, or runs are expensive | Whether the loop appends tool results and reads the stop condition | Agent loop (module 3) |
 | It confidently reports work it did not do | Whether tool returns can express failure | Tool returns (module 4) |
 | It makes things up about their own data | Whether anything grounds it in a source | Knowledge search (module 5) |
-| Who can see what? | Whether tool access goes through a governed path | Platform tool access (module 6) |
+| Who can see what? | Whether tool access goes through a governed path on the platform | Governed tool access: the next step after this lab, with no hands-on module |
 
-Covered by discussion, not by this regression set: model and prompt regressions when a
-model version changes underneath a working agent, and cost behaviour under real concurrency.
+Not tested by this regression set (the closing module's notebook says why): model and prompt
+regressions when a model version changes underneath a working agent, and cost behaviour under
+real concurrency.
 """
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--name", default="baseline", help="run name to record in MLflow")
+    ap.add_argument("--name", default="regression", help="run name to record in MLflow")
     ap.add_argument("--config")
     args = ap.parse_args(argv)
     tracing.init()

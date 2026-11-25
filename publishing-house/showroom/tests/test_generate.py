@@ -38,13 +38,17 @@ class ShowroomMirrorTests(unittest.TestCase):
             md('<details><summary>Check your answer</summary>\n\n1. First answer.\n2. Second answer.\n</details>'),
             md('## 2. Fix it\n\n```mermaid\nflowchart LR\n A --> B\n```'),
             md("**This is the module's success signal:** the run stops."),
+            md('## Where to go next\n\nRead the [product docs](https://docs.example.com/guide).'),
             md('## If the result differs\n\nCheck the reset.'),
+            md('Proceed to Module 2: The next one.'),
         )
         self.assertIn('= A lesson\n', result)
         self.assertIn('What this module is about', result)
         self.assertNotIn('Prototype notebook', result)
-        # Repository links open in a new tab: GitHub won't load inside Showroom's frame.
-        self.assertIn('link:{lab-source-url}/agent/config.toml[config^]', result)
+        # Repository links open the file in the participant's workbench, in a new tab.
+        self.assertIn('link:{lab-workbench-url}/agent/config.toml[config^]', result)
+        self.assertIn('link:{lab-workbench-url}/agent/tools.py[`+tools.py+`^]', result)
+        self.assertNotIn('github.com', result)
         self.assertIn('[`+tools.py+`^]', result)
         self.assertIn("== What you'll do in the notebook", result)
         self.assertIn('. Run it\n. Fix it', result)
@@ -55,9 +59,15 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('== How you know it worked\n\nThe run stops.', result)
         self.assertIn('[mermaid]\n', result)
         self.assertLess(result.index('== Diagrams'), result.index('[mermaid]'))
+        # "Where to go next" stands as it is, before the troubleshooting, and other sites
+        # open in a new tab too.
+        self.assertIn('== Where to go next\n\nRead the link:https://docs.example.com/guide[product docs^].', result)
+        self.assertLess(result.index('== Where to go next'), result.index('== If the result differs'))
         self.assertIn('== If the result differs', result)
         self.assertLess(result.index('== If the result differs'), result.index('Check the reset.'))
         self.assertIn('[%collapsible]\n====\n\nCheck the reset.', result)
+        # The closing pointer to the next module is the notebook's, not part of troubleshooting.
+        self.assertNotIn('Proceed to Module 2', result)
         # The notebook holds the code; the guide never copies it.
         self.assertNotIn('RuntimeError', result)
         self.assertNotIn('[source,python]', result)
@@ -71,6 +81,7 @@ class ShowroomMirrorTests(unittest.TestCase):
             ([md('# T'), md('**Your read:** q?'), md('<details><summary>A</summary>\n\n```python\nx = 1\n```\n</details>')],
              'must not contain code'),
             ([md('# T'), md('~~~\ncode\n~~~')], 'plain ``` fences'),
+            ([md('# T'), md('## Where to go next\n\n```bash\nls\n```')], "out of 'Where to go next'"),
         ):
             with self.subTest(message=message):
                 with self.assertRaisesRegex(ValueError, message):
@@ -83,13 +94,16 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertNotIn('PRIVATE_SAVED_OUTPUT', result)
         self.assertNotIn('In[42]', result)
 
-    def test_real_seven_modules_get_a_guide(self):
+    def test_real_six_modules_get_a_guide(self):
         sources = sorted((ROOT / 'notebooks').glob('module-*.ipynb'))
-        self.assertEqual(len(sources), 7)
+        self.assertEqual(len(sources), 6)
         for source in sources:
             with self.subTest(source=source.name):
                 result = self.generator.render(source)
-                self.assertIn(f'/notebooks/{source.name}[notebook source^]', result)
+                self.assertIn(f"link:{{lab-workbench-url}}/notebooks/{source.name}[Open this module's notebook^]", result)
+                self.assertIn(':lab-workbench-url: https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app'
+                              '/kestrel-agent/lab/tree/agent-antipatterns-lab\n', result)
+                self.assertNotIn('github.com', result)
                 cells = json.loads(source.read_text())['cells']
                 heading = ''.join(cells[0]['source']).splitlines()[0]
                 self.assertIn(heading.replace('# ', '= ', 1) + '\n', result)
@@ -109,7 +123,7 @@ class ShowroomMirrorTests(unittest.TestCase):
             checked = subprocess.run([*command, '--check'], capture_output=True, text=True)
             self.assertEqual(checked.returncode, 0, checked.stdout + checked.stderr)
             pages = sorted(output.glob('module-*.adoc'))
-            self.assertEqual(len(pages), 7)
+            self.assertEqual(len(pages), 6)
             pages[0].write_text('deliberately stale\n')
             pages[1].unlink()
             checked = subprocess.run([*command, '--check'], capture_output=True, text=True)

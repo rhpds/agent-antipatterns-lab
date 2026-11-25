@@ -10,6 +10,7 @@ asciidoc:
     page-pagination: true
     guid: '%GUID%'
     user: 'user-%GUID%@'
+    password: 'example-password@'
     openshift_cluster_ingress_domain: 'apps.cluster-example.dyn.redhatworkshops.io@'
     openshift_console_url: 'https://console-openshift-console.apps.cluster-example.dyn.redhatworkshops.io@'
     openshift_api_url: 'https://api.cluster-example.dyn.redhatworkshops.io:6443@'
