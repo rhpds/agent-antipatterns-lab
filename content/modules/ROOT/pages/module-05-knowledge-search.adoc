@@ -14,8 +14,10 @@ endif::[]
 NOTE: Open `notebooks/module-05-knowledge-search.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
 ____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+*Prototype notebook.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
 ____
+
+Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
 
 .Notebook cell (runs in the Notebook tab)
 [.notebook-cell]
@@ -74,7 +76,7 @@ Each passage carries its `+source+`, the bulletin it came from. That's what make
 !git diff --stat -- tools.py agent.py
 ----
 
-`+search_bulletins+` is declared like the other tools, and returns passages with their sources using module 4's contract.
+`+search_bulletins+` is declared like the other tools and returns passages with their sources using module 4's contract. The supplied agent instructs the model to cite those source IDs and to acknowledge a search miss instead of inventing an answer.
 
 [mermaid]
 ....
@@ -116,3 +118,7 @@ lab.evidence(columns=("question", "tools run", "answer"), last=3)
 The search returns `+no_results+`, and the agent says so instead of inventing. Compare it with the first run of this module, which invented.
 
 Grounding makes an answer checkable; it doesn't make it correct. Nothing yet checks that the retrieved passage actually answers the question. Module 7 comes back to that.
+
+== If the result differs
+
+If the direct retrieval command cannot reach PostgreSQL, stop and check environment readiness; do not substitute a guessed answer. If F-21 returns no passage, confirm that your project has the bulletin corpus and the expected database settings before continuing. After the fix, require a retrieved passage from `+SB-2024-102+`, its source ID in the answer, and the documented “coolant loop pressure low” cause. Retrieval alone does not prove the answer used it. For K-900, require `+search_bulletins+` to return `+no_results+` and the answer to acknowledge the gap without supplying an invented interval.

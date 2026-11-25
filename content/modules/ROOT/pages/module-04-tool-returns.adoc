@@ -14,8 +14,10 @@ endif::[]
 NOTE: Open `notebooks/module-04-tool-returns.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-04-tool-returns.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
 ____
-*Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
+*Prototype notebook.* The Showroom page mirrors this notebook. It lets you read the lab without starting a workbench; code executes only when you run the notebook.
 ____
+
+Open this notebook from the `+notebooks/+` directory with a Python 3 kernel. Run cells in order. Check environment readiness before starting; service failures do not count as the intended failure demonstration.
 
 .Notebook cell (runs in the Notebook tab)
 [.notebook-cell]
@@ -82,6 +84,8 @@ Apply the supplied error contract:
 !git diff --stat -- tools.py agent.py
 ----
 
+The supplied agent also tells the model how to interpret the categories and to use returned part numbers for dependent stock checks. A structured tool error needs to be reflected in the answer.
+
 Every tool return now carries a `+category+` (`+ok+`, `+no_results+`, `+bad_request+`, `+upstream_unavailable+`), whether a retry could help, and a detail the model can use. `+check_stock+` rejects an unknown depot as `+bad_request+`.
 
 [mermaid]
@@ -125,3 +129,7 @@ lab.evidence(columns=("question", "ended by", "tools run", "answer"), last=3)
 ----
 
 The *tools run* column shows each call's category. In each trace, the tool span's outputs carry the same `+category+`, `+retryable+` and `+detail+`.
+
+== If the result differs
+
+If Portland still returns an empty `+results+` list without a category, confirm that both supplied files were copied after the reset. If the tool reports `+bad_request+` but the answer still says the part is out of stock at Portland, the lesson has not passed: the response must explain that the stock check could not be completed because the depot is unknown. Compare that with the valid Denver sensor query, whose `+no_results+` means actual lack of stock. Inspect the category and the answer together; neither a fluent answer nor a successful cell proves the contract was understood.
