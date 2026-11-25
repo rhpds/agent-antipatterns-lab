@@ -29,7 +29,8 @@ def main():
         # A guide, not a copy: the code lives only in the notebook.
         assert not article.select("code.language-python"), f"{source.name}: the guide copies notebook code"
         steps = re.findall(r"^## \d+\. (.+)$", markdown, re.MULTILINE)
-        listed = [li.get_text(" ", strip=True) for li in article.select(".olist li")]
+        # Asciidoctor curls apostrophes; compare the plain text.
+        listed = [li.get_text(" ", strip=True).replace("\u2019", "'") for li in article.select(".olist li")]
         assert [s.strip() for s in steps] == listed[:len(steps)], f"{source.name}: steps differ from the notebook"
         assert len(article.select(".mermaid")) == markdown.count("```mermaid"), f"{source.name}: missing diagrams"
         answers = markdown.count("<details>")
@@ -45,9 +46,10 @@ def main():
                 # GitHub refuses to load inside Showroom's frame.
                 assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
         # A repository link written as a code span must still render as code.
-        for name in re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown):
-            assert any(code.get_text() == name for a in article.select("a[href*='/blob/']") for code in a.select("code")), \
-                f"{source.name}: link text `{name}` lost its code formatting"
+        code_named = set(re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown))
+        for link in article.select("a[href*='/blob/']"):
+            if link.get_text() in code_named:
+                assert link.select("code"), f"{source.name}: link text `{link.get_text()}` lost its code formatting"
         assert article.find("h1"), f"{source.name}: no page title"
         assert "Prototype notebook." not in article.get_text(), f"{source.name}: draft label on the guide"
         count += 1
