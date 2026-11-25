@@ -13,6 +13,8 @@ endif::[]
 
 NOTE: Open `notebooks/module-01-what-you-are-building.ipynb` in the *Notebook* tab on the right and run it there. This page shows the same steps and code so you can read along. The link:{lab-source-url}/notebooks/module-01-what-you-are-building.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -21,8 +23,10 @@ import labnb as lab
 
 == Start from module 1
 
-This puts the agent in the state module 1 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
+This cell puts the agent back where module 1 starts. It copies any edits you made to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 1
@@ -30,21 +34,39 @@ This puts the agent in the state module 1 starts from. Any edits you made are co
 
 == 1. Meet the agent
 
-The agent answers field service questions for Kestrel Industrial (a fictional chiller maker). Three files matter: link:{lab-source-url}/agent/tools.py[`+tools.py+`^] (the tools the model is offered), link:{lab-source-url}/agent/agent.py[`+agent.py+`^] (the loop) and link:{lab-source-url}/agent/config.toml[`+config.toml+`^] (which model endpoint it calls). Each run leaves two kinds of evidence: the raw payloads under `+agent/runs/+`, and a trace in MLflow.
+The agent answers field service questions for Kestrel Industrial, a fictional maker of industrial cooling equipment. The lab folder in your workbench, `+agent-antipatterns-lab+`, has the two parts you'll use:
+
+[source,text]
+----
+agent-antipatterns-lab/
+├── notebooks/         the modules, one notebook each
+└── agent/             the agent you'll fix
+    ├── agent.py       the loop
+    ├── tools.py       the tools the model is offered
+    ├── config.toml    which model endpoint it calls
+    ├── runs/          the payloads each run saves (created by the first run)
+    └── ...            other files you'll meet in later modules
+----
+
+The first code cell above changed the working directory to `+agent/+`, so commands such as `+python agent.py+` run there. Click a file name to open it: link:{lab-source-url}/agent/agent.py[`+agent.py+`^], link:{lab-source-url}/agent/tools.py[`+tools.py+`^], link:{lab-source-url}/agent/config.toml[`+config.toml+`^].
+
+Each run leaves two kinds of evidence: the raw payloads under `+agent/runs/+`, and a trace in MLflow.
 
 [mermaid]
 ....
-flowchart TB
+flowchart LR
   Q["Your question"] --> A["agent.py: the loop"]
-  A <-- "request and response" --> M["Model endpoint qwen3-8b-a, served by vLLM"]
+  A <-- "request and response" --> M["Model: qwen3-8b-a on vLLM"]
   A <-- "tool calls and results" --> T["tools.py: find_part, check_stock"]
   A --> ANS["The answer it prints"]
   A -. "payloads" .-> R["agent/runs/"]
   A -. "one trace per run" .-> F["MLflow"]
 ....
 
-The endpoint the lab starts on is set in `+config.toml+`. Don't change it yet:
+`+config.toml+` sets the endpoint the lab starts on. Leave it as it is for now:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 print(lab.config()["model"]["base_url"])
@@ -52,8 +74,10 @@ print(lab.config()["model"]["base_url"])
 
 == 2. Run it once
 
-The question needs a part number that only `+find_part+` knows, because Kestrel's parts aren't in any model's training data.
+The question needs a part number. Only `+find_part+` has it, because Kestrel's parts aren't in any model's training data.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m1
@@ -66,17 +90,21 @@ Look at the answer. Did the agent look anything up? Did anything report a proble
 
 The payload is exactly what went to the endpoint and what came back.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python payloads.py
 ----
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.content()
 ----
 
-The request offered the tools. The response's `+tool_calls+` is empty, `+finish_reason+` is `+stop+`, and `+content+` holds the call the model meant to make, as text. Don't diagnose why yet; module 2 does.
+The request offered the tools. In the response, `+tool_calls+` is empty, `+finish_reason+` is `+stop+`, and `+content+` holds the call the model meant to make, written out as text. Module 2 works out why.
 
 == 4. Your first trace
 
@@ -88,6 +116,8 @@ MLflow keeps one *trace* per run. A trace is a tree of *spans*, one per step:
 
 Open the trace and click each span. Compare what it shows with the payload above.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.trace_link()
@@ -96,4 +126,4 @@ lab.links(("Every trace in this experiment", lab.experiment_url()))
 
 == 5. The rule for the rest of the lab
 
-The answer is a claim; the evidence is somewhere else. From here on, every module ends by checking the evidence: the payload in this module and the next, and the trace from module 3 on, where turn counts, tool sequences and error categories are what matter.
+From here on, every module ends by checking the evidence, not the answer: the payload in this module and the next, then the trace from module 3 on. In the trace, look at the number of turns, the order of the tool calls and the error categories.

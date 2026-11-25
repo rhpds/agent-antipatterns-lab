@@ -17,6 +17,8 @@ ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
 ____
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -27,6 +29,8 @@ import labnb as lab
 
 This puts the agent in the state module 3 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 3
@@ -38,6 +42,8 @@ Module 3 starts on endpoint B (module 2's repoint is applied), so tool calls now
 
 The question needs two steps: `+find_part+` for the pump, then `+check_stock+` with the part number it returns.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m3
@@ -50,6 +56,8 @@ Note how many turns it took and how the run ended, compared with module 2.
 
 Open the trace. Count the `+model_call_N+` spans, and read the tool spans in order.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.trace_link()
@@ -74,6 +82,8 @@ Open link:{lab-source-url}/agent/agent.py[`+agent.py+`^] and read `+run_agent+`.
 
 Apply the supplied fix, then read what changed:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !cp solutions/module-03/agent.py .
@@ -97,6 +107,8 @@ flowchart TD
 
 == 4. Confirm it stops
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m3

@@ -17,6 +17,8 @@ ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
 ____
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -27,6 +29,8 @@ import labnb as lab
 
 This puts the agent in the state module 6 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 6
@@ -36,6 +40,8 @@ This puts the agent in the state module 6 starts from. Any edits you made are co
 
 Every tool carries its own address and credential, written into the agent's configuration:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import json
@@ -46,6 +52,8 @@ print(json.dumps({k: v for k, v in tools.items() if k != "gateway_url"}, indent=
 
 Run module 3's question on the agent's own tools, to compare with later:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m3
@@ -72,6 +80,8 @@ flowchart TB
 
 The lab's MCP Gateway serves the same tools from the platform. The lab runs MCP Gateway 0.7.1 (Technology Preview); version 1.0 is generally available in Red Hat Connectivity Link 1.5. Its address:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 print(lab.gateway_url() or "This environment has no lab MCP Gateway (LAB_GATEWAY_URL isn't set).")
@@ -79,6 +89,8 @@ print(lab.gateway_url() or "This environment has no lab MCP Gateway (LAB_GATEWAY
 
 Open link:{lab-source-url}/agent/config.toml[`+config.toml+`^], set `+gateway_url+` under `+[tools]+` to that address, and save. That's the only change to the agent. This cell confirms what it will use:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 print("gateway_url:", repr(lab.config()["tools"].get("gateway_url")))
@@ -86,6 +98,8 @@ print("gateway_url:", repr(lab.config()["tools"].get("gateway_url")))
 
 == 3. Nothing changes about what the agent does
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 if lab.config()["tools"].get("gateway_url"):
@@ -97,6 +111,8 @@ else:
 
 Same turns, same results as the run on the agent's own tools above; the tool names now carry the gateway's `+kestrel_+` prefix. The agent asked the gateway for its tool list at the start of the run instead of carrying one. Here is that list:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 if lab.config()["tools"].get("gateway_url"):
@@ -109,6 +125,8 @@ else:
 
 Ask the delivery question before anything changes. There's no delivery tool in the list above, so watch what the agent does without one:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 if lab.config()["tools"].get("gateway_url"):
@@ -120,6 +138,8 @@ else:
 
 Now register `+estimate_delivery+` at the gateway. It's a platform operation: one ConfigMap in your own project, which the lab's tool server reads. Nothing in the agent changes, and it isn't rebuilt or restarted. Only your catalog changes; other participants' don't.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.register_tool("estimate_delivery")
@@ -129,6 +149,8 @@ if lab.config()["tools"].get("gateway_url"):
 
 Ask again:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 if lab.config()["tools"].get("gateway_url"):
