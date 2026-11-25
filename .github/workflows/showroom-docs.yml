@@ -47,7 +47,7 @@ jobs:
         run: python publishing-house/showroom/generate.py --check
       - name: Build Showroom preview
         run: npm run build --prefix publishing-house/showroom -- --attribute "lab-source-ref=$LAB_SOURCE_REF"
-      - name: Check all seven rendered mirrors
+      - name: Check all seven rendered guides
         run: python publishing-house/showroom/verify.py --source-ref "$LAB_SOURCE_REF"
       - name: Save Showroom preview
         uses: actions/upload-artifact@v7
