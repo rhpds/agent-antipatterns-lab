@@ -53,7 +53,7 @@ Each run leaves two kinds of evidence: the raw payloads under `+agent/runs/+`, a
 
 [mermaid]
 ....
-flowchart TB
+flowchart LR
   Q["Your question"] --> A["agent.py: the loop"]
   A <-- "request and response" --> M["Model: qwen3-8b-a on vLLM"]
   A <-- "tool calls and results" --> T["tools.py: find_part, check_stock"]
