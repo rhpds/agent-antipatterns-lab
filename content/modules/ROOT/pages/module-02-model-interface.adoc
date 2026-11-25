@@ -11,7 +11,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook. This page is your guide to it. link:{lab-workbench-url}/notebooks/module-02-model-interface.ipynb[Open this module's notebook^] in a new browser tab, or find `notebooks/module-02-model-interface.ipynb` in the *Notebook* tab on the right.
 
-The agent's tool calls never run. The developer who built the agent has noticed something odd: point it at the lab's second model endpoint and the tool call works. They don't know why, and they've asked you to find out. You try a stronger prompt to rule out the instructions, send one identical request to both model endpoints, and find the serving setting that makes the difference. Then you point the agent at the endpoint that's set up correctly.
+The agent's tool calls never run. A developer on the team has noticed something odd: point it at the lab's second model endpoint and the tool call works. They don't know why, and they've asked you to find out. You try a stronger prompt to rule out the instructions, send one identical request to both model endpoints, and find what makes the difference. Then you point the agent at the endpoint that's set up correctly.
 
 == What you'll do in the notebook
 
@@ -108,6 +108,6 @@ If the stronger prompt gives exactly the same text as the default, that's expect
 
 On endpoint B, `+find_part+` should return `+KI-CP-40817+`. If it does, and the agent then calls it again and again, that's the failure module 3 fixes.
 
-If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell.
+If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell. The "Start from module 2" cell puts `+config.toml+` back on endpoint A, so if you'd already reached step 6, make that edit again.
 
 ====

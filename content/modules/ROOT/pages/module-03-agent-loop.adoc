@@ -17,7 +17,7 @@ Now that tool calls work, the agent calls the same tool on every turn until it h
 
 [arabic]
 . Watch it loop
-. Find what went wrong, from the evidence
+. Find what went wrong, from the trace
 . Fix the loop
 . Confirm it stops
 
@@ -80,5 +80,7 @@ If the fixed run still ends on `+max_turns+`, check these in order:
 If the run stopped on its own, check the stock calls. The Denver check must use a part number that `+find_part+` returned, and the pump `+KI-CP-40817+` should show 3 in stock. A second `+check_stock+` call, for the seal kit `+KI-SK-40233+`, is expected.
 
 If the run ended on `+length+`, or the model endpoint timed out, the problem is the endpoint, not your fix. Run the step 4 cell again.
+
+If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell.
 
 ====

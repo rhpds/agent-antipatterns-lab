@@ -91,4 +91,6 @@ If `+check_stock+` returns `+bad_request+` but the answer still says the sensor 
 
 Read the category and the answer together. A confident answer, or a cell that ran without an error, doesn't show on its own that the agent reported what the tool said.
 
+If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell.
+
 ====
