@@ -10,7 +10,8 @@ view_switcher:
 
 tabs:
   # The participant's workbench, opened on module 1. RHDP names the project
-  # <username>-app, and its usernames are user-<guid> (automation/gitops/README.md).
+  # <username>-app (automation/gitops/README.md). user-${GUID} is the username
+  # observed on RHDP's 6hs5h workshop; check it on each new catalog item.
   - name: Notebook
     url: 'https://rh-ai.${DOMAIN}/notebook/user-${GUID}-app/kestrel-agent/lab/tree/agent-antipatterns-lab/notebooks/module-01-what-you-are-building.ipynb'
   - name: ">_ terminal"

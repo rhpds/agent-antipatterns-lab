@@ -55,8 +55,11 @@ function Link(link)
       table.insert(parts, part)
     end
   end
-  -- GitHub refuses to load inside Showroom's frame, so these open in a new tab (the ^).
-  local text = pandoc.utils.stringify(link.content):gsub(']', '\\]')
+  -- GitHub refuses to load inside Showroom's frame, so these open in a new tab.
+  -- The text keeps its inline markup (code spans), quoted so that a comma, an
+  -- equals sign or a bracket in it can't be read as link attributes.
+  local text = pandoc.write(pandoc.Pandoc({pandoc.Plain(link.content)}), 'asciidoc')
+  text = text:gsub('%s+$', ''):gsub('"', '\\"')
   return pandoc.RawInline('asciidoc',
-    'link:{lab-source-url}/' .. table.concat(parts, '/') .. '[' .. text .. '^]')
+    'link:{lab-source-url}/' .. table.concat(parts, '/') .. '["' .. text .. '",window=_blank]')
 end
