@@ -55,11 +55,26 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('== How you know it worked\n\nThe run stops.', result)
         self.assertIn('[mermaid]\n', result)
         self.assertLess(result.index('== Diagrams'), result.index('[mermaid]'))
-        self.assertIn('== If the result differs\n\nCheck the reset.', result)
+        self.assertIn('== If the result differs', result)
+        self.assertLess(result.index('== If the result differs'), result.index('Check the reset.'))
+        self.assertIn('[%collapsible]\n====\n\nCheck the reset.', result)
         # The notebook holds the code; the guide never copies it.
         self.assertNotIn('RuntimeError', result)
         self.assertNotIn('[source,python]', result)
         self.assertNotIn('<details>', result)
+
+    def test_unsafe_markdown_fails_instead_of_slipping_through(self):
+        md = nbformat.v4.new_markdown_cell
+        for cells, message in (
+            ([md('# T'), md('## 1. Step'), md('<details><summary>A</summary>\n\nOrphan answer.\n</details>')],
+             'must follow'),
+            ([md('# T'), md('**Your read:** q?'), md('<details><summary>A</summary>\n\n```python\nx = 1\n```\n</details>')],
+             'must not contain code'),
+            ([md('# T'), md('~~~\ncode\n~~~')], 'plain ``` fences'),
+        ):
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(ValueError, message):
+                    self.render_cells(*cells)
 
     def test_saved_outputs_are_never_published(self):
         cell = nbformat.v4.new_code_cell('print("run in JupyterLab")', execution_count=42)

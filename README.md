@@ -30,7 +30,7 @@ Change `2` to the module you want to start. Reset saves participant edits under 
 
 Start with the [module review index](docs/review/README.md). It links the modules 2 through 7 checklists, acceptance coverage and recorded execution evidence. Human content review remains open.
 
-The `showroom-docs` check on a pull request provides a downloadable `showroom-preview` artifact. Open `modules/index.html` after extracting it. The preview contains the lesson text and code; saved model outputs belong to the separate execution evidence. A passing preview build does not publish a Showroom instance.
+The `showroom-docs` check on a pull request provides a downloadable `showroom-preview` artifact. Open `modules/index.html` after extracting it. The preview contains each module's guide (steps, questions and answers, success signal, diagrams); the lesson text and code are in the notebooks, and saved model outputs belong to the separate execution evidence. A passing preview build does not publish a Showroom instance.
 
 The review candidate is tracked in [PR #98](https://github.com/rhpds/agent-antipatterns-lab/pull/98). An existing workshop can serve an older branch or checkout, so compare its source revision with the review candidate before reporting results.
 

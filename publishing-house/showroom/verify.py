@@ -27,15 +27,21 @@ def main():
         cells = [c for c in notebook["cells"] if c["cell_type"] == "markdown"]
         markdown = "\n".join("".join(c["source"]) for c in cells)
         # A guide, not a copy: the code lives only in the notebook.
-        assert not article.select("code.language-python"), f"{source.name}: the guide copies notebook code"
+        assert not article.select(".listingblock, .literalblock"), f"{source.name}: the guide copies notebook code"
         steps = re.findall(r"^## \d+\. (.+)$", markdown, re.MULTILINE)
         # Asciidoctor curls apostrophes; compare the plain text.
         listed = [li.get_text(" ", strip=True).replace("\u2019", "'") for li in article.select(".olist li")]
         assert [s.strip() for s in steps] == listed[:len(steps)], f"{source.name}: steps differ from the notebook"
         assert len(article.select(".mermaid")) == markdown.count("```mermaid"), f"{source.name}: missing diagrams"
-        answers = markdown.count("<details>")
+        answers = markdown.count("<details")
         diagrams = 1 if "```mermaid" in markdown else 0
-        assert len(article.select("details > summary")) == answers + diagrams, f"{source.name}: missing answer reveals"
+        differs = 1 if "## If the result differs" in markdown else 0
+        assert len(article.select("details > summary")) == answers + diagrams + differs, f"{source.name}: missing reveals"
+        text = article.get_text(" ")
+        questions = len(re.findall(r"^\*\*Your read:\*\*", markdown, re.MULTILINE))
+        assert text.count("Your read:") == questions, f"{source.name}: questions differ from the notebook"
+        if "**This is the module's success signal:**" in markdown:
+            assert article.find(id="_how_you_know_it_worked"), f"{source.name}: no 'How you know it worked'"
         expected_url = f"https://github.com/rhpds/agent-antipatterns-lab/blob/{args.source_ref}/notebooks/{source.name}"
         assert article.find("a", href=expected_url), f"{source.name}: wrong notebook source link"
         for link in article.select("a[href]"):

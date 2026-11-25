@@ -30,7 +30,7 @@ The agent answers a maintenance question from its own guesses. You give it a sea
 
 == Diagrams
 
-.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
 [%collapsible]
 ====
 
@@ -50,4 +50,10 @@ flowchart LR
 
 == If the result differs
 
+.Open this only if your run doesn't match the notebook. It names the cause.
+[%collapsible]
+====
+
 If the direct retrieval command cannot reach PostgreSQL, stop and check environment readiness; do not substitute a guessed answer. If F-21 returns no passage, confirm that your project has the bulletin corpus and the expected database settings before continuing. After the fix, require a retrieved passage from `+SB-2024-102+`, its source ID in the answer, and the documented “coolant loop pressure low” cause. Retrieval alone does not prove the answer used it. For K-900, require `+search_bulletins+` to return `+no_results+` and the answer to acknowledge the gap without supplying an invented interval.
+
+====

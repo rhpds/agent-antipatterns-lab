@@ -13,7 +13,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-03-agent-loop.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-03-agent-loop.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-With tool calls working, the agent now calls the same tool on every turn until the turn cap stops it. You find out why from the trace, apply the supplied fix to the loop, and check that the run stops on its own.
+With tool calls working, the agent now calls the same tool on every turn until the turn cap stops it. The trace shows the pattern, and the loop's code shows why. You apply the supplied fix and check that the run stops on its own.
 
 == What you'll do in the notebook
 
@@ -24,6 +24,8 @@ With tool calls working, the agent now calls the same tool on every turn until t
 . Confirm it stops
 
 == Questions to think about
+
+*Your read:* find two defects: one in what happens to a tool's result, and one in how the loop decides to stop.
 
 .Check your answer
 [%collapsible]
@@ -41,7 +43,7 @@ The run ended on the model's own stop condition, well under the cap. In the trac
 
 == Diagrams
 
-.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
 [%collapsible]
 ====
 
@@ -62,4 +64,10 @@ flowchart TD
 
 == If the result differs
 
+.Open this only if your run doesn't match the notebook. It names the cause.
+[%collapsible]
+====
+
 If the fixed run reaches `+max_turns+`, confirm that you copied `+solutions/module-03/agent.py+` after the reset. In a later saved request, find the assistant's tool call and the matching `+role: tool+` message with its `+tool_call_id+`. Seeing both tool names is insufficient: the Denver stock check must use a part number returned by lookup. The pump `+KI-CP-40817+` should have quantity 3; an additional seal-kit lookup is valid. A response ending on `+length+` or a service timeout does not demonstrate the intended stop condition.
+
+====

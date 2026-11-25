@@ -24,9 +24,17 @@ You run the prototype agent once and look inside it: the raw request and respons
 . Your first trace
 . The rule for the rest of the lab
 
+== Questions to think about
+
+*Your read:* look at the answer. Did the agent look anything up? Did anything report a problem?
+
+== How you know it worked
+
+You can find the same `+content+` text in the trace's `+model_call_1+` outputs as in the payload.
+
 == Diagrams
 
-.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
 [%collapsible]
 ====
 

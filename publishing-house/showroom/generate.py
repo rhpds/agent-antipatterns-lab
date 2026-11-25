@@ -25,18 +25,23 @@ def markdown_to_asciidoc(source):
     ).stdout.rstrip()
 
 
-def blocks(markdown):
-    """Split Markdown into blocks at blank lines, keeping fenced code and <details> whole."""
-    out, current, fence, details = [], [], None, False
+def blocks(markdown, name="notebook"):
+    """Split Markdown into blocks at blank lines, keeping ``` fences and <details> whole.
+    Forms the guide can't place safely fail loudly instead of slipping through."""
+    out, current, fence, details = [], [], False, False
     for line in markdown.splitlines():
         stripped = line.strip()
-        if fence is None and stripped.startswith("```"):
-            fence = stripped[:3]
-        elif fence and stripped.startswith(fence):
-            fence = None
-        if fence is None and stripped.startswith("<details>"):
+        if stripped.startswith(("~~~", "````")):
+            raise ValueError(f"{name}: use plain ``` fences; ~~~ and longer fences aren't supported")
+        if stripped.startswith("```"):
+            if details:
+                raise ValueError(f"{name}: an answer reveal must not contain code")
+            fence = not fence
+        if not fence and stripped.startswith("<details"):
+            if details:
+                raise ValueError(f"{name}: nested <details> aren't supported")
             details = True
-        if not stripped and fence is None and not details and current:
+        if not stripped and not fence and not details and current:
             out.append("\n".join(current)); current = []
             continue
         if stripped or current:
@@ -63,11 +68,11 @@ def guide(notebook, name):
     if not cells or not cells[0].startswith("# "):
         raise ValueError(f"{name}: the first cell must start with a level-one Markdown heading")
     title, _, opening = cells[0].partition("\n")
-    intro = [b for b in blocks(opening) if not b.startswith(">")]
+    intro = [b for b in blocks(opening, name) if not b.startswith(">")]
     steps, questions, success, diagrams, differs = [], [], [], [], []
-    section = None
+    section, previous = None, None
     for cell in cells[1:]:
-        for block in blocks(cell):
+        for block in blocks(cell, name):
             if block.startswith("## "):
                 step = STEP.match(block.splitlines()[0])
                 section = "differs" if block.startswith("## If the result differs") else "step" if step else None
@@ -76,6 +81,7 @@ def guide(notebook, name):
                 rest = block.split("\n", 1)[1].strip() if "\n" in block else ""
                 if section == "differs" and rest:
                     differs.append(rest)
+                previous = None
                 continue
             if section == "differs":
                 differs.append(block)
@@ -83,14 +89,14 @@ def guide(notebook, name):
                 diagrams.append(block)
             elif block.startswith(QUESTION):
                 questions.append(block)
-            elif block.startswith("<details>"):
-                # An answer reveal goes with the question before it, or stands alone.
-                if questions and not questions[-1].endswith("</details>"):
-                    questions[-1] += "\n\n" + block
-                else:
-                    questions.append(block)
+            elif block.startswith("<details"):
+                # An answer reveal belongs to the question right before it, and nothing else.
+                if previous is None or not previous.startswith(QUESTION):
+                    raise ValueError(f"{name}: an answer reveal must follow a **Your read:** question")
+                questions[-1] += "\n\n" + block
             elif block.startswith(SUCCESS):
                 success.append(block[len(SUCCESS):].strip())
+            previous = block
     parts = [title, ""]
     if intro:
         parts += ["\n\n".join(intro), ""]
@@ -104,10 +110,13 @@ def guide(notebook, name):
         parts += ["## How you know it worked", "", "\n\n".join(done), ""]
     if diagrams:
         # Collapsed: a diagram can show the fix, which the participant should find first.
-        parts += ["## Diagrams", "", "<details><summary>Show the module's diagrams. Some show the fix, so open this "
-                  "after you've worked through the steps.</summary>", "", "\n\n".join(diagrams), "", "</details>", ""]
+        what = "the module's diagram" if len(diagrams) == 1 else f"the module's {len(diagrams)} diagrams"
+        parts += ["## Diagrams", "", f"<details><summary>Show {what}. Open it after you've worked through the "
+                  "steps, because it can show the fix.</summary>", "", "\n\n".join(diagrams), "", "</details>", ""]
     if differs:
-        parts += ["## If the result differs", "", "\n\n".join(differs), ""]
+        # Collapsed too: troubleshooting names the cause of the failure.
+        parts += ["## If the result differs", "", "<details><summary>Open this only if your run doesn't match "
+                  "the notebook. It names the cause.</summary>", "", "\n\n".join(differs), "", "</details>", ""]
     return "\n".join(parts)
 
 

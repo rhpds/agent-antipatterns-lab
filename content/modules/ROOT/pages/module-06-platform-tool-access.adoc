@@ -29,7 +29,7 @@ The agent discovered and used `+estimate_delivery+`, a tool it didn't have a mom
 
 == Diagrams
 
-.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
 [%collapsible]
 ====
 
@@ -52,8 +52,14 @@ flowchart TB
 
 == If the result differs
 
+.Open this only if your run doesn't match the notebook. It names the cause.
+[%collapsible]
+====
+
 If `+LAB_GATEWAY_URL+` is absent or a cell prints “Set gateway_url first”, stop, correct the environment or configuration, and repeat the confirmation cell. Those messages mean the gateway step did not run. For HTTP 401/403, check the workbench's assigned identity and permissions; participant steps use that identity, not cluster-admin credentials.
 
 Compare the pump's stock facts through both paths: the part number must come from `+find_part+`, and `+KI-CP-40817+` at Denver must return quantity 3 and lead time 1 day. The model may also check the seal kit, so turn counts and extra valid calls can differ. A placeholder such as `+KI-XX-00000+` is a failed chain.
 
 After registration, rerun tool discovery if the new tool is not yet listed; the server caches registrations briefly. Do not continue until `+estimate_delivery+` appears. Its successful Denver-to-Boulder result must contain `+transit_days: 1+`, and the answer must report one day.
+
+====

@@ -13,7 +13,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-07-running-it-for-real.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-07-running-it-for-real.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-You run the lab's regression questions against the fixed agent and record the results in MLflow as a baseline. A later change to the model, the prompt or the tools can then be checked against it.
+You run the lab's regression questions against the fixed agent and record the results in MLflow as a baseline. A later change to the model, the prompt or the tools can then be checked against it. You also take away a checklist that maps a symptom a customer describes to the layer to look at first.
 
 == What you'll do in the notebook
 
@@ -22,9 +22,13 @@ You run the lab's regression questions against the fixed agent and record the re
 . Check the evidence, not the answers
 . The baseline
 
+== How you know it worked
+
+For the assembled agent here, 6 PASS, 0 FAIL and 0 SKIP.
+
 == Diagrams
 
-.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
 [%collapsible]
 ====
 
@@ -50,6 +54,12 @@ flowchart LR
 
 == If the result differs
 
+.Open this only if your run doesn't match the notebook. It names the cause.
+[%collapsible]
+====
+
 For the assembled lab, the success signal is *6 PASS, 0 FAIL, 0 SKIP*. SKIP is useful while building earlier modules; it is incomplete acceptance here. A command that finishes or exits successfully does not mean its cases passed. Read each row and reason. A response ending on `+length+` exhausted its output budget, which includes model reasoning; it is an incomplete case, not proof of a parser failure. The current allowance is 4,096 tokens per model call, so its worst-case token use and latency are higher than the earlier 1,024-token setting. Concurrency capacity has not been measured.
 
 If the delivery case is skipped, confirm `+gateway_url+` and the project registration from module 6. For tool-call or loop failures, inspect `+base_url+`, the selected solution and the saved requests. For F-21, verify both retrieval and the answer's source citation. If MLflow is unavailable, the terminal report still records every case, but the baseline has not been recorded: restore access and rerun before comparing evaluations. In MLflow, confirm six case rows, their trace links and assessments, and the same counts as the local report. These fixed checks do not establish general answer quality, concurrency capacity or a fresh deployment.
+
+====

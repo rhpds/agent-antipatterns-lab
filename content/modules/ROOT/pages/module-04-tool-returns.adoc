@@ -36,11 +36,11 @@ A stock check for a depot that doesn't exist comes back looking like "no stock",
 
 == How you know it worked
 
-A `+bad_request+` that names the real depots, instead of a confident answer. Two more, to see the other categories: a real depot with no stock, and a question the data does cover.
+A `+bad_request+` that names the real depots, instead of a confident answer.
 
 == Diagrams
 
-.Show the module's diagrams. Some show the fix, so open this after you've worked through the steps.
+.Show the module's diagram. Open it after you've worked through the steps, because it can show the fix.
 [%collapsible]
 ====
 
@@ -67,4 +67,10 @@ flowchart TB
 
 == If the result differs
 
+.Open this only if your run doesn't match the notebook. It names the cause.
+[%collapsible]
+====
+
 If Portland still returns an empty `+results+` list without a category, confirm that both supplied files were copied after the reset. If the tool reports `+bad_request+` but the answer still says the part is out of stock at Portland, the lesson has not passed: the response must explain that the stock check could not be completed because the depot is unknown. Compare that with the valid Denver sensor query, whose `+no_results+` means actual lack of stock. Inspect the category and the answer together; neither a fluent answer nor a successful cell proves the contract was understood.
+
+====

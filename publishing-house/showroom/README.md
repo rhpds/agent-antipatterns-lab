@@ -37,18 +37,18 @@ The Showroom build can also set the `lab-source-ref` AsciiDoc attribute for its 
 
 ## What goes into a guide
 
-Each module page is a guide to its notebook, not a copy of it. The participant works in the notebook in the Notebook tab; the guide keeps them oriented. From the notebook, the generator takes:
+Each module page is a short guide to its notebook. The participant works in the notebook in the Notebook tab; the guide keeps them oriented. From the notebook, the generator takes:
 
 - the title, and the opening paragraph under it (what the module covers);
 - the numbered step headings (`## 1. ...`), as a list;
 - every `**Your read:**` question, with its `<details>` answer as a collapsible block;
 - the `**This is the module's success signal:**` paragraph, as "How you know it worked";
 - the Mermaid diagrams, in one collapsible block, because a diagram can show the fix;
-- the `## If the result differs` section.
+- the `## If the result differs` section, also collapsed, because it names the cause.
 
-Code cells, saved outputs, the reset section and blockquotes such as draft notices are left out. Relative links to agent files point to the repository files on GitHub and open in a new tab. Notebook attachments, raw cells and unsupported cell types fail generation rather than disappearing silently.
+Code cells, saved outputs, the reset section and blockquotes such as draft notices are left out. Relative links to agent files point to the repository files on GitHub and open in a new tab. Notebook attachments, raw cells, unsupported cell types, an answer reveal that doesn't follow its question, a reveal containing code, nested reveals, and `~~~` or longer fences all fail generation rather than slipping through.
 
-So a notebook change shows up in its guide, keep those conventions when editing a notebook: an opening paragraph under the title, numbered step headings, and the two bold labels above.
+So a notebook change shows up in its guide, keep those conventions when editing a notebook: an opening paragraph under the title, numbered step headings, the two bold labels above, and every `<details>` answer straight after its `**Your read:**` question, with no code inside it.
 
 ## Verification and CI
 
