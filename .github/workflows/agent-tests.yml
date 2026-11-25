@@ -1,5 +1,5 @@
 # Runs the agent's mock-model tests (tests/agent/) on development and release PRs.
-# Modules 5-7 start a throwaway pgvector container with podman; a run where that
+# Modules 5 and 6 start a throwaway pgvector container with podman; a run where that
 # can't start fails rather than skips (see acceptance/lab/checks.feature).
 name: agent-tests
 
@@ -39,13 +39,13 @@ jobs:
         run: python -m pip install -r tests/agent/requirements.txt
 
       # The runner image ships podman; install it only if a
-      # future image drops it, so the module 5-7 tests can start their database.
+      # future image drops it, so the module 5 and 6 tests can start their database.
       - name: Make sure podman is available
         run: |
           command -v podman >/dev/null || { sudo apt-get update && sudo apt-get install -y podman; }
           podman --version
 
-      # The module 6 gateway tests render the lab's charts. The runner image ships helm;
+      # The chart tests render the lab's charts. The runner image ships helm;
       # install a pinned, checksummed one only if a future image drops it.
       - name: Make sure helm is available
         run: |

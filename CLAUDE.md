@@ -52,7 +52,7 @@ If `--automation` was passed to `scaffold.py`, it also creates `automation/`
 
 - `automation/ansible/` — Starter Ansible collection (`ansible`/`both`) — a placeholder;
   build custom automation here (RHDPCD-110)
-- `automation/gitops/bootstrap-infra/` — Helm chart: operators, RHOAI, GPU, vLLM serving, MLflow, MCP Gateway (toggles in values.yaml) (`gitops`/`both`)
+- `automation/gitops/bootstrap-infra/` — Helm chart: operators, RHOAI, GPU, vLLM serving, MLflow (toggles in values.yaml) (`gitops`/`both`)
 - `automation/gitops/bootstrap-tenant/` — Per-user namespace, RBAC, pgvector Postgres (`gitops`/`both`, only if
   `--topology shared-cluster` was passed)
 
@@ -72,9 +72,9 @@ sees in each module. David approved each one.
   lab's promised behaviour has changed. Report it to the user rather than adjusting the test
   to pass, unless David has approved that change.
 - **Run the tests before a PR**: `python -m pytest -q -rs` from `tests/agent/` (install
-  `tests/agent/requirements.txt` first). The module 5–7 tests need podman and the
+  `tests/agent/requirements.txt` first). The module 5 and 6 tests need podman and the
   `docker.io/pgvector/pgvector:pg16` image, and fail (not skip) if podman is missing or the
-  image can't be pulled or started. The module 6 gateway tests render the charts with `helm`
+  image can't be pulled or started. The chart tests render the charts with `helm`
   and fail if it isn't installed (set `HELM` to its path if it's not on `PATH`). CI runs the same tests on every PR to `dev`.
 - **New behaviour in these paths starts with new scenarios.** David approves them before
   any code is written. In David's own sessions the `acceptance-first` skill handles this.
