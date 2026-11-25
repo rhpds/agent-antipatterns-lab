@@ -36,7 +36,7 @@ A stock check for a depot that doesn't exist comes back looking like "no stock",
 
 == How you know it worked
 
-A `+bad_request+` that names the real depots, instead of a confident answer.
+The tool returns `+bad_request+` and names the real depots, and the answer reports that instead of answering with confidence.
 
 == Diagrams
 
