@@ -40,6 +40,8 @@ def main():
         text = article.get_text(" ")
         questions = len(re.findall(r"^\*\*Your read:\*\*", markdown, re.MULTILINE))
         assert text.count("Your read:") == questions, f"{source.name}: questions differ from the notebook"
+        if "## Where to go next" in markdown:
+            assert article.find(id="_where_to_go_next"), f"{source.name}: no 'Where to go next'"
         if "**This is the module's success signal:**" in markdown:
             assert article.find(id="_how_you_know_it_worked"), f"{source.name}: no 'How you know it worked'"
         expected_url = f"https://github.com/rhpds/agent-antipatterns-lab/blob/{args.source_ref}/notebooks/{source.name}"
@@ -47,10 +49,11 @@ def main():
         for link in article.select("a[href]"):
             href = link["href"]
             assert "{lab-source" not in href and not href.startswith("../agent/"), f"{source.name}: unresolved link {href}"
+            if href.startswith(("http://", "https://")):
+                # GitHub won't load inside Showroom's frame, and any other site would replace the guide.
+                assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
             if "/blob/" in href:
                 assert f"/blob/{args.source_ref}/" in href, f"{source.name}: wrong source branch in {href}"
-                # GitHub refuses to load inside Showroom's frame.
-                assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
         # A repository link written as a code span must still render as code.
         code_named = set(re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown))
         for link in article.select("a[href*='/blob/']"):
@@ -60,8 +63,8 @@ def main():
         assert "Prototype notebook." not in article.get_text(), f"{source.name}: draft label on the guide"
         count += 1
         print(f"Verified {source.name}: {len(steps)} steps, {len(article.select('.mermaid'))} diagrams")
-    assert count == 7, f"Expected seven modules, found {count}"
-    print("All seven module guides match their notebooks' steps, questions, diagrams and source links.")
+    assert count == 6, f"Expected six modules, found {count}"
+    print("All six module guides match their notebooks' steps, questions, diagrams and source links.")
 
 
 if __name__ == "__main__":

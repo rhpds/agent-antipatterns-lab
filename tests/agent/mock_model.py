@@ -31,13 +31,12 @@ INVENTED = {
     "m5": "Fault F-21 on a K-400 means the temperature sensor has failed. Replace the sensor "
           "(KC-4400-TS2) and reset the controller.",
     "m5-miss": "The Kestrel K-900 should be serviced every 3,000 operating hours.",
-    "m6": "Shipping from Denver to Boulder typically takes two to three business days.",
 }
 
 
 def bare(name):
-    """Tool name without any gateway prefix, e.g. 'kestrel_find_part' -> 'find_part'."""
-    for base in ("find_part", "check_stock", "search_bulletins", "estimate_delivery"):
+    """Tool name without any prefix, e.g. 'kestrel_find_part' -> 'find_part'."""
+    for base in ("find_part", "check_stock", "search_bulletins"):
         if name.endswith(base):
             return base
     return name
@@ -47,8 +46,6 @@ def classify(question):
     q = question.lower()
     if "k-900" in q:
         return "m5-miss"
-    if "boulder" in q:
-        return "m6"
     if "f-21" in q:
         return "m5"
     if "depot" in q and "available" in q:
@@ -131,15 +128,6 @@ def plan(intent, offered, results, question):
             # A real model reads every passage, not only the top one.
             return ("text", "According to " + "; ".join(f"{p['source']}: {p['text']}" for p in passages))
         return ("text", f"I could not find that in the service bulletins ({res.get('detail')}). I won't guess.")
-    if intent == "m6":
-        if "estimate_delivery" not in offered:
-            return ("text", INVENTED["m6"])
-        if "estimate_delivery" not in names:
-            return ("tool", "estimate_delivery", {"origin_depot": "Denver", "destination": "Boulder"})
-        res = results[names.index("estimate_delivery")][1]
-        d = res.get("data") or {}
-        return ("text", f"About {d.get('transit_days')} day(s) from {d.get('origin_depot')} to {d.get('destination')}."
-                if res.get("category") == "ok" else f"Could not estimate: {res.get('detail')}")
     return ("text", "I can't help with that request.")
 
 

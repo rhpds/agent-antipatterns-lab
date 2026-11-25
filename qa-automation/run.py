@@ -28,7 +28,7 @@ def main():
               "reason": "", "commit": os.environ.get("LB8000_RELEASE", ""),
               "checked_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
               "modules": [{"module": n, "status": "INCOMPLETE", "evidence": [],
-                           "issues": ["Live module checks have not completed"]} for n in range(1, 8)]}
+                           "issues": ["Live module checks have not completed"]} for n in range(1, 7)]}
     required = ("LB8000_KUBECONFIG", "LB8000_PARTICIPANTS", "LB8000_RELEASE")
     missing = [key for key in required if not os.environ.get(key)]
     participants = os.environ.get("LB8000_PARTICIPANTS", "").split(",")

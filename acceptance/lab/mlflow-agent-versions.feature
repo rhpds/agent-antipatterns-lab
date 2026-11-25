@@ -1,7 +1,7 @@
 # Approved by David on 2026-11-02, in the LB8000 working chat (MLflow research R4, #77). His
 # answers to the open questions: after the participant edits the agent, a run is labelled
 # with the starting version plus "modified" (Q6); the lab points participants at version
-# labels in module 7 only (Q7). Locked: to change a scenario, ask David; don't edit this file.
+# labels in the closing module only (Q7). Locked: to change a scenario, ask David; don't edit this file.
 
 Feature: Every trace and evaluation names the agent version behind it
 

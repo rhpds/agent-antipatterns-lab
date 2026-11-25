@@ -280,18 +280,8 @@ def sh(command):
     return done.returncode
 
 
-def tool_list():
-    """The tool names the agent is offered right now, read the way the agent reads them
-    (from the gateway when config.toml sets gateway_url)."""
-    import subprocess
-    code = ("import agent, toolbox; "
-            "print([d['function']['name'] for d in toolbox.open_toolbox(agent.load_config()).definitions])")
-    done = subprocess.run(["python", "-c", code], cwd=AGENT, capture_output=True, text=True)
-    print(done.stdout + done.stderr, end="")
-
-
 def run_url(run_id):
-    """An MLflow run (for example the module 7 baseline), in the format MLflow itself prints."""
+    """An MLflow run (for example the closing module's evaluation run), in the format MLflow itself prints."""
     home, eid, ws = mlflow_home(), experiment_id(), namespace()
     if not (home and eid and run_id):
         return None
@@ -299,15 +289,17 @@ def run_url(run_id):
 
 
 def regression(name=None):
-    """Run the module 7 regression set (optionally naming the baseline it records in MLflow),
-    show its output, and link to its evaluation run in MLflow."""
+    """Run the regression set (module 6, the closing module), optionally naming the evaluation
+    run it records in MLflow, show its output, and link to that evaluation run."""
     import re
     import subprocess
     command = ["python", "regression.py"] + (["--name", name] if name else [])
     done = subprocess.run(command, cwd=AGENT, capture_output=True, text=True)
     output = done.stdout + done.stderr
+    # Each case's trace link is printed before its verdict, so it reads as the previous
+    # case's. Leave those out: every case's trace is in the evaluation run, linked below.
     keep = [line for line in output.splitlines()
-            if "View run" not in line and not line.startswith("Evaluation in MLflow:")]
+            if "View run" not in line and not line.startswith(("Evaluation in MLflow:", "Trace in MLflow:"))]
     print("\n".join(keep))
     global _seen_experiment
     seen = re.search(r"/experiments/(\w+)/(?:runs|evaluation-runs)\b", output)
@@ -318,50 +310,3 @@ def regression(name=None):
     url = evaluation.group(1) if evaluation else (run_url(recorded.group(1)) if recorded else None)
     if name:
         links((f"The evaluation run '{name}' in MLflow", url))
-
-
-# --- module 6: registering a tool at the gateway ------------------------------------------
-
-REGISTRATION_CONFIGMAP = "kestrel-tool-registrations"
-SA_DIR = pathlib.Path("/var/run/secrets/kubernetes.io/serviceaccount")
-
-
-def gateway_url():
-    """The lab's MCP Gateway address, which the environment gives the workbench."""
-    return os.environ.get("LAB_GATEWAY_URL")
-
-
-def register_tool(tool="estimate_delivery"):
-    """Register a tool at the gateway for this participant only: one ConfigMap in their own
-    project, which the lab's tool server reads. Touches nothing in the agent."""
-    import ssl
-    import urllib.error
-    import urllib.request
-    ns = namespace()
-    host, port = os.environ.get("KUBERNETES_SERVICE_HOST"), os.environ.get("KUBERNETES_SERVICE_PORT", "443")
-    if not (ns and host and (SA_DIR / "token").exists()):
-        print("This isn't a lab workbench, so there's no project to register in.")
-        return False
-    token = (SA_DIR / "token").read_text().strip()
-    ctx = ssl.create_default_context(cafile=str(SA_DIR / "ca.crt"))
-    base = f"https://{host}:{port}/api/v1/namespaces/{ns}/configmaps"
-
-    def call(method, url, body=None):
-        req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body else None,
-                                     headers={"Authorization": f"Bearer {token}",
-                                              "Content-Type": "application/merge-patch+json" if method == "PATCH"
-                                              else "application/json"})
-        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
-            return json.load(resp)
-
-    try:
-        call("PATCH", f"{base}/{REGISTRATION_CONFIGMAP}", {"data": {tool: "registered"}})
-    except urllib.error.HTTPError as exc:
-        if exc.code != 404:
-            print(f"Registration failed: HTTP {exc.code}")
-            return False
-        call("POST", base, {"apiVersion": "v1", "kind": "ConfigMap",
-                            "metadata": {"name": REGISTRATION_CONFIGMAP},
-                            "data": {tool: "registered"}})
-    print(f"Registered {tool} at the gateway for project {ns}.")
-    return True

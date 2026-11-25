@@ -222,7 +222,7 @@ def report(summary):
 
 
 def log_evaluation(name, params, cases, counts):
-    """Record the module 7 regression set as an MLflow evaluation run called `name`.
+    """Record the closing module's regression set as an MLflow evaluation run called `name`.
 
     `cases` is [(trace_id, status, reason)] for each case that recorded a trace. Each trace
     gets the case's PASS, FAIL or SKIP, with the reason, as its "check" assessment: the same

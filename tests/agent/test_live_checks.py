@@ -21,7 +21,7 @@ def test_live_checks_without_environment_write_failure_report(tmp_path):
     report = json.loads((output / "report.json").read_text())
     assert report["status"] == "FAIL"
     assert "LB8000_KUBECONFIG" in report["reason"]
-    assert len(report["modules"]) == 7
+    assert len(report["modules"]) == 6
     assert all(row["status"] == "INCOMPLETE" for row in report["modules"])
 
 
