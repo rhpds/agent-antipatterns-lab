@@ -124,6 +124,16 @@ def check_m6(s, cap):
     return "FAIL", "estimate_delivery did not return a successful one-day Denver-to-Boulder result"
 
 
+def judge(check, summary, cap):
+    """A case's verdict. A run the model cut off (it ran out of room before finishing its
+    answer) never passes, whatever its check found."""
+    status, reason = check(summary, cap)
+    if summary.get("ended_by") == "length":
+        return "FAIL", ("the run was cut off before it finished its answer (the model ran out of "
+                        "room); run the set again")
+    return status, reason
+
+
 CASES = [
     ("m1", "Module 1-2: tool call fires", check_m1),
     ("m3", "Module 3: loop terminates on stop", check_m3),
@@ -168,7 +178,7 @@ def main(argv=None):
             # Persist the same trace link as an ordinary CLI run, so the notebook's
             # evidence table can open each regression case's actual trace.
             tracing.report(summary)
-            status, reason = check(summary, cap)
+            status, reason = judge(check, summary, cap)
         except Exception as exc:  # a broken case must not stop the others
             status, reason = "FAIL", f"run raised {type(exc).__name__}: {exc}"
         rows.append((key, title, status, reason))
