@@ -64,7 +64,7 @@ Each notebook starts with a cell that puts the agent in that module's starting s
 
 Steps marked _stretch goal_ are optional. Skip them if you're short of time; nothing later depends on them.
 
-The *>_ terminal* tab on the right is a separate command line, and the lab doesn't use it. Everything runs in the notebook.
+The *>_ terminal* tab on the right is a command line you can use if you like. The lab doesn't need it: everything runs in the notebook, and the terminal tab doesn't have the lab's files.
 
 == Modules
 
