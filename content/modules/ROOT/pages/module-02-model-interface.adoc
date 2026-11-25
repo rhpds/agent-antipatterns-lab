@@ -21,7 +21,7 @@ The agent's tool calls never run. You try a stronger prompt to rule out the inst
 . What did the model actually return?
 . Predict
 . One identical request to both endpoints
-. The same evidence in MLflow (stretch goal)
+. The same runs in MLflow (stretch goal)
 . Change the agent's endpoint
 . Run the agent again
 
@@ -97,5 +97,7 @@ If endpoint B also leaves `+<tool_call>+` in `+content+`, or a cell times out or
 If the stronger prompt gives exactly the same text as the default, that's expected. Check the `+prompt+` column to confirm the stronger prompt was sent. What matters is that neither run produced a `+tool_calls+` entry the agent could run.
 
 On endpoint B, `+find_part+` should return `+KI-CP-40817+`. If it does, and the agent then calls it again and again, that's the failure module 3 fixes.
+
+If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell.
 
 ====
