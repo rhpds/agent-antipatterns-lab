@@ -17,6 +17,8 @@ ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
 ____
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -27,6 +29,8 @@ import labnb as lab
 
 This puts the agent in the state module 5 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 5
@@ -36,6 +40,8 @@ This puts the agent in the state module 5 starts from. Any edits you made are co
 
 Fault F-21 is documented only in Kestrel's service bulletins, which no model has seen.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m5
@@ -49,6 +55,8 @@ A specific, plausible answer. Module 4's contract doesn't catch it, because no t
 
 The bulletins are already loaded into a PostgreSQL database with pgvector in your project. Query it directly, outside the agent:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python retrieval.py "fault F-21"
@@ -58,6 +66,8 @@ Each passage carries its `+source+`, the bulletin it came from. That's what make
 
 == 3. Register the search tool
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !cp solutions/module-05/tools.py solutions/module-05/agent.py .
@@ -79,6 +89,8 @@ flowchart LR
 
 == 4. Ask again
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m5
@@ -92,6 +104,8 @@ lab.trace_link()
 
 There is no Kestrel K-900.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m5-miss

@@ -30,7 +30,8 @@ def listing(source):
     """A code cell stays byte-for-byte readable, including IPython magics."""
     longest = max((len(line) for line in source.splitlines() if re.fullmatch(r"-+", line)), default=0)
     fence = "-" * max(4, longest + 1)
-    return f"[source,python]\n{fence}\n{source.rstrip()}\n{fence}"
+    # Titled so nobody types it into the terminal tab: it only runs in the notebook.
+    return f".Notebook cell (runs in the Notebook tab)\n[.notebook-cell]\n[source,python]\n{fence}\n{source.rstrip()}\n{fence}"
 
 
 def render(source):

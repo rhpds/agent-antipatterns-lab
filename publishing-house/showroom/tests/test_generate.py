@@ -37,6 +37,7 @@ class ShowroomMirrorTests(unittest.TestCase):
         self.assertIn('link:{lab-source-url}/agent/config.toml[config^]', result)
         self.assertIn('[`+tools.py+`^]', result)
         self.assertIn('[source,python]', result)
+        self.assertIn('.Notebook cell (runs in the Notebook tab)\n[.notebook-cell]\n[source,python]', result)
         self.assertIn('raise RuntimeError("must never execute")\n%cd ../agent\n!python agent.py', result)
         self.assertIn('[mermaid]\n', result)
         self.assertIn('flowchart LR\n A --> B', result)

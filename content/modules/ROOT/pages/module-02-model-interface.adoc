@@ -17,6 +17,8 @@ ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
 ____
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -27,6 +29,8 @@ import labnb as lab
 
 This puts the agent in the state module 2 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 2
@@ -34,6 +38,8 @@ This puts the agent in the state module 2 starts from. Any edits you made are co
 
 == 1. Module 1's failure, again
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m1
@@ -58,6 +64,8 @@ ____
 
 The next cell shows the added sentences as they are in your `+config.toml+`, and the one after runs the agent with the stronger prompt.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 agent = lab.config()["agent"]
@@ -66,6 +74,8 @@ added = strong[len(default):].strip() if strong.startswith(default) else strong
 lab.display(lab.Markdown(f"**Added in the stronger prompt:**\n\n> {added}"))
 ----
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m1 --strong-prompt
@@ -78,6 +88,8 @@ The `+prompt+` column comes from each run's saved request, so it shows what was 
 
 == 3. What did the model actually return?
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.content()
@@ -93,6 +105,8 @@ The lab runs a second endpoint, `+qwen3-8b-b+`: the same model with the same wei
 
 == 5. One identical request to both endpoints
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !COLUMNS=110 python compare_endpoints.py
@@ -100,6 +114,8 @@ The lab runs a second endpoint, `+qwen3-8b-b+`: the same model with the same wei
 
 Same model, same weights, same request. Only the endpoint differs, so the difference is in how each endpoint is served. Each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Open both and find what differs:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.links(("Endpoint A's ServingRuntime (qwen3-8b-a)", lab.serving_runtime_url("qwen3-8b-a")),
@@ -138,6 +154,8 @@ The *tool-call parser* reads the model's text and turns a tool call it recognise
 
 Each run above is a trace, tagged with its `+endpoint+`, `+prompt+` and `+question+`. In the trace list, add those tags as columns to see the table above in MLflow. Open a trace and select `+model_call_1+`: its inputs hold the full messages, system prompt included, and its outputs hold `+finish_reason+`, `+tool_calls+` and `+content+`. Each run's name in the tables above links to its own trace.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.links(("Every trace in this experiment", lab.experiment_url()))
@@ -147,6 +165,8 @@ lab.links(("Every trace in this experiment", lab.experiment_url()))
 
 Open link:{lab-source-url}/agent/config.toml[`+config.toml+`^] in the editor, change `+qwen3-8b-a-predictor+` to `+qwen3-8b-b-predictor+` on the `+base_url+` line, and save. Change the file, not an environment variable: the file survives a workbench restart. This cell confirms what the agent will call:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 print(lab.config()["model"]["base_url"])
@@ -154,6 +174,8 @@ print(lab.config()["model"]["base_url"])
 
 == 8. Run it on the validated endpoint
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m1

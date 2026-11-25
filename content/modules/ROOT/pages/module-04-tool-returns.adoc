@@ -17,6 +17,8 @@ ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
 ____
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -27,6 +29,8 @@ import labnb as lab
 
 This puts the agent in the state module 4 starts from. Any edits you made are copied to `+agent/.reset-backup/+` first, so nothing you wrote is lost.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 4
@@ -36,6 +40,8 @@ This puts the agent in the state module 4 starts from. Any edits you made are co
 
 Portland is not one of Kestrel's depots.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m4
@@ -44,6 +50,8 @@ lab.evidence(columns=("turns", "ended by", "tools run", "answer"))
 
 Fluent, authoritative, and reporting no problem. Now check the evidence rather than the answer.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.trace_link()
@@ -66,6 +74,8 @@ The tool was called, returned quickly, and the run ended cleanly on `+stop+`. Wh
 
 Apply the supplied error contract:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !cp solutions/module-04/tools.py solutions/module-04/agent.py .
@@ -94,6 +104,8 @@ flowchart TB
 
 == 3. Run it again
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py --q m4
@@ -103,6 +115,8 @@ lab.trace_link()
 
 *This is the module's success signal:* a `+bad_request+` that names the real depots, instead of a confident answer. Two more, to see the other categories: a real depot with no stock, and a question the data does cover.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python agent.py "Is the K-600 high-pressure sensor available at the Denver depot?"

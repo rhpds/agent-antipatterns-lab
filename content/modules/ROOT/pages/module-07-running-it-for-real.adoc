@@ -17,6 +17,8 @@ ____
 *Prototype notebook.* It walks this module's steps with the evidence kept on the page and links straight to the right place in MLflow and the OpenShift console. The wording is a working draft; the module's published text is the lab author's.
 ____
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import labnb as lab
@@ -29,11 +31,15 @@ This puts the agent in the state module 7 starts from. Any edits you made are co
 
 The reset restores the code fixes through module 5 and clears the gateway setting. Reconnect to the lab gateway below before running the assembled agent. Your module 6 tool registration belongs to your project and survives the reset. Confirm that `+estimate_delivery+` appears in the tool list. If it is missing, complete module 6's registration step first.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 !python reset.py 7
 ----
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 import json
@@ -67,6 +73,8 @@ flowchart LR
   J --> REP["Report, and a named baseline run in MLflow"]
 ....
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.regression(name="my-baseline")
@@ -74,6 +82,8 @@ lab.regression(name="my-baseline")
 
 A case that can't apply yet (module 6's, without the gateway) is reported as SKIP; nothing blocks the rest. Read the report the run wrote:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 reports = sorted(lab.RUNS.glob("regression-*.md"))
@@ -84,6 +94,8 @@ lab.display(lab.Markdown(reports[-1].read_text() if reports else "No report yet.
 
 For each case, confirm the corrected behaviour in its trace: tool calls populate, runs end on the model's own stop, failures carry a category, retrieval grounds the answer, and the out-of-corpus question is an explicit gap.
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.evidence(columns=("question", "turns", "ended by", "tools run"))
@@ -98,6 +110,8 @@ The most likely regression is module 2's repoint reverting after a workbench res
 
 To compare a later run with this baseline, run the set again under another name, then open the experiment's *Evaluation runs* tab and select both runs. Each case's two results sit side by side, and the cases that changed stand out:
 
+.Notebook cell (runs in the Notebook tab)
+[.notebook-cell]
 [source,python]
 ----
 lab.links(("The experiment's Evaluation runs tab", lab.experiment_url("evaluation-runs")))
