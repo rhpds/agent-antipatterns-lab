@@ -38,8 +38,8 @@ function Blocks(blocks)
   return result
 end
 
--- GitHub refuses to load inside Showroom's frame, and a web page outside the lab would
--- replace the guide, so links open in a new tab. The text keeps its inline markup (code
+-- A web page outside the lab would replace the guide, and a workbench file should open
+-- beside the Notebook tab, so links open in a new tab. The text keeps its inline markup (code
 -- spans). Asciidoctor reads a quoted code span as curly quotes, so quote the text only
 -- when a comma, equals sign or double quote would otherwise be read as link attributes.
 local function new_tab(target, content)
@@ -59,7 +59,7 @@ function Link(link)
     return pandoc.RawInline('asciidoc', 'xref:' .. target:gsub('%.ipynb$', '.adoc') ..
       '[' .. pandoc.utils.stringify(link.content) .. ']')
   end
-  -- Notebook-relative repository links must remain useful without a running workbench.
+  -- Notebook-relative repository links open the file in the participant's own workbench.
   local parts = {'notebooks'}
   for part in target:gmatch('[^/]+') do
     if part == '..' then
@@ -69,5 +69,5 @@ function Link(link)
       table.insert(parts, part)
     end
   end
-  return new_tab('link:{lab-source-url}/' .. table.concat(parts, '/'), link.content)
+  return new_tab('link:{lab-workbench-url}/' .. table.concat(parts, '/'), link.content)
 end

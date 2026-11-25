@@ -1,17 +1,15 @@
 // Generated from notebooks/module-05-knowledge-search.ipynb; edit the notebook, then run:
 // python publishing-house/showroom/generate.py
 = Module 5: Giving the agent knowledge it can search
-ifndef::lab-source-ref[]
-ifdef::page-origin-refname[]
-:lab-source-ref: {page-origin-refname}
+ifndef::user[]
+:user: user-example
 endif::[]
-ifndef::page-origin-refname[]
-:lab-source-ref: dev
+ifndef::openshift_cluster_ingress_domain[]
+:openshift_cluster_ingress_domain: apps.cluster-example.dyn.redhatworkshops.io
 endif::[]
-endif::[]
-:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
+:lab-workbench-url: https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app/kestrel-agent/lab/tree/agent-antipatterns-lab
 
-NOTE: You work through this module in its notebook, `notebooks/module-05-knowledge-search.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-05-knowledge-search.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook. This page is your guide to it. link:{lab-workbench-url}/notebooks/module-05-knowledge-search.ipynb[Open this module's notebook^] in a new browser tab, or find `notebooks/module-05-knowledge-search.ipynb` in the *Notebook* tab on the right.
 
 The agent answers a maintenance question by guessing. You give it a search tool over Kestrel's service bulletins, check its answer against the passages the search found, and see what it does when the bulletins don't cover a question.
 
@@ -68,7 +66,7 @@ flowchart LR
 
 If step 2's search, or the agent's `+search_bulletins+` call in step 4, comes back with `+upstream_unavailable+` and "knowledge store unreachable", the agent can't reach the database. It may still be starting, so wait a minute and run the cell again. If that doesn't help, open a terminal (_File > New > Terminal_), run `+cd ~/agent-antipatterns-lab/agent+`, then `+env | grep PG+`, and check that `+PGHOST+`, `+PGPORT+`, `+PGDATABASE+`, `+PGUSER+` and `+PGPASSWORD+` are all set. Your workbench sets them when it starts. If one is missing, the database wasn't set up for your project, and you can't fix that from the notebook. Ask whoever runs your lab session for help.
 
-If step 2's search for "fault F-21" returns `+no_results+`, the bulletins aren't loaded. In the same terminal and folder, run `+python ingest_corpus.py+`. link:{lab-source-url}/agent/ingest_corpus.py[`+ingest_corpus.py+`^] loads the bulletins into the database, and it should print "ingested 12 passages from 5 bulletins". Then run the cell again. If only the agent's search in step 4 returns `+no_results+`, the query it wrote may be the cause. Run step 2's cell: if that finds passages, the bulletins are loaded, so run step 4 again.
+If step 2's search for "fault F-21" returns `+no_results+`, the bulletins aren't loaded. In the same terminal and folder, run `+python ingest_corpus.py+`. link:{lab-workbench-url}/agent/ingest_corpus.py[`+ingest_corpus.py+`^] loads the bulletins into the database, and it should print "ingested 12 passages from 5 bulletins". Then run the cell again. If only the agent's search in step 4 returns `+no_results+`, the query it wrote may be the cause. Run step 2's cell: if that finds passages, the bulletins are loaded, so run step 4 again.
 
 If step 4's tool results show `+find_part+` and no `+search_bulletins+`, the agent doesn't have the new tool yet. Run step 3's first cell again, then step 4.
 

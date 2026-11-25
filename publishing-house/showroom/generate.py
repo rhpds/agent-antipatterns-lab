@@ -59,6 +59,8 @@ SUCCESS = "**This is the module's success signal:**"
 QUESTION = "**Your read:**"
 DRAFT = "> **Prototype notebook.**"
 STEP = re.compile(r"^## (\d+)\. (.+)$")
+# The notebook's last line points to the next module; Antora's page navigation does that here.
+NEXT = re.compile(r"^Proceed to Module \d+: ")
 
 
 def guide(notebook, name):
@@ -76,6 +78,9 @@ def guide(notebook, name):
     section, previous = None, None
     for cell in cells[1:]:
         for block in blocks(cell, name):
+            if NEXT.match(block):
+                section, previous = None, None
+                continue
             if block.startswith("## "):
                 step = STEP.match(block.splitlines()[0])
                 section = ("differs" if block.startswith("## If the result differs")
@@ -143,17 +148,15 @@ def render(source):
     introduction = f"""// Generated from notebooks/{source.name}; edit the notebook, then run:
 // python publishing-house/showroom/generate.py
 {title}
-ifndef::lab-source-ref[]
-ifdef::page-origin-refname[]
-:lab-source-ref: {{page-origin-refname}}
+ifndef::user[]
+:user: user-example
 endif::[]
-ifndef::page-origin-refname[]
-:lab-source-ref: dev
+ifndef::openshift_cluster_ingress_domain[]
+:openshift_cluster_ingress_domain: apps.cluster-example.dyn.redhatworkshops.io
 endif::[]
-endif::[]
-:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{{lab-source-ref}}
+:lab-workbench-url: https://rh-ai.{{openshift_cluster_ingress_domain}}/notebook/{{user}}-app/kestrel-agent/lab/tree/agent-antipatterns-lab
 
-NOTE: You work through this module in its notebook, `notebooks/{source.name}`, in the *Notebook* tab on the right. This page is your guide to it. The link:{{lab-source-url}}/notebooks/{source.name}[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook. This page is your guide to it. link:{{lab-workbench-url}}/notebooks/{source.name}[Open this module's notebook^] in a new browser tab, or find `notebooks/{source.name}` in the *Notebook* tab on the right.
 """
     return introduction + "\n" + remainder.strip() + "\n"
 

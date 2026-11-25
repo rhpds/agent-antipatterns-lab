@@ -250,6 +250,12 @@ def content(n=1, run=None):
     display(Markdown(f"Run `{run.name}`, model call {n}, `content`:\n\n```text\n{'null' if text is None else text}\n```"))
 
 
+def _pre_json(value):
+    """A value as indented JSON, in a block that keeps its line breaks."""
+    text = json.dumps(value, indent=2, ensure_ascii=False)
+    return f'<pre style="text-align: left; margin: 0">{html.escape(text)}</pre>'
+
+
 def tool_results(run=None):
     """Every tool the newest run (or `run`) called, with its arguments and exactly what it returned."""
     run = run or latest()
@@ -259,8 +265,8 @@ def tool_results(run=None):
     if not calls:
         return display(Markdown(f"Run `{run.name}` called no tools."))
     rows = "".join(
-        f"<tr><td>{html.escape(t['name'])}</td><td><code>{html.escape(json.dumps(t.get('arguments')))}</code></td>"
-        f"<td><code>{html.escape(json.dumps(t.get('result')))}</code></td></tr>" for t in calls)
+        f"<tr style=\"vertical-align: top\"><td>{html.escape(t['name'])}</td><td>{_pre_json(t.get('arguments'))}</td>"
+        f"<td>{_pre_json(t.get('result'))}</td></tr>" for t in calls)
     display(HTML(f"<p>Run <code>{html.escape(run.name)}</code>:</p><table><tr><th>tool</th>"
                  f"<th>arguments</th><th>what it returned</th></tr>{rows}</table>"))
 

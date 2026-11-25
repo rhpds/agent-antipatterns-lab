@@ -1,17 +1,15 @@
 // Generated from notebooks/module-04-tool-returns.ipynb; edit the notebook, then run:
 // python publishing-house/showroom/generate.py
 = Module 4: Tool returns that tell the truth
-ifndef::lab-source-ref[]
-ifdef::page-origin-refname[]
-:lab-source-ref: {page-origin-refname}
+ifndef::user[]
+:user: user-example
 endif::[]
-ifndef::page-origin-refname[]
-:lab-source-ref: dev
+ifndef::openshift_cluster_ingress_domain[]
+:openshift_cluster_ingress_domain: apps.cluster-example.dyn.redhatworkshops.io
 endif::[]
-endif::[]
-:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
+:lab-workbench-url: https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app/kestrel-agent/lab/tree/agent-antipatterns-lab
 
-NOTE: You work through this module in its notebook, `notebooks/module-04-tool-returns.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-04-tool-returns.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook. This page is your guide to it. link:{lab-workbench-url}/notebooks/module-04-tool-returns.ipynb[Open this module's notebook^] in a new browser tab, or find `notebooks/module-04-tool-returns.ipynb` in the *Notebook* tab on the right.
 
 A stock check for a depot that doesn't exist comes back looking like "no stock", and the agent answers with confidence. You find where the tools hide the failure, copy in tools whose results say what went wrong, and check that the agent passes that on.
 

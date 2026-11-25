@@ -1,17 +1,15 @@
 // Generated from notebooks/module-06-running-it-for-real.ipynb; edit the notebook, then run:
 // python publishing-house/showroom/generate.py
 = Module 6: Running it for real
-ifndef::lab-source-ref[]
-ifdef::page-origin-refname[]
-:lab-source-ref: {page-origin-refname}
+ifndef::user[]
+:user: user-example
 endif::[]
-ifndef::page-origin-refname[]
-:lab-source-ref: dev
+ifndef::openshift_cluster_ingress_domain[]
+:openshift_cluster_ingress_domain: apps.cluster-example.dyn.redhatworkshops.io
 endif::[]
-endif::[]
-:lab-source-url: https://github.com/rhpds/agent-antipatterns-lab/blob/{lab-source-ref}
+:lab-workbench-url: https://rh-ai.{openshift_cluster_ingress_domain}/notebook/{user}-app/kestrel-agent/lab/tree/agent-antipatterns-lab
 
-NOTE: You work through this module in its notebook, `notebooks/module-06-running-it-for-real.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-06-running-it-for-real.ipynb[notebook source^] opens on GitHub in a new browser tab.
+NOTE: You work through this module in its notebook. This page is your guide to it. link:{lab-workbench-url}/notebooks/module-06-running-it-for-real.ipynb[Open this module's notebook^] in a new browser tab, or find `notebooks/module-06-running-it-for-real.ipynb` in the *Notebook* tab on the right.
 
 You run the regression set against the agent with every fix in place. It asks one question for each failure you fixed in modules 2 to 5, and checks what the agent did each time. You read each verdict and its reason, then take away a checklist for the field: when a customer says their agent misbehaves, it tells you which layer to look at first. The module takes about 15 minutes, including a wait of several minutes while the regression set runs.
 
