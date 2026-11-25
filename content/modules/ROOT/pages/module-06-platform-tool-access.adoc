@@ -13,19 +13,31 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-06-platform-tool-access.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-06-platform-tool-access.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-So far the agent's tools are written into its own code. You point the agent at an MCP gateway on the platform, then add a new tool there without changing the agent.
+So far the agent's tools are built into its own code. In this module you point the agent at an MCP gateway on the platform, then add a new tool there without changing the agent. MCP, the Model Context Protocol, is an open standard for offering tools to agents.
 
 == What you'll do in the notebook
 
 [arabic]
 . How the agent gets its tools today
 . Point the agent at the gateway
-. Nothing changes about what the agent does
+. Nothing changes about what the agent does (stretch goal)
 . A new tool, without touching the agent
+
+== Questions to think about
+
+*Your read:* the run called no tools, and the answer says the tools don't cover shipping. Is that another quiet failure?
+
+.Check your answer
+[%collapsible]
+====
+
+No, that's the right behaviour. With no delivery tool, the agent says it can't answer instead of making up a transit time. If your run gave a number of days anyway, the model guessed it, which is the kind of unsupported answer module 5 dealt with.
+
+====
 
 == How you know it worked
 
-The agent discovered and used `+estimate_delivery+`, a tool it didn't have a moment ago, and answered "1 day". The tool catalogue is now a property of the platform, versioned and changed independently of the agent's releases.
+The agent found and used `+estimate_delivery+`, listed as `+kestrel_estimate_delivery+`, a tool it didn't have a few minutes ago, and answered "1 day".
 
 == Diagrams
 
@@ -56,10 +68,14 @@ flowchart TB
 [%collapsible]
 ====
 
-If `+LAB_GATEWAY_URL+` is absent or a cell prints “Set gateway_url first”, stop, correct the environment or configuration, and repeat the confirmation cell. Those messages mean the gateway step did not run. For HTTP 401/403, check the workbench's assigned identity and permissions; participant steps use that identity, not cluster-admin credentials.
+If the address cell in step 2 says this environment has no lab MCP Gateway, your workbench wasn't set up with one. You can't fix that from the notebook, so ask for help.
 
-Compare the pump's stock facts through both paths: the part number must come from `+find_part+`, and `+KI-CP-40817+` at Denver must return quantity 3 and lead time 1 day. The model may also check the seal kit, so turn counts and extra valid calls can differ. A placeholder such as `+KI-XX-00000+` is a failed chain.
+If the check in step 2 prints `+gateway_url: ''+`, `+config.toml+` isn't saved with the address. Save it and run that cell again. If the cell fails with an error about TOML, the address is missing its quotes. Until that check shows the address, the later cells print "Set gateway_url first." and run nothing, and nothing gets registered.
 
-After registration, rerun tool discovery if the new tool is not yet listed; the server caches registrations briefly. Do not continue until `+estimate_delivery+` appears. Its successful Denver-to-Boulder result must contain `+transit_days: 1+`, and the answer must report one day.
+If a run fails with HTTP 401 or 403, the gateway didn't accept the login your workbench sends. The notebook's steps use your workbench's own identity, not an admin login. That's an environment problem, not something in the agent, so ask for help.
+
+Through the gateway, `+kestrel_find_part+` should return `+KI-CP-40817+`, and `+kestrel_check_stock+` at Denver should give quantity 3 and a lead time of 1 day. A made-up part number such as `+KI-XX-00000+` means the lookup broke between the two tools. An extra check of the seal kit is fine.
+
+If `+kestrel_estimate_delivery+` isn't listed after you register it, wait a few seconds and run the registration cell again. If the first delivery run already used it, the tool was registered on an earlier attempt at this module. After registration, the delivery run should call `+kestrel_estimate_delivery+`, get `+transit_days: 1+`, and answer one day.
 
 ====
