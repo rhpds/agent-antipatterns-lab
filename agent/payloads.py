@@ -6,13 +6,36 @@
 
 The digest shows the three things module 1 and 2 teach you to look at:
 whether tools were declared (request), and what came back in tool_calls and content
-(response).
+(response). tool_calls is shown as indented JSON, and content as the text the model wrote,
+with its line breaks. An empty or missing value stays as it was sent: [] or null.
 """
 import json
 import pathlib
 import sys
 
 RUNS_DIR = pathlib.Path(__file__).parent / "runs"
+UNDER = " " * 12  # lines that belong to a field start under its label
+
+
+def field(label, text=None, lines=None):
+    """A value on the label's own line, or a block of lines under the label."""
+    if lines is None:
+        return f"{label} = {text}"
+    return f"{label} =\n" + "\n".join((UNDER + line).rstrip() for line in lines)
+
+
+def tool_calls_field(label, calls):
+    """tool_calls as indented JSON. [] and null stay as they were sent: the difference matters."""
+    if not calls:
+        return field(label, json.dumps(calls))
+    return field(label, lines=json.dumps(calls, indent=2, ensure_ascii=False).split("\n"))
+
+
+def content_field(label, content):
+    """content as the model wrote it, line breaks and all. null when there's none, "" when it's empty."""
+    if content is None or content == "":
+        return field(label, json.dumps(content))
+    return field(label, lines=str(content).split("\n"))
 
 
 def latest_run():
@@ -46,8 +69,8 @@ def show(run_dir, raw=False):
             continue
         msg = choice["message"]
         print(f"response: finish_reason = {choice.get('finish_reason')}")
-        print(f"          tool_calls    = {json.dumps(msg.get('tool_calls'))}")
-        print(f"          content       = {json.dumps(msg.get('content'))}")
+        print(tool_calls_field("          tool_calls   ", msg.get("tool_calls")))
+        print(content_field("          content      ", msg.get("content")))
     print(where_to_read(run_dir))
     try:
         trace = json.loads((run_dir / "summary.json").read_text()).get("trace_url")

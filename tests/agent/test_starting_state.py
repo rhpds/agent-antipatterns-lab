@@ -30,6 +30,11 @@ def test_payload_viewer_shows_the_evidence(work):
     out = work.run("payloads.py").stdout
     assert "tools declared: ['find_part', 'check_stock']" in out
     assert "tool_calls    = []" in out and "finish_reason = stop" in out
+    # content is the text the model wrote, on the lines under its label, line breaks and all.
+    lines = out.splitlines()
+    start = lines.index("          content       =")
+    assert "            <tool_call>" in lines[start + 1:] and "            </tool_call>" in lines[start + 1:]
+    assert "\\n" not in out and '\\"' not in out           # no JSON escapes left in the text
     # It names the files to open in the file browser rather than only pointing at --raw.
     assert "NN-response.json" in out and "summary.json" in out and "--raw" in out
 
@@ -60,6 +65,12 @@ def test_module2_repoint_populates_tool_calls_and_tool_executes(work):
     first = summary["tool_calls"][0]
     assert first["name"] == "find_part"
     assert first["result"]["results"][0]["part_number"] == PUMP   # executed against fixtures
+    # The payload viewer shows that tool_calls as indented JSON under its label, then content: null.
+    lines = work.run("payloads.py").stdout.splitlines()
+    start, end = lines.index("          tool_calls    ="), lines.index("          content       = null")
+    shown = lines[start + 1:end]
+    assert shown[0] == "            [" and '                  "name": "find_part",' in shown
+    assert json.loads("\n".join(shown)) == message["tool_calls"]
 
 
 def test_module3_starter_loop_repeats_until_cap(work):
@@ -87,10 +98,20 @@ def test_compare_endpoints_shows_both_responses_side_by_side(work):
            "COLUMNS": "160"}
     out = work.run("compare_endpoints.py", env=env).stdout
     rows = out.splitlines()
+    width = (160 - 3) // 2
+    left, right = [r[:width].rstrip() for r in rows], [r[width + 3:] for r in rows]
     # One row holds both endpoints' finish_reason: the mismatched one stops, the validated one calls a tool.
     assert any("finish_reason: stop" in r and "finish_reason: tool_calls" in r for r in rows)
-    assert "tool_calls: []" in out and "tool_calls: find_part" in out   # [] as sent, like payloads.py
-    assert "<tool_call>" in out                   # the stranded call, left in content
+    # tool_calls: [] as sent on the left, like payloads.py; the call as indented JSON under it on the right.
+    start = next(i for i, r in enumerate(rows) if left[i] == "tool_calls: []" and right[i] == "tool_calls:")
+    end = right.index("", start)
+    calls = json.loads("\n".join(right[start + 1:end]))
+    assert right[start + 1] == "  [" and '        "name": "find_part",' in right[start + 1:end]
+    assert calls[0]["function"]["name"] == "find_part"
+    # content: the stranded call on the left, as the text the model wrote; null on the right.
+    start = next(i for i, r in enumerate(rows) if left[i] == "content:" and right[i] == "content: null")
+    assert "  <tool_call>" in left[start + 1:] and "  </tool_call>" in left[start + 1:]
+    assert "\\n" not in out                      # real line breaks, not JSON escapes
     assert not (work.path / "runs").exists()      # nothing saved, nothing changed
     assert "qwen3-8b-b" not in work.config.read_text()
 
