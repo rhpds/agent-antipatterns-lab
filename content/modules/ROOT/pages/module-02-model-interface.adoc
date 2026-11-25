@@ -21,9 +21,9 @@ The agent's tool calls never run. The developer who built the agent has noticed 
 . What did the model actually return?
 . Predict
 . One identical request to both endpoints
-. The same runs in MLflow (stretch goal)
 . Change the agent's endpoint
 . Run the agent again
+. The same comparison in MLflow (stretch goal)
 
 == Questions to think about
 
@@ -54,6 +54,16 @@ The vLLM server the model runs on. It reads the model's text and fills in `+tool
 ====
 
 Everything matches except one argument: endpoint A has `+--tool-call-parser=pythonic+` and endpoint B has `+--tool-call-parser=hermes+`. Qwen3 writes its tool calls as `+<tool_call>{...}</tool_call>+`, the form the `+hermes+` parser reads. The `+pythonic+` parser looks for calls written like Python function calls, so on endpoint A it finds none.
+
+====
+
+*Your read:* what's different between the two `+model_call_1+` outputs?
+
+.Check your answer
+[%collapsible]
+====
+
+On endpoint A, `+finish_reason+` is `+stop+`, `+tool_calls+` is empty and the call is in `+content+` as text. On endpoint B, `+finish_reason+` is `+tool_calls+` and `+tool_calls+` holds `+find_part+`. It's the same difference as in step 5. The trace shows `+tool_calls+` as an empty list where the response had `+null+`. Both mean the model call returned no tool calls.
 
 ====
 
@@ -90,7 +100,7 @@ flowchart TB
 [%collapsible]
 ====
 
-If the last row still shows `+qwen3-8b-a+` in the `+endpoint+` column, look at the `+Endpoint:+` line the agent printed. If it doesn't name `+qwen3-8b-b+`, save `+config.toml+`, rerun the step 7 cell, then rerun step 8. Don't change the system prompt again. Step 2 showed the prompt isn't the problem.
+If the last row still shows `+qwen3-8b-a+` in the `+endpoint+` column, look at the `+Endpoint:+` line the agent printed. If it doesn't name `+qwen3-8b-b+`, save `+config.toml+`, rerun the step 6 cell, then rerun step 7. Don't change the system prompt again. Step 2 showed the prompt isn't the problem.
 
 If endpoint B also leaves `+<tool_call>+` in `+content+`, or a cell times out or can't reach an endpoint, the shared model endpoint has a problem. You can't fix that from your workbench, so ask the lab staff for help.
 
