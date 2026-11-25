@@ -2,6 +2,7 @@
 """Check the built HTML against all seven notebooks, including code and interactive markup."""
 import argparse
 import json
+import re
 from pathlib import Path
 import subprocess
 
@@ -36,8 +37,15 @@ def main():
             assert "{lab-source" not in href and not href.startswith("../agent/"), f"{source.name}: unresolved link {href}"
             if "/blob/" in href:
                 assert f"/blob/{args.source_ref}/" in href, f"{source.name}: wrong source branch in {href}"
+                # GitHub refuses to load inside Showroom's frame.
+                assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
         assert article.find("h1"), f"{source.name}: no page title"
-        assert "Prototype notebook." in article.get_text(), f"{source.name}: draft label lost"
+        # A repository link written as a code span must still render as code.
+        for name in re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown):
+            assert any(code.get_text() == name for a in article.select("a[href*='/blob/']") for code in a.select("code")), \
+                f"{source.name}: link text `{name}` lost its code formatting"
+        has_label = "Prototype notebook." in markdown
+        assert ("Prototype notebook." in article.get_text()) == has_label, f"{source.name}: draft label differs from the notebook"
         count += 1
         print(f"Verified {source.name}: {len(actual_code)} code cells, {len(article.select('.mermaid'))} diagrams")
     assert count == 7, f"Expected seven modules, found {count}"

@@ -22,7 +22,7 @@ class ShowroomMirrorTests(unittest.TestCase):
 
     def test_mirror_keeps_order_code_diagrams_answers_and_links(self):
         notebook = nbformat.v4.new_notebook(cells=[
-            nbformat.v4.new_markdown_cell('# A lesson\n\n## Read this\n\n[config](../agent/config.toml)'),
+            nbformat.v4.new_markdown_cell('# A lesson\n\n## Read this\n\n[config](../agent/config.toml) and [`tools.py`](../agent/tools.py)'),
             nbformat.v4.new_code_cell('raise RuntimeError("must never execute")\n%cd ../agent\n!python agent.py'),
             nbformat.v4.new_markdown_cell('```mermaid\nflowchart LR\n A --> B\n```'),
             nbformat.v4.new_markdown_cell('<details><summary>Check your answer</summary>\n\n1. First answer.\n2. Second answer.\n</details>'),
@@ -33,7 +33,9 @@ class ShowroomMirrorTests(unittest.TestCase):
             result = self.generator.render(source)
         self.assertIn('= A lesson\n', result)
         self.assertIn('== Read this', result)
-        self.assertIn('{lab-source-url}/agent/config.toml[config]', result)
+        # Repository links open in a new tab: GitHub won't load inside Showroom's frame.
+        self.assertIn('link:{lab-source-url}/agent/config.toml[config^]', result)
+        self.assertIn('[`+tools.py+`^]', result)
         self.assertIn('[source,python]', result)
         self.assertIn('raise RuntimeError("must never execute")\n%cd ../agent\n!python agent.py', result)
         self.assertIn('[mermaid]\n', result)
@@ -61,8 +63,9 @@ class ShowroomMirrorTests(unittest.TestCase):
         for source in sources:
             with self.subTest(source=source.name):
                 result = self.generator.render(source)
-                self.assertIn(f'/notebooks/{source.name}[', result)
-                self.assertIn('Prototype notebook.', result)
+                self.assertIn(f'/notebooks/{source.name}[notebook source^]', result)
+                heading = ''.join(json.loads(source.read_text())['cells'][0]['source']).splitlines()[0]
+                self.assertIn(heading.replace('# ', '= ', 1) + '\n', result)
                 position = 0
                 for cell in json.loads(source.read_text())['cells']:
                     if cell['cell_type'] == 'code' and ''.join(cell['source']).strip():
