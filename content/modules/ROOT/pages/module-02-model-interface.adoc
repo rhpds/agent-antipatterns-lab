@@ -11,7 +11,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook. This page is your guide to it. link:{lab-workbench-url}/notebooks/module-02-model-interface.ipynb[Open this module's notebook^] in a new browser tab, or find `notebooks/module-02-model-interface.ipynb` in the *Notebook* tab on the right.
 
-The agent's tool calls never run. You try a stronger prompt to rule out the instructions, send one identical request to both model endpoints, and find the serving setting that makes the difference. Then you point the agent at the endpoint that's set up correctly.
+The agent's tool calls never run. The developer who built the agent has noticed something odd: point it at the lab's second model endpoint and the tool call works. They don't know why, and they've asked you to find out. You try a stronger prompt to rule out the instructions, send one identical request to both model endpoints, and find the serving setting that makes the difference. Then you point the agent at the endpoint that's set up correctly.
 
 == What you'll do in the notebook
 
@@ -21,9 +21,9 @@ The agent's tool calls never run. You try a stronger prompt to rule out the inst
 . What did the model actually return?
 . Predict
 . One identical request to both endpoints
-. The same evidence in MLflow (stretch goal)
 . Change the agent's endpoint
 . Run the agent again
+. The same comparison in MLflow (stretch goal)
 
 == Questions to think about
 
@@ -54,6 +54,16 @@ The vLLM server the model runs on. It reads the model's text and fills in `+tool
 ====
 
 Everything matches except one argument: endpoint A has `+--tool-call-parser=pythonic+` and endpoint B has `+--tool-call-parser=hermes+`. Qwen3 writes its tool calls as `+<tool_call>{...}</tool_call>+`, the form the `+hermes+` parser reads. The `+pythonic+` parser looks for calls written like Python function calls, so on endpoint A it finds none.
+
+====
+
+*Your read:* what's different between the two `+model_call_1+` outputs?
+
+.Check your answer
+[%collapsible]
+====
+
+On endpoint A, `+finish_reason+` is `+stop+`, `+tool_calls+` is empty and the call is in `+content+` as text. On endpoint B, `+finish_reason+` is `+tool_calls+` and `+tool_calls+` holds `+find_part+`. It's the same difference as in step 5. The trace shows `+tool_calls+` as an empty list where the response had `+null+`. Both mean the model call returned no tool calls.
 
 ====
 
@@ -90,12 +100,14 @@ flowchart TB
 [%collapsible]
 ====
 
-If the last row still shows `+qwen3-8b-a+` in the `+endpoint+` column, look at the `+Endpoint:+` line the agent printed. If it doesn't name `+qwen3-8b-b+`, save `+config.toml+`, rerun the step 7 cell, then rerun step 8. Don't change the system prompt again. Step 2 showed the prompt isn't the problem.
+If the last row still shows `+qwen3-8b-a+` in the `+endpoint+` column, look at the `+Endpoint:+` line the agent printed. If it doesn't name `+qwen3-8b-b+`, save `+config.toml+`, rerun the step 6 cell, then rerun step 7. Don't change the system prompt again. Step 2 showed the prompt isn't the problem.
 
 If endpoint B also leaves `+<tool_call>+` in `+content+`, or a cell times out or can't reach an endpoint, the shared model endpoint has a problem. You can't fix that from your workbench, so ask the lab staff for help.
 
 If the stronger prompt gives exactly the same text as the default, that's expected. Check the `+prompt+` column to confirm the stronger prompt was sent. What matters is that neither run produced a `+tool_calls+` entry the agent could run.
 
 On endpoint B, `+find_part+` should return `+KI-CP-40817+`. If it does, and the agent then calls it again and again, that's the failure module 3 fixes.
+
+If a cell says something like `+module 'labnb' has no attribute ...+`, which can happen after the lab files are updated, choose *Kernel > Restart Kernel* and run the notebook again from the first cell.
 
 ====
