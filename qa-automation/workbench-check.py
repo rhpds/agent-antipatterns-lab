@@ -6,7 +6,6 @@ only verdicts and paths return to the coordinator. Participant edits stay untouc
 import contextlib
 import io
 import json
-import os
 import re
 from pathlib import Path
 import subprocess
@@ -22,14 +21,6 @@ def git(*args, cwd=REPO):
     return subprocess.check_output(["git", *args], cwd=cwd, text=True, stderr=subprocess.DEVNULL).strip()
 
 
-def catalog():
-    import agent
-    import toolbox
-    config = agent.load_config()
-    config["tools"]["gateway_url"] = os.environ["LAB_GATEWAY_URL"]
-    return [tool["function"]["name"] for tool in toolbox.open_toolbox(config).definitions]
-
-
 def readiness():
     for endpoint in ("a", "b"):
         url = f"http://qwen3-8b-{endpoint}-predictor.llm-serving.svc:8080/v1/models"
@@ -40,9 +31,7 @@ def readiness():
         assert connection.execute("SELECT count(*) FROM bulletins").fetchone()[0] >= 12, "Bulletin corpus is incomplete"
     import tracing
     assert tracing.init(), "Authenticated MLflow initialization failed"
-    names = catalog()
-    assert all(any(n.endswith(tool) for n in names) for tool in ("find_part", "check_stock", "search_bulletins")), "Gateway catalog is incomplete"
-    return {"services": ["models", "pgvector", "mlflow", "gateway"]}
+    return {"services": ["models", "pgvector", "mlflow"]}
 
 
 STRICT_SHELL = '''
@@ -106,27 +95,14 @@ def verify_module(number, root):
         assert any(p["source"] == "SB-2024-102" for t in hits for p in t["result"].get("data", {}).get("passages", [])), "F-21 retrieval source is missing"
         assert "SB-2024-102" in summaries[1]["answer"], "Grounded answer omitted its citation"
         assert any(t["result"].get("category") == "no_results" for t in calls(last, "search_bulletins")), "Out-of-corpus result is not an explicit miss"
-    elif number == 6:
-        for summary in summaries[:2]:
-            verdict, reason = regression.check_m3(summary, 6)
-            assert verdict == "PASS", reason
-        # The model may also check the seal kit. Compare the requested pump's facts,
-        # rather than treating an additional valid tool call as a failed lesson.
-        results = lambda summary: sorted(json.dumps(t["result"], sort_keys=True)
-                                         for t in calls(summary, "check_stock")
-                                         if t["arguments"].get("part_number") == "KI-CP-40817"
-                                         and t["arguments"].get("depot") == "Denver")
-        assert results(summaries[0]) == results(summaries[1]), "Gateway pump-stock results differ from the participant's local tools"
-        assert not calls(summaries[-2], "estimate_delivery"), "Tool was visible before registration"
-        assert any(t["result"].get("data", {}).get("transit_days") == 1 for t in calls(last, "estimate_delivery")), "New tool was not discovered and used"
     else:
         config = __import__("agent").load_config()
-        assert len(summaries) == 6, "Regression did not produce all six cases"
+        assert len(summaries) == len(regression.CASES) == 5, "Regression did not produce all five cases"
         counts = {"PASS": 0, "FAIL": 0, "SKIP": 0}
         for summary, (_, _, check) in zip(summaries, regression.CASES):
-            verdict, _ = check(summary, config["agent"]["max_turns"])
+            verdict, _ = regression.judge(check, summary, config["agent"]["max_turns"])
             counts[verdict] += 1
-        assert counts == {"PASS": 6, "FAIL": 0, "SKIP": 0}, "Regression did not pass every case"
+        assert counts == {"PASS": 5, "FAIL": 0, "SKIP": 0}, "Regression did not pass every case"
         return {"regression": counts}
     return {}
 
@@ -145,14 +121,11 @@ def module(number):
     notebook = nbformat.read(notebook_path, as_version=4)
     original_ids = {cell.id for cell in notebook.cells if cell.cell_type == "code"}
     notebook.cells.insert(0, nbformat.v4.new_code_cell(STRICT_SHELL))
-    # These are the manual config edits in the module 2 and 6 instructions.
-    target = {2: "module-02-23", 6: "module-06-12"}.get(number)
-    if target:
+    # This is the manual config edit in the module 2 instructions.
+    if number == 2:
         edit = ("from pathlib import Path\np = Path('config.toml')\n"
-                "p.write_text(p.read_text().replace('qwen3-8b-a-predictor', 'qwen3-8b-b-predictor'))") if number == 2 else (
-                "import json, os\nfrom pathlib import Path\np = Path('config.toml')\n"
-                "p.write_text(p.read_text().replace('gateway_url = \"\"', 'gateway_url = ' + json.dumps(os.environ['LAB_GATEWAY_URL']), 1))")
-        index = next(i for i, cell in enumerate(notebook.cells) if cell.id == target)
+                "p.write_text(p.read_text().replace('qwen3-8b-a-predictor', 'qwen3-8b-b-predictor'))")
+        index = next(i for i, cell in enumerate(notebook.cells) if cell.id == "module-02-23")
         notebook.cells.insert(index, nbformat.v4.new_code_cell(edit))
     client = NotebookClient(notebook, timeout=900, kernel_name="python3",
                             resources={"metadata": {"path": str(root / "notebooks")}})
@@ -161,17 +134,17 @@ def module(number):
     finally:
         nbformat.write(notebook, ARTIFACT)
     evidence = verify_module(number, root)
-    if number == 7:
+    if number == 6:
         text = "\n".join(str(output.get("text", "")) for cell in notebook.cells for output in cell.get("outputs", []))
-        recorded = re.search(r"Recorded MLflow run 'my-baseline' \(([\w-]+)\)", text)
-        assert recorded, "Module 7 did not record its MLflow evaluation"
+        recorded = re.search(r"Recorded MLflow run 'closing-run' \(([\w-]+)\)", text)
+        assert recorded, "Module 6 did not record its MLflow evaluation"
         import tracing
         import mlflow
         assert tracing.init(), "Cannot verify the recorded MLflow evaluation"
         run = mlflow.get_run(recorded.group(1))
-        assert all(run.data.metrics.get(key) == value for key, value in {"passed": 6, "failed": 0, "skipped": 0}.items()), "Recorded evaluation counts differ from regression results"
+        assert all(run.data.metrics.get(key) == value for key, value in {"passed": 5, "failed": 0, "skipped": 0}.items()), "Recorded evaluation counts differ from regression results"
         rows = mlflow.search_traces(run_id=run.info.run_id, return_type="list")
-        assert len(rows) == 6 and all(any(a.name == "check" and a.value == "PASS" for a in trace.info.assessments) for trace in rows), "MLflow must retain six passing case assessments"
+        assert len(rows) == 5 and all(any(a.name == "check" and a.value == "PASS" for a in trace.info.assessments) for trace in rows), "MLflow must retain five passing case assessments"
         evidence["evaluation_id"] = run.info.run_id
     evidence.update(module=number, code_cells=len(original_ids),
                     executed_cells=sum(c.cell_type == "code" and c.id in original_ids and c.execution_count is not None for c in notebook.cells),
@@ -189,8 +162,9 @@ if __name__ == "__main__":
             if phase == "module":
                 result.update(module(int(sys.argv[3])))
             else:
+                assert phase == "readiness", f"Unknown phase {phase!r}"
                 sys.path.insert(0, str(REPO / "agent"))
-                result.update(readiness() if phase == "readiness" else {"tools": catalog()})
+                result.update(readiness())
         result.update(status="PASS", commit=sys.argv[2])
     except Exception as error:
         result["reason"] = str(error) if isinstance(error, AssertionError) else type(error).__name__

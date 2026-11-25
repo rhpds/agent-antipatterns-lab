@@ -56,28 +56,31 @@ def test_live_module4_rejects_an_answer_that_still_calls_bad_input_out_of_stock(
         verify(monkeypatch, tmp_path, 4, [before, after])
 
 
-def test_live_module6_rejects_a_gateway_chain_using_an_invented_part(monkeypatch, tmp_path):
-    """Scenario: The agent reaches its tools through the lab's gateway"""
+def closing_records():
+    """One passing run record per regression case, in the order regression.py runs them."""
     part = tool("find_part", {"category": "ok", "data": {"results": [{"part_number": "KI-CP-40817"}]}})
     stock = tool("check_stock", {"category": "ok", "data": {"results": [{"depot": "Denver", "qty": 3}]}},
                  part_number="KI-CP-40817", depot="Denver")
-    local = summary(part, stock)
-    incorrect = summary(part, tool("kestrel_check_stock", {"category": "no_results", "data": {"results": []}},
-                                   part_number="KI-XX-00000", depot="Denver"))
-    before = summary()
-    after = summary(tool("kestrel_estimate_delivery", {"category": "ok", "data": {"transit_days": 1}}))
+    portland = tool("check_stock", {"category": "bad_request", "detail": "unknown depot 'Portland'"}, depot="Portland")
+    grounded = tool("search_bulletins", {"category": "ok", "data": {"passages": [{"source": "SB-2024-102"}]}})
+    miss = tool("search_bulletins", {"category": "no_results", "data": {"passages": []}})
+    offered = ["find_part", "check_stock", "search_bulletins"]
+    records = [summary(part), summary(part, stock),
+               summary(part, portland, answer="I could not check stock: Portland is an unknown depot."),
+               summary(grounded, answer="See SB-2024-102."), summary(miss)]
+    for record in records:
+        record["tools_offered"] = offered
+    return records
+
+
+def test_live_closing_module_needs_every_case_to_pass(monkeypatch, tmp_path):
+    """Scenario: Every module works through the participant instructions"""
+    assert verify(monkeypatch, tmp_path, 6, closing_records()) == {"regression": {"PASS": 5, "FAIL": 0, "SKIP": 0}}
+
+
+def test_live_closing_module_rejects_a_cut_off_case(monkeypatch, tmp_path):
+    """Scenario: A regression case whose run was cut off doesn't pass"""
+    records = closing_records()
+    records[1]["ended_by"] = "length"
     with pytest.raises(AssertionError):
-        verify(monkeypatch, tmp_path, 6, [local, incorrect, before, after])
-
-
-def test_live_module6_accepts_matching_pump_stock_with_an_additional_seal_lookup(monkeypatch, tmp_path):
-    """Scenario: The agent reaches its tools through the lab's gateway"""
-    part = tool("find_part", {"category": "ok", "data": {"results": [{"part_number": "KI-CP-40817"}]}})
-    stock = tool("check_stock", {"category": "ok", "data": {"results": [{"depot": "Denver", "qty": 3}]}},
-                 part_number="KI-CP-40817", depot="Denver")
-    local = summary(part, stock)
-    gateway = summary(part, stock, tool("kestrel_check_stock", {"category": "ok", "data": {"results": [{"depot": "Denver", "qty": 12}]}},
-                                       part_number="KI-SK-40233", depot="Denver"))
-    before = summary()
-    after = summary(tool("kestrel_estimate_delivery", {"category": "ok", "data": {"transit_days": 1}}))
-    assert verify(monkeypatch, tmp_path, 6, [local, gateway, before, after]) == {}
+        verify(monkeypatch, tmp_path, 6, records)
