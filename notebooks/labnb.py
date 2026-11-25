@@ -196,6 +196,28 @@ def evidence(columns=("endpoint", "turns", "ended by", "tools run", "answer"), l
     display(HTML(f"<table><tr>{head}</tr>{''.join(rows)}</table>"))
 
 
+def show_code(file, name):
+    """Show one function (or one top-level name, such as TOOL_DEFINITIONS) from a file in
+    agent/, with its line numbers, so a learner can read it without leaving the notebook.
+    It reads the file as it is now, so it shows any edit the learner has made."""
+    import ast
+    path = AGENT / file
+    source = path.read_text()
+    lines = source.splitlines()
+    for node in ast.walk(ast.parse(source)):
+        named = getattr(node, "name", None) or next(
+            (t.id for t in getattr(node, "targets", []) if isinstance(t, ast.Name)), None)
+        if named == name and hasattr(node, "end_lineno"):
+            start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
+            # Take the comment lines right above it too: they explain it.
+            while start > 1 and lines[start - 2].lstrip().startswith("#"):
+                start -= 1
+            width = len(str(node.end_lineno))
+            body = "\n".join(f"{n:>{width}}  {lines[n - 1]}" for n in range(start, node.end_lineno + 1))
+            return display(Markdown(f"`{file}`, lines {start} to {node.end_lineno}:\n\n```python\n{body}\n```"))
+    display(Markdown(f"`{name}` isn't in `{file}` any more. Open [`{file}`](../agent/{file}) to look for it."))
+
+
 def latest():
     rs = runs()
     return rs[-1] if rs else None
