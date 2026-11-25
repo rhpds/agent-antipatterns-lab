@@ -2,7 +2,7 @@
 
 | Chart | Scope | Installs |
 |---|---|---|
-| `bootstrap-infra` | once per cluster | operators, OpenShift AI (unless `rhoai.install: false`), GPU, the two vLLM endpoints, MLflow, MCP Gateway |
+| `bootstrap-infra` | once per cluster | operators, OpenShift AI (unless `rhoai.install: false`), GPU, the two vLLM endpoints, MLflow |
 | `bootstrap-tenant` | once per participant (`username`) | the `<username>-app` namespace, RBAC, pgvector, the workbench |
 
 ## Values files for `bootstrap-infra`
@@ -23,7 +23,7 @@ git fetch origin
 python automation/gitops/check-release.py origin/test
 ```
 
-The selected revision must contain both charts, the agent and all seven notebooks. A tag's name is not proof of its contents. Do not move published tags to repair a bad pin: select a new tested release instead. Infrastructure and tenant Applications must select the same release, and their `labRepoRef` must resolve to that same commit. Use a branch or tag for `labRepoRef`, because the workbench clones it using `git clone --branch`.
+The selected revision must contain both charts, the agent and all six notebooks. A tag's name is not proof of its contents. Do not move published tags to repair a bad pin: select a new tested release instead. Infrastructure and tenant Applications must select the same release, and the tenant's `labRepoRef` must resolve to that same commit (so must the infrastructure Application's, if it still sets one). Use a branch or tag for `labRepoRef`, because the workbench clones it using `git clone --branch`.
 
 Audit existing Applications without printing their credential-bearing Helm values (requires PyYAML):
 
@@ -35,20 +35,20 @@ For a fresh checkout, fetch the selected branch/tag before auditing. The audit c
 
 The tenant chart accepts RHDP's `tenant.user.name` directly. A standalone deployment must supply `username`. If both are supplied they must agree. Missing or conflicting identities stop rendering; there is no shared `user1` fallback.
 
-In the owning AgnosticV catalog, use the RHDP values overlay for infrastructure, set `labRepoRef` for **both** charts and set `ocp4_workload_gitops_bootstrap_health_ignore: false`. Apply the notebook ignore rules below before enabling that failure behavior. These catalog settings must be committed in AgnosticV; changing a live Application or this repository does not update the catalog's source pin.
+In the owning AgnosticV catalog, use the RHDP values overlay for infrastructure, set `labRepoRef` for the tenant chart and set `ocp4_workload_gitops_bootstrap_health_ignore: false`. Apply the notebook ignore rules below before enabling that failure behavior. These catalog settings must be committed in AgnosticV; changing a live Application or this repository does not update the catalog's source pin.
 
 ## Which branch an environment clones
 
-The participant's workbench and the module 6 lab tool server clone this repo when they
-start. Both clone `labRepoRef`: the branch the environment's catalog item deploys from.
-That is `test` for the test environment and `main` for the event (#88). Neither chart has
-a default, so an environment that doesn't set it fails to render and says why.
+The participant's workbench clones this repo when it starts. It clones `labRepoRef`: the
+branch the environment's catalog item deploys from. That is `test` for the test environment
+and `main` for the event (#88). The tenant chart has no default, so an environment that
+doesn't set it fails to render and says why. `bootstrap-infra` clones nothing, so it ignores
+the setting.
 
-- **RHDP catalog items** pass it in `ocp4_workload_gitops_bootstrap_helm_values` for both
-  Applications, from the branch they deploy:
+- **RHDP catalog items** pass it in `ocp4_workload_gitops_bootstrap_helm_values` for the
+  tenant Application, from the branch they deploy:
   `labRepoRef: "{{ ocp4_workload_gitops_bootstrap_repo_revision }}"`.
-- **Dev environments** use `values-dev-single-l4.yaml` (`bootstrap-infra`) and
-  `values-dev.yaml` (`bootstrap-tenant`), which set `dev`.
+- **Dev environments** use `values-dev.yaml` (`bootstrap-tenant`), which sets `dev`.
 
 ## How RHDP deploys these charts
 

@@ -39,7 +39,7 @@ def check_release(ref):
         ["git", "ls-tree", "-r", "--name-only", commit], cwd=ROOT, text=True,
     ).splitlines())
     missing = [path for path in REQUIRED if path not in paths]
-    for number in range(1, 8):
+    for number in range(1, 7):
         if not any(p.startswith(f"notebooks/module-{number:02d}-") and p.endswith(".ipynb") for p in paths):
             missing.append(f"notebooks/module-{number:02d}-*.ipynb")
     if missing:
@@ -83,8 +83,13 @@ def check_applications(document):
         for parameter in settings.get("parameters", []):
             if parameter.get("name") == "labRepoRef":
                 runtime_ref = parameter.get("value")
+        # Only the tenant chart clones the lab (the workbench). An infrastructure Application
+        # may still carry the setting; if it does, it must agree like the tenant's.
+        if runtime_ref is None and path == "automation/gitops/bootstrap-infra":
+            commits.add(commit)
+            continue
         if not isinstance(runtime_ref, str) or not runtime_ref.strip():
-            raise ValueError("labRepoRef is required for each lab Application")
+            raise ValueError("labRepoRef is required for each tenant Application")
         # origin/HEAD is a symbolic remote default, not a branch clone --branch can use.
         if runtime_ref == "HEAD" or not any(subprocess.run(["git", "show-ref", "--verify", "--quiet", prefix + runtime_ref],
                                   cwd=ROOT).returncode == 0
@@ -126,7 +131,7 @@ def main():
             message = "invalid Application JSON"
         print("FAIL: " + message, file=sys.stderr)
         return 1
-    print(f"Lab release {commit[:12]} contains both charts, the agent and all seven notebooks; selected refs agree.")
+    print(f"Lab release {commit[:12]} contains both charts, the agent and all six notebooks; selected refs agree.")
     return 0
 
 
