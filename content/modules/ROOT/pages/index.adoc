@@ -17,7 +17,7 @@ flowchart LR
     WB["Workbench: JupyterLab, the notebooks and the agent"]
     PG[("PostgreSQL with pgvector: service bulletins")]
   end
-  subgraph Shared["Shared by the class"]
+  subgraph Shared["Shared by everyone in the session"]
     A["Model endpoint qwen3-8b-a (vLLM)"]
     B["Model endpoint qwen3-8b-b (vLLM)"]
     ML["MLflow: traces and evaluations"]
