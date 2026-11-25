@@ -33,7 +33,7 @@ The agent's tool calls never run. You rule out the prompt, send one identical re
 
 *Your read:* what sits between the model and your agent that should have turned that text into `+tool_calls+`?
 
-*Your read:* each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Open both and find what differs:
+*Your read:* each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Which argument differs between the two? The links below open both.
 
 .Check your answer
 [%collapsible]
@@ -45,7 +45,7 @@ Everything matches except one argument, `+--tool-call-parser+`.
 
 == How you know it worked
 
-In the last row, model call 1 ends with `+finish_reason+` `+tool_calls+` and asks for `+find_part+`. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run.
+In the last row, model call 1's `+finish_reason+` is `+tool_calls+` and it asks for `+find_part+`. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run.
 
 == Diagrams
 
@@ -72,7 +72,7 @@ flowchart LR
 
 == If the result differs
 
-.Open this only if your run doesn't match the notebook. It names the cause.
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
 [%collapsible]
 ====
 

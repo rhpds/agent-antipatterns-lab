@@ -24,7 +24,7 @@ You run the lab's regression questions against the fixed agent and record the re
 
 == How you know it worked
 
-For the assembled agent here, 6 PASS, 0 FAIL and 0 SKIP.
+All six regression cases pass, with 0 FAIL and 0 SKIP.
 
 == Diagrams
 
@@ -54,7 +54,7 @@ flowchart LR
 
 == If the result differs
 
-.Open this only if your run doesn't match the notebook. It names the cause.
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
 [%collapsible]
 ====
 

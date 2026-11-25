@@ -50,7 +50,7 @@ flowchart LR
 
 == If the result differs
 
-.Open this only if your run doesn't match the notebook. It names the cause.
+.Open this if your result doesn't match what the notebook expects. It lists likely causes.
 [%collapsible]
 ====
 

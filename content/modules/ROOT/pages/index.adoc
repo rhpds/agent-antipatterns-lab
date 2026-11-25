@@ -58,7 +58,7 @@ flowchart LR
 
 == How to work through the lab
 
-Each module has a Jupyter notebook in your workbench. Open the *Notebook* tab on the right, where module 1's notebook opens. Run the cells in order and answer the questions as you go. Each page on this side is a short guide to its module: what it covers, its steps, the questions to think about and how you know it worked. The code and its results are in the notebook.
+Each module has a Jupyter notebook in your workbench. Open the *Notebook* tab on the right, where module 1's notebook opens. Run the cells in order and answer the questions as you go. Each page on this side is a short guide to its module: what it covers, its steps, how you know it worked and, where the module has them, questions to think about. The code and its results are in the notebook.
 
 To start a module over, open a terminal in the workbench (*File > New > Terminal*), go to the `agent-antipatterns-lab` folder and run `python agent/reset.py <module number>`. Your edits are saved before the reset.
 
