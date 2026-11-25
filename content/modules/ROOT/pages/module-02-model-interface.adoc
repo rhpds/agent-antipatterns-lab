@@ -13,7 +13,7 @@ endif::[]
 
 NOTE: You work through this module in its notebook, `notebooks/module-02-model-interface.ipynb`, in the *Notebook* tab on the right. This page is your guide to it. The link:{lab-source-url}/notebooks/module-02-model-interface.ipynb[notebook source^] opens on GitHub in a new browser tab.
 
-The agent's tool calls never run. You rule out the prompt, send one identical request to both model endpoints, and find the serving setting that makes the difference. Then you point the agent at the endpoint that's set up correctly.
+The agent's tool calls never run. You try a stronger prompt to rule out the instructions, send one identical request to both model endpoints, and find the serving setting that makes the difference. Then you point the agent at the endpoint that's set up correctly.
 
 == What you'll do in the notebook
 
@@ -23,29 +23,45 @@ The agent's tool calls never run. You rule out the prompt, send one identical re
 . What did the model actually return?
 . Predict
 . One identical request to both endpoints
-. The same evidence in MLflow
-. Repoint
-. Run it on the validated endpoint
+. The same evidence in MLflow (stretch goal)
+. Change the agent's endpoint
+. Run the agent again
 
 == Questions to think about
 
-*Your read:* you changed one thing, the instructions, and made them as plain as they can be. If the model had been ignoring its instructions, which columns would have changed? Did they? So is the problem in what the model was told?
-
-*Your read:* what sits between the model and your agent that should have turned that text into `+tool_calls+`?
-
-*Your read:* each endpoint's settings are the arguments on its ServingRuntime in OpenShift AI. Which argument differs between the two?
+*Your read:* if the default prompt was too weak, the stronger one should change the `+finish_reason (call 1)+` and `+tool_calls (call 1)+` columns from the first row of the step 2 table to the second. Compare the two rows. Did those columns change? So is the problem in what the model was told?
 
 .Check your answer
 [%collapsible]
 ====
 
-Everything matches except one argument, `+--tool-call-parser+`.
+No. Both rows show `+stop+` and `+null+`, and the same answer: the model wrote the same tool call as text both times. The stronger instructions changed nothing the agent could act on, so the prompt isn't the problem.
+
+====
+
+*Your read:* what sits between the model and your agent that should have turned the `+<tool_call>+` text in `+content+` into `+tool_calls+`?
+
+.Check your answer
+[%collapsible]
+====
+
+The vLLM server the model runs on. It reads the model's text and fills in `+tool_calls+` when it recognises a tool call. Steps 4 and 5 find which part of it gets this wrong.
+
+====
+
+*Your read:* which argument differs between endpoint A's ServingRuntime and endpoint B's?
+
+.Check your answer
+[%collapsible]
+====
+
+Everything matches except one argument: endpoint A has `+--tool-call-parser=pythonic+` and endpoint B has `+--tool-call-parser=hermes+`. Qwen3 writes its tool calls as `+<tool_call>{...}</tool_call>+`, the form the `+hermes+` parser reads. The `+pythonic+` parser looks for calls written like Python function calls, so on endpoint A it finds none.
 
 ====
 
 == How you know it worked
 
-In the last row, model call 1's `+finish_reason+` is `+tool_calls+` and it asks for `+find_part+`. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run.
+In the last row of the table, model call 1's `+finish_reason+` is `+tool_calls+` and it asks for `+find_part+`, and the first `+find_part+` call's results include `+KI-CP-40817+`, the coolant circulation pump assembly. In the trace, `+model_call_1+` now has `+tool_calls: [find_part …]+`, and a `+find_part+` tool span sits under the run. The run still ends with `+Stopped after 6 turns without a final answer.+` Module 3 fixes that.
 
 == Diagrams
 
@@ -55,16 +71,16 @@ In the last row, model call 1's `+finish_reason+` is `+tool_calls+` and it asks 
 
 [mermaid]
 ....
-flowchart LR
+flowchart TB
   A["agent.py"] -- "messages and tools" --> API
   subgraph E["One endpoint: a vLLM server"]
-    API["OpenAI-compatible API, /v1/chat/completions"] --> CT["Chat template: messages and tool definitions become the text the model reads"]
-    CT --> MOD["Qwen3-8B writes text, including any tool call"]
-    MOD --> RP["Reasoning parser: moves the model's thinking into its own field"]
-    RP --> TP{"Tool-call parser: does it recognise the call?"}
+    API["OpenAI-compatible API: /v1/chat/completions"] --> CT["Chat template: messages and tool definitions become text"]
+    CT --> MOD["Qwen3-8B writes text, tool call included"]
+    MOD --> RP["Reasoning parser: moves the thinking to its own field"]
+    RP --> TP{"Tool-call parser: recognises the call?"}
   end
-  TP -- "yes" --> OK["tool_calls holds the call, finish_reason is tool_calls"]
-  TP -- "no" --> NO["the call stays in content, tool_calls is null, finish_reason is stop"]
+  TP -- "yes" --> OK["tool_calls: the call. finish_reason: tool_calls"]
+  TP -- "no" --> NO["Call left in content. tool_calls: null. finish_reason: stop"]
 ....
 
 
@@ -76,8 +92,12 @@ flowchart LR
 [%collapsible]
 ====
 
-If the last run still uses endpoint A, reopen `+config.toml+`, save the `+base_url+` edit and rerun the confirmation cell. Inspect the request's endpoint rather than changing the system prompt again. If endpoint B also leaves `+<tool_call>+` in `+content+`, check that its ServingRuntime and model pods are ready and that its tool-call parser matches the model. A timeout or unreachable endpoint is an environment failure, not the parser demonstration.
+If the last row still shows `+qwen3-8b-a+` in the `+endpoint+` column, look at the `+Endpoint:+` line the agent printed. If it doesn't name `+qwen3-8b-b+`, save `+config.toml+`, rerun the step 7 cell, then rerun step 8. Don't change the system prompt again. Step 2 showed the prompt isn't the problem.
 
-The stronger prompt can produce identical text. Confirm the changed system prompt in the saved request; the diagnostic fact is that neither request produced an executable `+tool_calls+` entry. After repointing, require `+find_part+` to return `+KI-CP-40817+`. Repeated calls after that are the loop defect addressed next.
+If endpoint B also leaves `+<tool_call>+` in `+content+`, or a cell times out or can't reach an endpoint, the shared model endpoint has a problem. You can't fix that from your workbench, so ask the lab staff for help.
+
+If the stronger prompt gives exactly the same text as the default, that's expected. Check the `+prompt+` column to confirm the stronger prompt was sent. What matters is that neither run produced a `+tool_calls+` entry the agent could run.
+
+On endpoint B, `+find_part+` should return `+KI-CP-40817+`. If it does, and the agent then calls it again and again, that's the failure module 3 fixes.
 
 ====
