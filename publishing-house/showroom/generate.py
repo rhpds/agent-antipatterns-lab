@@ -46,6 +46,8 @@ def blocks(markdown, name="notebook"):
             continue
         if stripped or current:
             current.append(line)
+        if details and line.startswith(("    ", "\t")) and stripped:
+            raise ValueError(f"{name}: an answer reveal must not contain code")
         if details and stripped.endswith("</details>"):
             details = False
     if current:
@@ -84,6 +86,8 @@ def guide(notebook, name):
                 previous = None
                 continue
             if section == "differs":
+                if block.startswith(("<details", "```")):
+                    raise ValueError(f"{name}: keep reveals and code out of 'If the result differs'")
                 differs.append(block)
             elif block.startswith("```mermaid"):
                 diagrams.append(block)
@@ -115,8 +119,8 @@ def guide(notebook, name):
                   "steps, because it can show the fix.</summary>", "", "\n\n".join(diagrams), "", "</details>", ""]
     if differs:
         # Collapsed too: troubleshooting names the cause of the failure.
-        parts += ["## If the result differs", "", "<details><summary>Open this only if your run doesn't match "
-                  "the notebook. It names the cause.</summary>", "", "\n\n".join(differs), "", "</details>", ""]
+        parts += ["## If the result differs", "", "<details><summary>Open this if your result doesn't match "
+                  "what the notebook expects. It lists likely causes.</summary>", "", "\n\n".join(differs), "", "</details>", ""]
     return "\n".join(parts)
 
 
