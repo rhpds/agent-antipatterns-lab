@@ -98,11 +98,16 @@ spec:
       fractions entirely and keeps the failure domain per-endpoint. Published benchmarks
       show Qwen3-8B sustaining 256 concurrent requests on a single A10G with no dropped
       requests; L40S is materially faster with native FP8, so 30 concurrent participants
-      across three replicas carries substantial headroom.'
+      across three replicas carries substantial headroom. To be confirmed: Red Hat''s
+      validated-models matrix lists L4, A100-40, H100 and H200 for this model, and
+      L40S does not appear in it. Check before the event hardware order is final.'
     non_ga_products: []
-    non_ga_access_plan: 'None needed. The lab has no non-GA dependency, down from three
-      in the rejected version. Removing the guardrails and adversarial-scanning rounds
-      took EvalHub and Garak off the design entirely. MCP Gateway, the last one, left
+    non_ga_access_plan: 'None needed. No non-GA dependency is confirmed, down from three
+      in the rejected version. Tool calling on the serving path is to be confirmed: Red
+      Hat AI Inference 3.5 calls it Developer Preview, and the OpenShift AI path has no
+      support statement of its own. Removing the guardrails and adversarial-scanning
+      rounds took EvalHub and Garak off the design. Both are GA as of OpenShift AI 3.5,
+      so scope, not maturity, keeps them out. MCP Gateway, the last confirmed one, left
       on 2026-11-25 with the module that used it, so Red Hat Connectivity Link is no
       longer installed either. The closing module names governed tool access through
       MCP Gateway as a next step, with no hands-on work and nothing deployed for it.
@@ -111,8 +116,8 @@ spec:
       with the pgvector extension, deployed as a plain Deployment via GitOps and queried
       directly by the retrieval tool. Red Hat OpenShift AI is standardizing on pgvector
       as a remote vector store provider, so the lab shows a participant the direction
-      the platform is going. The RHOAI built-in pgvector provider integration is EA2
-      as of 3.5 and is deliberately not used, because querying Postgres directly needs
+      the platform is going. The RHOAI built-in pgvector provider integration is Technology
+      Preview (since 3.2, still listed in 3.5) and is deliberately not used, because querying Postgres directly needs
       nothing pre-GA and remains forward-compatible with that integration.'
     external_services:
     # Model weights come from Red Hat's ModelCar image on registry.redhat.io;
@@ -264,8 +269,8 @@ approval_checklist:
         langfuse, langflow and workbench. There is no serving-configuration module,
         so it does not teach why a mismatched tool-call parser strands a call in the
         response body, which is this lab''s largest block. It is also 360 minutes
-        against this lab''s 120, and is built on Llama Stack, now renamed OGX and
-        being de-emphasized. Genuine overlap is retrieval, deliberately bounded here
+        against this lab''s 120, and is built on Llama Stack, renamed OGX in
+        OpenShift AI 3.5. Genuine overlap is retrieval, deliberately bounded here
         to one short module. MCP connection is no longer taught here.'
     - title: VLLM Playground
       ci_name: agd-v2.vllm-playground-aws.prod
