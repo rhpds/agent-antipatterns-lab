@@ -12,40 +12,23 @@
     svg.style.height = box.height + 'px';
     svg.dataset.labSized = 'true';
     var diagram = svg.closest('.mermaid');
-    if (diagram.scrollWidth > diagram.clientWidth && !diagram.nextElementSibling?.classList.contains('lab-diagram-hint')) {
+    var next = diagram.nextElementSibling;
+    if (diagram.scrollWidth > diagram.clientWidth && !(next && next.classList.contains('lab-diagram-hint'))) {
       var hint = document.createElement('p');
       hint.className = 'lab-diagram-hint';
-      hint.textContent = 'Scroll sideways, or click the diagram to see it full screen.';
+      hint.textContent = 'Scroll sideways to see the whole diagram.';
       diagram.after(hint);
     }
   }
-  function sizeAll() {
+  var observer = new MutationObserver(function () {
+    var diagrams = document.querySelectorAll('.doc .mermaid');
     document.querySelectorAll('.doc .mermaid svg').forEach(naturalSize);
-  }
-  new MutationObserver(sizeAll).observe(document.documentElement, { childList: true, subtree: true });
-  sizeAll();
-
-  // Click a diagram to see it full screen; click again or press Escape to close.
-  function close() {
-    var open = document.querySelector('.lab-diagram-overlay');
-    if (open) open.remove();
-  }
-  document.addEventListener('click', function (event) {
-    if (event.target.closest('.lab-diagram-overlay')) { close(); return; }
-    var diagram = event.target.closest('.doc .mermaid');
-    var svg = diagram && diagram.querySelector('svg');
-    if (!svg) return;
-    var overlay = document.createElement('div');
-    overlay.className = 'lab-diagram-overlay';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-label', 'Diagram, full screen. Click or press Escape to close.');
-    var copy = svg.cloneNode(true);
-    copy.style.width = '';
-    copy.style.height = '';
-    overlay.appendChild(copy);
-    document.body.appendChild(overlay);
+    // Stop watching once every diagram on the page has been sized.
+    if (document.querySelectorAll('.doc .mermaid svg[data-lab-sized]').length === diagrams.length) {
+      observer.disconnect();
+    }
   });
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') close();
-  });
+  if (document.querySelector('.doc .mermaid')) {
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
 })();

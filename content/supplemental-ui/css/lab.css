@@ -8,34 +8,15 @@
 }
 
 /* Diagrams keep their natural size in the narrow instructions pane and scroll
-   sideways, instead of shrinking until the text can't be read. Click one to
-   see it full screen. */
+   sideways, instead of shrinking until the text can't be read. */
 .doc .mermaid {
   display: block;
   width: 100%;
   overflow-x: auto;
-  cursor: zoom-in;
 }
 .doc .mermaid svg {
   /* lab.js sets the natural width once Mermaid has drawn the diagram. */
   max-width: none !important;
-}
-.lab-diagram-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  overflow: auto;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.98);
-  cursor: zoom-out;
-}
-.lab-diagram-overlay svg {
-  display: block;
-  margin: 0 auto;
-  width: 100% !important;
-  max-width: none !important;
-  height: auto;
-  max-height: calc(100vh - 3rem);
 }
 .doc .lab-diagram-hint {
   margin-top: 0.25rem;

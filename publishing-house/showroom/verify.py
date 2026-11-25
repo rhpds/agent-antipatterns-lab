@@ -30,7 +30,8 @@ def main():
         # Every code cell is labelled as a notebook cell, so nobody types it into the terminal tab.
         for code in article.select("code.language-python"):
             block = code.find_parent(class_="listingblock")
-            assert block and "notebook-cell" in block["class"] and block.select_one(".title"), \
+            assert block and "notebook-cell" in block["class"] and block.select_one(".title") \
+                and block.select_one(".title").get_text().startswith("Notebook cell"), \
                 f"{source.name}: a code cell is not labelled as a notebook cell"
         markdown = "\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "markdown")
         assert len(article.select(".mermaid")) == markdown.count("```mermaid"), f"{source.name}: missing diagrams"
