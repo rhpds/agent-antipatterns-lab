@@ -41,7 +41,7 @@ flowchart LR
 |A JupyterLab container in your project. The notebooks and your copy of the agent's code live here, and the agent runs here.
 
 |Model serving with vLLM
-|Two endpoints serve the same model, Qwen3-8B, on the cluster's GPUs. vLLM is the open-source inference server behind each one. The agent's `config.toml` says which endpoint it calls, and module 2 compares the two.
+|Two vLLM endpoints serve the same model, Qwen3-8B, on the cluster's GPUs. The agent's `config.toml` says which endpoint it calls, and module 2 compares the two.
 
 |MLflow
 |Records a trace of every agent run in your own workspace, so you can see each request to the model and each tool call. Module 7 also records a regression baseline there.
