@@ -38,13 +38,13 @@ def test_unreachable_tracking_server_does_not_break_the_agent(work):
     assert summary["turns"] == 1
 
 
-def test_regression_records_named_baseline_in_mlflow(work, tmp_path):
+def test_regression_records_named_run_in_mlflow(work, tmp_path):
     mlflow = pytest.importorskip("mlflow")
     uri = f"sqlite:///{tmp_path}/mlflow.db"
     work.repoint_to_validated()
-    out = work.run("regression.py", "--name", "my-baseline", env={"MLFLOW_TRACKING_URI": uri}).stdout
-    assert "Recorded MLflow run 'my-baseline'" in out
+    out = work.run("regression.py", "--name", "my-run", env={"MLFLOW_TRACKING_URI": uri}).stdout
+    assert "Recorded MLflow run 'my-run'" in out
     mlflow.set_tracking_uri(uri)
     runs = mlflow.search_runs(experiment_names=["kestrel-agent"], output_format="list")
-    assert [r.info.run_name for r in runs] == ["my-baseline"]
-    assert runs[0].data.metrics["skipped"] == 3
+    assert [r.info.run_name for r in runs] == ["my-run"]
+    assert runs[0].data.metrics["skipped"] == 2

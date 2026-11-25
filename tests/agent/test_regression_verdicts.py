@@ -1,4 +1,4 @@
-"""Challenge module 7's verdicts with plausible but incorrect run records."""
+"""Challenge the closing module's verdicts with plausible but incorrect run records."""
 import runpy
 
 import pytest
@@ -35,8 +35,6 @@ def record(*calls, offered=(), answer=""):
                         offered=["search_bulletins"], answer="Replace the temperature sensor.")),
     ("check_m5_miss", record(call("find_part", {"results": []}, category="no_results"),
                              offered=["search_bulletins"])),
-    ("check_m6", record(call("estimate_delivery", category="bad_request"), offered=["estimate_delivery"])),
-    ("check_m6", record(call("estimate_delivery", {"transit_days": 9}), offered=["estimate_delivery"])),
 ])
 def test_regression_rejects_evidence_that_does_not_prove_the_case(checks, case, summary):
     """Scenario: The regression run checks every earlier case against the assembled agent"""
@@ -44,7 +42,7 @@ def test_regression_rejects_evidence_that_does_not_prove_the_case(checks, case, 
     assert verdict == "FAIL", reason
 
 
-def test_valid_local_and_gateway_tool_results_remain_accepted(checks):
+def test_valid_tool_results_are_accepted_with_or_without_a_name_prefix(checks):
     """Scenario: The regression run checks every earlier case against the assembled agent"""
     for prefix in ("", "kestrel_"):
         part = call(prefix + "find_part", {"results": [{"part_number": "KI-CP-40817"}]})
@@ -56,8 +54,6 @@ def test_valid_local_and_gateway_tool_results_remain_accepted(checks):
                                          offered=[prefix + "search_bulletins"], answer="See SB-2024-102."), 6)[0] == "PASS"
         assert checks["check_m5_miss"](record(call(prefix + "search_bulletins", {"passages": []}, category="no_results"),
                                               offered=[prefix + "search_bulletins"]), 6)[0] == "PASS"
-        assert checks["check_m6"](record(call(prefix + "estimate_delivery", {"origin_depot": "Denver", "destination": "Boulder", "transit_days": 1}),
-                                         offered=[prefix + "estimate_delivery"]), 6)[0] == "PASS"
 
 
 def test_a_categorized_error_cannot_hide_a_confident_out_of_stock_answer(checks):

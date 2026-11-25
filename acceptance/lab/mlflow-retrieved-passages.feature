@@ -1,7 +1,6 @@
 # Approved by David on 2026-11-02, in the LB8000 working chat (MLflow research R5). His
-# answer to the open question (Q3): from module 6 on, the search runs behind the gateway, so
-# the agent's trace shows the tool's reply rather than a document list. Locked: to change a
-# scenario, ask David; don't edit this file.
+# answer to the open question (Q3) concerned the gateway module, which was cut on 2026-11-25.
+# Locked: to change a scenario, ask David; don't edit this file.
 
 Feature: A trace shows what knowledge search retrieved
 

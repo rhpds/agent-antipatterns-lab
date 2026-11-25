@@ -9,8 +9,8 @@ only hold what the lab supplied (a solution, or module 2's repoint) aren't copie
 A module's starting state is the starter code, plus each earlier module's fix:
   module 2's repoint of config.toml to the validated endpoint (modules 3 and later),
   and solutions/module-NN for every earlier module that has one.
-Module 6's gateway change has no supplied solution, so module 7 starts from module
-6's starting state.
+Module 6, the closing module, starts from module 5's end state: every fix from modules
+2 to 5.
 """
 import argparse
 import datetime
@@ -26,7 +26,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 # The tests override these to point at their mock endpoints.
 MISMATCHED = os.environ.get("LAB_MISMATCHED_URL", "http://qwen3-8b-a-predictor.llm-serving.svc:8080/v1")
 VALIDATED = os.environ.get("LAB_VALIDATED_URL", "http://qwen3-8b-b-predictor.llm-serving.svc:8080/v1")
-MODULES = range(1, 8)
+MODULES = range(1, 7)
 
 
 def git(*args):
@@ -114,7 +114,7 @@ def reset(module):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Reset the agent to the state a module starts from.")
-    parser.add_argument("module", type=int, choices=MODULES, help="the module to start (1-7)")
+    parser.add_argument("module", type=int, choices=MODULES, help="the module to start (1-6)")
     args = parser.parse_args(argv)
     try:
         changed, backup, steps = reset(args.module)

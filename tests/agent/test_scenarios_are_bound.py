@@ -55,3 +55,25 @@ def test_the_guard_catches_an_unbound_scenario(tmp_path):
     (tmp_path / "x.feature").write_text("Feature: f\n\n  Scenario: Bound one\n    Given a\n\n  Scenario: Loose one\n\n  Scenario: Bound\n")
     (tmp_path / "test_x.py").write_text('def test_a():\n    """Scenario: Bound one"""\n\ndef helper():\n    """Scenario: Loose one"""\n')
     assert unbound(tmp_path, tmp_path) == ["x.feature: Loose one", "x.feature: Bound"]
+
+
+def stale(feature_dir, tests_dir):
+    """Named scenarios no feature file has. A binding may add the clause it checks in
+    parentheses after the title, as in "Scenario: <title> (the link opens ...)"."""
+    titles = {f"Scenario: {title}" for title in scenario_titles(feature_dir)}
+    return sorted(name for name in named_scenarios(tests_dir)
+                  if name not in titles and re.sub(r"\s*\(.*\)$", "", name) not in titles)
+
+
+def test_every_named_scenario_is_still_approved():
+    """A test can't keep naming a scenario that was retired or renamed: its binding would
+    claim coverage of a promise the lab no longer makes."""
+    leftover = stale(REPO / "acceptance", REPO / "tests")
+    assert not leftover, "tests name scenarios no .feature file has:\n  " + "\n  ".join(leftover)
+
+
+def test_the_guard_catches_a_retired_scenario(tmp_path):
+    """The reverse check works: a test naming a scenario that no feature file has is flagged."""
+    (tmp_path / "x.feature").write_text("Feature: f\n\n  Scenario: Kept\n")
+    (tmp_path / "test_x.py").write_text('def test_a():\n    """Scenario: Kept (one clause)"""\n\ndef test_b():\n    """Scenario: Retired"""\n')
+    assert stale(tmp_path, tmp_path) == ["Scenario: Retired"]

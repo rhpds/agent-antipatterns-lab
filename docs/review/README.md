@@ -1,6 +1,8 @@
-# Modules 2–7 review
+# Modules 2–6 review
 
 Review the modules in order, beginning with [module 2](module-02.md). Each checklist identifies the intended starting failure, the supplied fix, observable success and the remaining human judgment. The notebooks remain the source of the matching Showroom pages.
+
+**Scope change, 2026-11-25.** The MCP Gateway module, formerly module 6, is cut. The former module 7 is now module 6, a short closing module with five regression cases. The recorded evidence below predates the cut: it covers seven modules, six regression cases and the gateway. The new module 6 hasn't been executed on a live workshop yet.
 
 The review implementation is `5e9341173370f6be15f9b50196246e1e474998e4`. All six modules have passing notebook checks for both participants: **12 accepted executions, 98 original code cells**, and two recorded module 7 evaluations with **6 PASS, 0 FAIL, 0 SKIP** each. Human content review remains open.
 
@@ -12,8 +14,7 @@ The review implementation is `5e9341173370f6be15f9b50196246e1e474998e4`. All six
 | 3 | [Agent loop](module-03.md) | Repeated starting loop, matched tool messages and dependent stock lookup |
 | 4 | [Tool returns](module-04.md) | Failed check versus actual empty stock, in both tool result and answer |
 | 5 | [Knowledge search](module-05.md) | Unsupported starting claim, cited bulletin and explicit search miss |
-| 6 | [Platform tool access](module-06.md) | Matching pump facts through the gateway, independent delivery registration |
-| 7 | [Verification](module-07.md) | Six passing cases, zero skips and matching recorded MLflow evidence |
+| 6 | [Running it for real](module-06.md) | Five passing cases with their reasons, zero skips, and the checklist's next-step row |
 
 [Acceptance coverage audit](coverage.md) maps every approved scenario to its assertions and test definitions. The amended stronger-prompt scenario was approved before its test binding changed; identical model wording is acceptable when the stronger request is recorded and tools still do not execute.
 
@@ -29,7 +30,7 @@ The fixed checks inspect known fixture facts and selected answer markers. They d
 
 ## Read the rendered lessons
 
-Download the `showroom-preview` artifact from the successful `showroom-docs` check on [review PR #98](https://github.com/rhpds/agent-antipatterns-lab/pull/98). Open `modules/module-02-model-interface.html` through `modules/module-07-running-it-for-real.html`. The preview contains instructions and code without executing them. The local portable review package also includes HTML views of the executed notebooks, their original files and the evidence index so review does not require a running cluster. CI preview artifacts contain rendered instructions, not those live executions.
+Download the `showroom-preview` artifact from the successful `showroom-docs` check on [review PR #98](https://github.com/rhpds/agent-antipatterns-lab/pull/98). Open `modules/module-02-model-interface.html` through `modules/module-06-running-it-for-real.html`. The preview contains instructions and code without executing them. The local portable review package also includes HTML views of the executed notebooks, their original files and the evidence index so review does not require a running cluster. CI preview artifacts contain rendered instructions, not those live executions.
 
 The existing temporary Showroom still follows `test`; this review branch is not published there until it is reviewed and promoted. A CI preview, a live notebook execution and a published Showroom are different artifacts.
 

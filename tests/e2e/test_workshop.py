@@ -77,37 +77,36 @@ def test_readiness_means_participants_can_begin_the_lab(workshop, slot):
     pod = json.loads(oc(workshop, "get", "pod", "kestrel-agent-0", "-n", namespace, "-o", "json"))
     assert any(c["type"] == "Ready" and c["status"] == "True" for c in pod["status"]["conditions"])
     assert oc(workshop, "auth", "can-i", "get", "notebooks", "--as", participant, "-n", namespace).strip() == "yes"
-    assert remote(workshop, participant, "readiness")["services"] == ["models", "pgvector", "mlflow", "gateway"]
+    assert remote(workshop, participant, "readiness")["services"] == ["models", "pgvector", "mlflow"]
 
 
-@pytest.mark.parametrize("module", range(1, 8), ids=lambda n: f"module-{n:02d}")
+@pytest.mark.parametrize("module", range(1, 7), ids=lambda n: f"module-{n:02d}")
 @pytest.mark.parametrize("slot", [0, 1])
 def test_every_module_works_through_the_participant_instructions(workshop, slot, module, record_property):
     """Scenario: Every module works through the participant instructions"""
     participant = workshop["participants"][slot]
-    if module == 6:
-        before = remote(workshop, participant, "catalog")
-        assert not any(n.endswith("estimate_delivery") for n in before["tools"]), "Use fresh participants for end-to-end acceptance"
     evidence = remote(workshop, participant, "module", module, record_property=record_property)
     assert evidence["module"] == module
     assert evidence["code_cells"] > 0
     assert evidence["executed_cells"] == evidence["code_cells"]
     assert evidence["commit"] == workshop["commit"]
-    if module == 7:
-        assert evidence["regression"] == {"PASS": 6, "FAIL": 0, "SKIP": 0}
     if module == 6:
-        own = remote(workshop, participant, "catalog")
-        assert any(n.endswith("estimate_delivery") for n in own["tools"])
-        if slot == 0:
-            other = remote(workshop, workshop["participants"][1], "catalog")
-            assert not any(n.endswith("estimate_delivery") for n in other["tools"])
+        assert evidence["regression"] == {"PASS": 5, "FAIL": 0, "SKIP": 0}
         workshop["isolation"][participant] = True
 
 
 def test_participants_complete_the_lab_independently(workshop):
     """Scenario: Participants complete the lab independently"""
     assert len(set(workshop["participants"])) == 2
-    assert set(workshop["isolation"]) == set(workshop["participants"]), "Both module 6 isolation sequences must pass"
+    assert set(workshop["isolation"]) == set(workshop["participants"]), "Both participants must complete module 6"
+    # Each participant reaches only their own workbench. The lab has had no MCP Gateway, and so
+    # no tool registrations to keep apart, since the 2026-11-25 scope cut.
+    first, second = workshop["participants"]
+    for user, other in ((first, second), (second, first)):
+        # can-i exits non-zero when the answer is no, so read its answer rather than its status.
+        denied = command(["oc", "--kubeconfig", workshop["kubeconfig"], "--request-timeout=20s", "auth", "can-i",
+                          "get", "notebooks", "--as", user, "-n", other + "-app"])
+        assert denied.stdout.strip() == "no", f"{user} can reach {other}'s workbench"
 
 
 def test_each_module_is_ready_for_david_to_review(workshop):
@@ -116,7 +115,7 @@ def test_each_module_is_ready_for_david_to_review(workshop):
     assert generated.returncode == 0, generated.stdout + generated.stderr
     rendered = command([sys.executable, "publishing-house/showroom/verify.py", "--source-ref", workshop["commit"]], cwd=ROOT)
     assert rendered.returncode == 0, rendered.stdout + rendered.stderr
-    assert len(list((ROOT / "www/modules").glob("module-*.html"))) == 7
+    assert len(list((ROOT / "www/modules").glob("module-*.html"))) == 6
 
 
 def test_the_reviewed_release_is_the_release_promoted(workshop):

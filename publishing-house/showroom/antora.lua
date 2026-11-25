@@ -38,8 +38,22 @@ function Blocks(blocks)
   return result
 end
 
+-- A web page outside the lab would replace the guide, and a workbench file should open
+-- beside the Notebook tab, so links open in a new tab. The text keeps its inline markup (code
+-- spans). Asciidoctor reads a quoted code span as curly quotes, so quote the text only
+-- when a comma, equals sign or double quote would otherwise be read as link attributes.
+local function new_tab(target, content)
+  local text = pandoc.write(pandoc.Pandoc({pandoc.Plain(content)}), 'asciidoc')
+  text = text:gsub('%s+$', ''):gsub(']', '\\]')
+  if text:find('[,="]') then
+    return pandoc.RawInline('asciidoc', target .. '["' .. text:gsub('"', '\\"') .. '",window=_blank]')
+  end
+  return pandoc.RawInline('asciidoc', target .. '[' .. text .. '^]')
+end
+
 function Link(link)
   local target = link.target
+  if target:match('^https?://') then return new_tab('link:' .. target, link.content) end
   if target:match('^%a[%w+.-]*:') or target:match('^#') or target:match('^//') then return end
   if target:match('^module%-%d[^/]*%.ipynb$') then
     return pandoc.RawInline('asciidoc', 'xref:' .. target:gsub('%.ipynb$', '.adoc') ..
@@ -55,15 +69,5 @@ function Link(link)
       table.insert(parts, part)
     end
   end
-  -- These open in a new tab, so the guide stays beside the Notebook tab.
-  -- The text keeps its inline markup (code spans). Asciidoctor reads a quoted
-  -- code span as curly quotes, so quote the text only when a comma, equals sign
-  -- or double quote would otherwise be read as link attributes.
-  local text = pandoc.write(pandoc.Pandoc({pandoc.Plain(link.content)}), 'asciidoc')
-  text = text:gsub('%s+$', ''):gsub(']', '\\]')
-  local target = 'link:{lab-workbench-url}/' .. table.concat(parts, '/')
-  if text:find('[,="]') then
-    return pandoc.RawInline('asciidoc', target .. '["' .. text:gsub('"', '\\"') .. '",window=_blank]')
-  end
-  return pandoc.RawInline('asciidoc', target .. '[' .. text .. '^]')
+  return new_tab('link:{lab-workbench-url}/' .. table.concat(parts, '/'), link.content)
 end

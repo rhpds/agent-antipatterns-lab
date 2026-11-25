@@ -54,6 +54,8 @@ def main():
         text = article.get_text(" ")
         questions = len(re.findall(r"^\*\*Your read:\*\*", markdown, re.MULTILINE))
         assert text.count("Your read:") == questions, f"{source.name}: questions differ from the notebook"
+        if "## Where to go next" in markdown:
+            assert article.find(id="_where_to_go_next"), f"{source.name}: no 'Where to go next'"
         if "**This is the module's success signal:**" in markdown:
             assert article.find(id="_how_you_know_it_worked"), f"{source.name}: no 'How you know it worked'"
         expected_url = f"{workbench}/notebooks/{source.name}"
@@ -64,12 +66,13 @@ def main():
             href = link["href"]
             assert "{" not in href and not href.startswith("../"), f"{source.name}: unresolved link {href}"
             assert "github.com/rhpds/agent-antipatterns-lab" not in href, f"{source.name}: {href} still points to GitHub"
+            if href.startswith(("http://", "https://")):
+                # A workbench file opens beside the Notebook tab, and any other site would replace the guide.
+                assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
             if href.startswith(workbench):
                 # Each file link opens a file that exists in the lab folder.
                 path = href[len(workbench) + 1:]
                 assert (ROOT / path).exists(), f"{source.name}: {href} names a file the lab doesn't have"
-                # A new tab keeps the guide beside the Notebook tab.
-                assert link.get("target") == "_blank", f"{source.name}: {href} would open inside Showroom"
         # A repository link written as a code span must still render as code.
         code_named = set(re.findall(r"\[`([^`]+)`\]\((?!https?:)[^)]+\)", markdown))
         for link in article.select("a[href]"):
@@ -79,8 +82,8 @@ def main():
         assert "Prototype notebook." not in article.get_text(), f"{source.name}: draft label on the guide"
         count += 1
         print(f"Verified {source.name}: {len(steps)} steps, {len(article.select('.mermaid'))} diagrams")
-    assert count == 7, f"Expected seven modules, found {count}"
-    print("All seven module guides match their notebooks' steps, questions, diagrams and workbench links.")
+    assert count == 6, f"Expected six modules, found {count}"
+    print("All six module guides match their notebooks' steps, questions, diagrams and workbench links.")
 
 
 if __name__ == "__main__":

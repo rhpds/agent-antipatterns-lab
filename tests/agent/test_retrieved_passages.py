@@ -3,11 +3,11 @@
 search_bulletins records a RETRIEVER span under its tool span. Its output is the passages
 the agent received, as MLflow documents, each labelled with its bulletin (doc_uri), which
 the trace view shows as retrieved documents. The pgvector fixtures come from
-test_knowledge_and_gateway.
+test_knowledge_and_regression.
 """
 import pytest
 
-from test_knowledge_and_gateway import ingested, pg  # noqa: F401  (pytest fixtures)
+from test_knowledge_and_regression import ingested, pg  # noqa: F401  (pytest fixtures)
 
 
 def retriever_spans(uri, question_tag):

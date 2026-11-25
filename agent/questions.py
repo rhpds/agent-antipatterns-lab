@@ -13,6 +13,4 @@ QUESTIONS = {
     "m5": "A K-400 is showing fault F-21. What should the technician do?",
     # Module 5: no K-900 exists, so there is nothing to find
     "m5-miss": "What's the service interval on a Kestrel K-900?",
-    # Module 6: needs estimate_delivery, which is added at the gateway
-    "m6": "If we ship that pump from Denver to the customer site in Boulder, when does it arrive?",
 }

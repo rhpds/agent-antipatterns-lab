@@ -66,14 +66,15 @@ NEXT = re.compile(r"^Proceed to Module \d+: ")
 def guide(notebook, name):
     """The module's Showroom guide, as Markdown: what the module covers, its steps, the
     questions with their answers, how you know you're done, its diagrams and what to do if
-    the result differs. Everything comes from the notebook; no code is copied."""
+    the result differs, with any "Where to go next" before it. Everything comes from the
+    notebook; no code is copied."""
     cells = ["".join(c.source) if isinstance(c.source, list) else c.source
              for c in notebook.cells if c.cell_type == "markdown"]
     if not cells or not cells[0].startswith("# "):
         raise ValueError(f"{name}: the first cell must start with a level-one Markdown heading")
     title, _, opening = cells[0].partition("\n")
     intro = [b for b in blocks(opening, name) if not b.startswith(">")]
-    steps, questions, success, diagrams, differs = [], [], [], [], []
+    steps, questions, success, diagrams, differs, onward = [], [], [], [], [], []
     section, previous = None, None
     for cell in cells[1:]:
         for block in blocks(cell, name):
@@ -82,18 +83,21 @@ def guide(notebook, name):
                 continue
             if block.startswith("## "):
                 step = STEP.match(block.splitlines()[0])
-                section = "differs" if block.startswith("## If the result differs") else "step" if step else None
+                section = ("differs" if block.startswith("## If the result differs")
+                           else "next" if block.startswith("## Where to go next")
+                           else "step" if step else None)
                 if step:
                     steps.append(step.group(2).strip())
                 rest = block.split("\n", 1)[1].strip() if "\n" in block else ""
-                if section == "differs" and rest:
-                    differs.append(rest)
+                if section in ("differs", "next") and rest:
+                    (differs if section == "differs" else onward).append(rest)
                 previous = None
                 continue
-            if section == "differs":
+            if section in ("differs", "next"):
                 if block.startswith(("<details", "```")):
-                    raise ValueError(f"{name}: keep reveals and code out of 'If the result differs'")
-                differs.append(block)
+                    heading = "If the result differs" if section == "differs" else "Where to go next"
+                    raise ValueError(f"{name}: keep reveals and code out of '{heading}'")
+                (differs if section == "differs" else onward).append(block)
             elif block.startswith("```mermaid"):
                 diagrams.append(block)
             elif block.startswith(QUESTION):
@@ -122,6 +126,8 @@ def guide(notebook, name):
         what = "the module's diagram" if len(diagrams) == 1 else f"the module's {len(diagrams)} diagrams"
         parts += ["## Diagrams", "", f"<details><summary>Show {what}. Open it after you've worked through the "
                   "steps, because it can show the fix.</summary>", "", "\n\n".join(diagrams), "", "</details>", ""]
+    if onward:
+        parts += ["## Where to go next", "", "\n\n".join(onward), ""]
     if differs:
         # Collapsed too: troubleshooting lists likely causes of the failure.
         parts += ["## If the result differs", "", "<details><summary>Open this if your result doesn't match "
