@@ -11,6 +11,13 @@
     svg.style.width = box.width + 'px';
     svg.style.height = box.height + 'px';
     svg.dataset.labSized = 'true';
+    var diagram = svg.closest('.mermaid');
+    if (diagram.scrollWidth > diagram.clientWidth && !diagram.nextElementSibling?.classList.contains('lab-diagram-hint')) {
+      var hint = document.createElement('p');
+      hint.className = 'lab-diagram-hint';
+      hint.textContent = 'Scroll sideways, or click the diagram to see it full screen.';
+      diagram.after(hint);
+    }
   }
   function sizeAll() {
     document.querySelectorAll('.doc .mermaid svg').forEach(naturalSize);

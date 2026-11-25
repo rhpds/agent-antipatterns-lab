@@ -37,3 +37,8 @@
   height: auto;
   max-height: calc(100vh - 3rem);
 }
+.doc .lab-diagram-hint {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #6a6e73;
+}
