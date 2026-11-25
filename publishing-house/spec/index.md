@@ -8,5 +8,4 @@ Welcome to the project spec. Use the navigation to browse the design and module 
 - [Module 3 - Agent Loop](modules/module-03-agent-loop.md)
 - [Module 4 - Tool Returns](modules/module-04-tool-returns.md)
 - [Module 5 - Knowledge Search](modules/module-05-knowledge-search.md)
-- [Module 6 - Platform Tool Access](modules/module-06-platform-tool-access.md)
-- [Module 7 - Running It For Real](modules/module-07-running-it-for-real.md)
+- [Module 6 - Running It For Real](modules/module-06-running-it-for-real.md)
