@@ -15,7 +15,7 @@ NOTE: You work through this module in its notebook, `notebooks/module-01-what-yo
 
 You run the prototype agent once and look inside it in two ways: the raw request and response of each model call, and the run's trace in MLflow. Every later module uses these two kinds of evidence.
 
-Some cells end with a *Your read:* question. Think it through before you go on. There's nothing to type or hand in, and the answer is in a collapsed block right under the question.
+Some cells end with a question to think through before you go on. There's nothing to type or hand in, and the answer is in a collapsed block right under the question.
 
 == What you'll do in the notebook
 
@@ -40,7 +40,7 @@ No, it looked nothing up. `+tool_calls (call 1)+` is `+null+` or `+[]+`, which m
 
 == How you know it worked
 
-The text the model wrote, `+content+`, appears in two places, the saved payload and the `+model_call_1+` outputs in the MLflow trace, and it's the same in both.
+The text the model wrote, `+content+`, appears in two places: the saved payload and the `+model_call_1+` outputs in the MLflow trace. It's the same in both.
 
 == Diagrams
 
@@ -55,7 +55,7 @@ flowchart LR
   A -- "question and tool list" --> M["Model: qwen3-8b-a on vLLM"]
   M -- "an answer, or a tool_calls request" --> A
   A -- "runs the requested tool" --> T["tools.py: find_part, check_stock"]
-  T -- "result, sent back to the model" --> A
+  T -- "result" --> A
   A --> ANS["The answer it prints"]
   A -. "payloads" .-> R["agent/runs/"]
   A -. "one trace per run" .-> F["MLflow"]
@@ -76,6 +76,6 @@ If the agent cell ends in an error instead of an answer, such as a timeout or a 
 
 If the agent printed "No trace recorded: MLflow couldn't be reached", your payloads are still saved, so steps 2 and 3 still work, but the trace link says "not available yet". Run the agent cell again to get a trace.
 
-The table, the `+content+` cell and the trace link only show runs made since the notebook's kernel started. If you restarted the kernel or reopened the notebook, they say "No runs in this notebook yet", "No runs yet" or "not available yet", even though your earlier run is saved. Run the agent cell again, then the cells after it.
+The table, the `+content+` cell and the trace link only show runs made since the notebook's kernel started. If you restarted the kernel, or the workbench restarted, they say "No runs in this notebook yet", "No runs yet" or "not available yet", even though your earlier run is saved. Run the first code cell again, then the agent cell and the cells after it.
 
 ====
