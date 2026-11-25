@@ -182,7 +182,7 @@ def main(argv=None):
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     RUNS_DIR.mkdir(exist_ok=True)
     report = RUNS_DIR / f"regression-{stamp}.md"
-    lines = [f"# Regression run {stamp}", "", f"Endpoint: {config['model']['base_url']}", "",
+    lines = [f"# Regression run {stamp}", "", f"Endpoint: {config['model']['base_url'].split('://', 1)[-1]} (inside the cluster)", "",
              "| Case | Check | Result | Evidence |", "|---|---|---|---|"]
     lines += [f"| {k} | {t} | {s} | {r} |" for k, t, s, r in rows]
     report.write_text("\n".join(lines) + "\n\n" + CHECKLIST)
